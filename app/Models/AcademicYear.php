@@ -8,8 +8,5 @@ use Illuminate\Database\Eloquent\Model;
 class AcademicYear extends Model
 {
     use HasFactory;
-    protected $fillable = ['year', 'semester_id'];
-    public function semester() {
-        return $this->belongsTo(Semester::class);
-    }
+    protected $fillable = ['year'];
 }

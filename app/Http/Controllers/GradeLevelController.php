@@ -40,7 +40,6 @@ class GradeLevelController extends Controller
 
         return redirect()->route('grade_levels.index')->with('success', 'Thêm khối thành công!');
     }
-
     /**
      * Display the specified resource.
      */

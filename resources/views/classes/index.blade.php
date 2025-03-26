@@ -98,9 +98,9 @@
     </style>
 
     <div class="container">
-        <h2>Danh sách Khối</h2>
+        <h2>Danh sách Lớp học</h2>
         <div class="button-container">
-            <a href="{{ route('grade_levels.create') }}" class="btn-add">
+            <a href="{{ route('classes.create') }}" class="btn-add">
                 <i class="fas fa-plus-circle"></i> Thêm mới
             </a>
         </div>
@@ -110,23 +110,27 @@
                 <thead>
                 <tr>
                     <th>STT</th>
+                    <th>Tên Lớp</th>
                     <th>Khối</th>
+                    <th>Năm Học</th>
                     <th>Hành động</th>
                 </tr>
                 </thead>
                 <tbody>
-                @foreach ($grades as $index => $grade)
+                @foreach ($classes as $index => $class)
                     <tr>
                         <td>{{ $index + 1 }}</td>
-                        <td>{{ $grade->grade_number }}</td>
+                        <td>{{ $class->name }}</td>
+                        <td>{{ $class->gradeLevel->grade_number }}</td>
+                        <td>{{ $class->academicYear->year }}</td>
                         <td class="action-icons">
-                            <a href="{{ route('grade_levels.show', $grade->id) }}" title="Xem">
+                            <a href="{{ route('classes.show', $class->id) }}" title="Xem">
                                 <i class="far fa-eye"></i>
                             </a>
-                            <a href="{{ route('grade_levels.edit', $grade->id) }}" title="Sửa">
+                            <a href="{{ route('classes.edit', $class->id) }}" title="Sửa">
                                 <i class="far fa-edit"></i>
                             </a>
-                            <form action="{{ route('grade_levels.destroy', $grade->id) }}" method="POST" style="display:inline;">
+                            <form action="{{ route('classes.destroy', $class->id) }}" method="POST" style="display:inline;">
                                 @csrf
                                 @method('DELETE')
                                 <button type="submit" title="Xóa" onclick="return confirm('Bạn có chắc chắn muốn xóa?');">
