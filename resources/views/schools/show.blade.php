@@ -12,10 +12,10 @@
     </style>
     <div class="container">
         <div class="d-flex align-items-center mb-4">
-            <a href="{{ route('schools.index') }}" class="btn btn-back me-3" title="Quay lại">
+            <a href="{{ route('schools.index') }}" class="btn btn-back me-3" style = "color:#013066" title="Quay lại">
                 <i class="fas fa-arrow-left"></i>
             </a>
-            <h4 class="mb-0"> Xem thông tin trường học</h4>
+            <h4 class="mb-0" style = "color:#013066"> Xem thông tin trường học</h4>
         </div>
         <div class="card-body">
             <div class="row mb-4">
@@ -49,7 +49,7 @@
             </div>
             <div class="mt-3 d-flex justify-content-end">
                 <a href="{{ route('schools.index', $school->id) }}" class="btn fw-bold"
-                   style="background-color: #E15336; border-color: #E15336; color: #fff; width: 90px"> Đóng
+                   style="background-color: #013066; border-color: #013066; color: #fff; width: 90px"> Đóng
                 </a>
             </div>
         </div>

@@ -2,16 +2,136 @@
 
 @section('content')
     <div class="container">
-        <h2>Thêm khối mới</h2>
-        <form action="{{ route('grade_levels.store') }}" method="POST">
-            @csrf
-            <div class="mb-3">
-                <label for="grade_number" class="form-label">Nhập số khối:</label>
-                <input type="number" name="grade_number" class="form-control" required>
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Thêm Khối Học Mới</h3>
+                        <div class="card-tools">
+                            <a href="{{ route('grade_levels.index') }}" class="btn btn-sm btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Quay lại
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="card-body">
+                        <form method="POST" action="{{ route('grade_levels.store') }}" id="gradeLevelForm">
+                            @csrf
+
+                            <div class="form-group row">
+                                <label for="school_id" class="col-md-4 col-form-label text-md-right">Trường học</label>
+                                <div class="col-md-6">
+                                    <select id="school_id" name="school_id" class="form-control @error('school_id') is-invalid @enderror" required>
+                                        <option value="">-- Chọn trường --</option>
+                                        @foreach($schools as $school)
+                                            <option value="{{ $school->id }}" {{ old('school_id') == $school->id ? 'selected' : '' }}>
+                                                {{ $school->name }} ({{ $school->education_level == 'primary' ? 'Tiểu học' : ($school->education_level == 'secondary' ? 'THCS' : 'THPT') }})
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                    @error('school_id')
+                                    <span class="invalid-feedback" role="alert">
+                                        <strong>{{ $message }}</strong>
+                                    </span>
+                                    @enderror
+                                </div>
+                            </div>
+
+                            <div class="form-group row">
+                                <label for="grade_number" class="col-md-4 col-form-label text-md-right">Khối học</label>
+                                <div class="col-md-6">
+                                    <input type="number" id="grade_number" name="grade_number"
+                                           class="form-control @error('grade_number') is-invalid @enderror"
+                                           value="{{ old('grade_number') }}"
+                                           min="1" max="12"
+                                           required>
+
+                                    @error('grade_number')
+                                    <span class="invalid-feedback" role="alert">
+                <strong>{{ $message }}</strong>
+            </span>
+                                    @enderror
+
+                                    <small class="form-text text-muted">
+                                        @if(old('school_id'))
+                                            @php
+                                                $school = $schools->firstWhere('id', old('school_id'));
+                                                echo $school ? match($school->education_level) {
+                                                    'primary' => 'Nhập khối từ 1 đến 5',
+                                                    'secondary' => 'Nhập khối từ 6 đến 9',
+                                                    'high' => 'Nhập khối từ 10 đến 12',
+                                                } : 'Vui lòng chọn trường trước';
+                                            @endphp
+                                        @else
+                                            Vui lòng chọn trường trước
+                                        @endif
+                                    </small>
+                                </div>
+                            </div>
+                            <div class="form-group row mb-0">
+                                <div class="col-md-6 offset-md-4">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-save"></i> Lưu Khối Học
+                                    </button>
+                                    <button type="reset" class="btn btn-outline-secondary">
+                                        <i class="fas fa-undo"></i> Nhập Lại
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
             </div>
-            <button type="submit" class="btn btn-success">Thêm</button>
-            <a href="{{ route('grade_levels.index') }}" class="btn btn-secondary">Quay lại</a>
-        </form>
+        </div>
     </div>
 @endsection
+@section('scripts')
+    <script>
+        $(document).ready(function() {
+            $('#school_id').change(function() {
+                const schoolId = $(this).val();
+                const gradeInput = $('#grade_number');
+                const hintText = gradeInput.next('.form-text');
+
+                if (!schoolId) {
+                    gradeInput.attr('min', 1).attr('max', 12);
+                    hintText.text('Vui lòng chọn trường trước');
+                    return;
+                }
+
+                // Lấy thông tin trường từ danh sách đã load
+                const school = @json($schools->keyBy('id'));
+                const selectedSchool = school[schoolId];
+
+                // Đặt giới hạn khối học theo cấp
+                switch(selectedSchool.education_level) {
+                    case 'primary':
+                        gradeInput.attr('min', 1).attr('max', 5);
+                        hintText.text('Nhập khối từ 1 đến 5');
+                        break;
+                    case 'secondary':
+                        gradeInput.attr('min', 6).attr('max', 9);
+                        hintText.text('Nhập khối từ 6 đến 9');
+                        break;
+                    case 'high':
+                        gradeInput.attr('min', 10).attr('max', 12);
+                        hintText.text('Nhập khối từ 10 đến 12');
+                        break;
+                }
+
+                // Reset giá trị nếu vượt quá phạm vi mới
+                const currentValue = parseInt(gradeInput.val());
+                if (currentValue < gradeInput.attr('min') || currentValue > gradeInput.attr('max')) {
+                    gradeInput.val('');
+                }
+            });
+
+            // Tự động kích hoạt khi có lỗi validation
+            @if(old('school_id'))
+            $('#school_id').trigger('change');
+            @endif
+        });
+    </script>
+@endsection
+
 

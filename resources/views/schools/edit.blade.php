@@ -9,6 +9,7 @@
             padding: 20px;
             overflow-x: auto;
         }
+
     </style>
     <div class="container">
         <div class="d-flex align-items-center mb-4">
@@ -72,11 +73,11 @@
                 </div>
                 <div class="d-flex justify-content-end align-items-center mt-3">
                     <a href="{{ route('schools.index', $school->id) }}" class="btn me-2"
-                       style="background-color: #ffffff; border-color: #E15336; color: #E15336;">
+                       style="background-color: #ffffff; border-color: #013066; color: #013066;">
                         Đóng
                     </a>
                     <button type="submit" class="btn"
-                            style="background-color: #E15336; border-color: #E15336; color: #fff;">
+                            style="background-color: #013066; border-color: #013066; color: #fff;">
                         Cập nhật
                     </button>
                 </div>

@@ -1,138 +1,43 @@
 @extends('layouts.app')
 
 @section('content')
-    <style>
-        body {
-            background-color: #f4f7f6;
-            font-family: Arial, sans-serif;
-        }
-        .table-container {
-            background-color: white;
-            border-radius: 10px;
-            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-            padding: 15px;
-            overflow-x: auto;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            border-spacing: 0;
-            border-radius: 10px;
-            overflow: hidden;
-            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
-        }
-
-        thead {
-            background-color: #2c3e50;
-            color: white;
-        }
-
-        th, td {
-            padding: 14px;
-            text-align: center;
-        }
-        tbody tr {
-            border-bottom: 2px solid #ddd;
-        }
-
-        tbody tr:hover {
-            background-color: rgba(0, 0, 0, 0.05);
-            transition: background 0.2s ease-in-out;
-        }
-
-
-
-        .button-container {
-            display: flex;
-            justify-content: flex-end;
-        }
-        .btn-add {
-            background-color: #007bff;
-            color: white;
-            border: none;
-            padding: 8px 10px;
-            font-size: 14px;
-            font-weight: bold;
-            border-radius: 25px;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            text-decoration: none;
-            transition: filter 0.3s, box-shadow 0.3s;
-            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-            float: right;
-            margin-bottom: 15px;
-        }
-
-        .btn-add:hover {
-            filter: brightness(0.85);
-            box-shadow: 0px 5px 10px rgba(0, 0, 0, 0.15);
-            transform: scale(1.02);
-        }
-
-        .btn-add i {
-            font-size: 18px;
-        }
-
-        .action-icons {
-            display: flex;
-            justify-content: center;
-            gap: 12px;
-        }
-
-        .action-icons a, .action-icons button {
-            color: #333;
-            font-size: 16px;
-            padding: 5px;
-            border-radius: 5px;
-            transition: background 0.2s ease-in-out;
-            text-decoration: none;
-            background: none;
-            border: none;
-        }
-
-        .action-icons a:hover, .action-icons button:hover {
-            background-color: rgba(0, 0, 0, 0.1);
-        }
-        .action-icons button:hover {
-            cursor: pointer;
-        }
-
-    </style>
-
     <div class="container">
-        <h2>Danh sách Năm học</h2>
-        <div class="button-container">
-            <a href="{{ route('academic_years.create') }}" class="btn-add">
-                <i class="fas fa-plus-circle"></i> Thêm mới
-            </a>
-        </div>
-        <div class="table-container">
-            <table>
+        <h2>Quản lý Năm học</h2>
+
+        <a href="{{ route('academic_years.create') }}" class="btn btn-success mb-3">
+            <i class="fas fa-plus"></i> Thêm năm học
+        </a>
+
+        <div class="table-responsive">
+            <table class="table table-bordered">
                 <thead>
                 <tr>
-                    <th>STT</th>
+                    <th>ID</th>
                     <th>Năm học</th>
+                    <th>Ngày bắt đầu</th>
+                    <th>Ngày kết thúc</th>
                     <th>Hành động</th>
                 </tr>
                 </thead>
                 <tbody>
-                @foreach($academicYears as $index => $year)
+                @foreach($academicYears as $year)
                     <tr>
-                        <td>{{ $index + 1 }}</td>
+                        <td>{{ $year->id }}</td>
                         <td>{{ $year->year }}</td>
-                        <td class="action-icons">
-                            <a href="{{ route('academic_years.show', $year->id) }}" title="Xem">
-                                <i class="far fa-eye"></i>
+                        <td>{{ $year->start_date->format('d/m/Y') }}</td>
+                        <td>{{ $year->end_date->format('d/m/Y') }}</td>
+                        <td>
+                            <a href="{{ route('academic_years.show', $year->id) }}" class="btn btn-sm btn-info">
+                                <i class="fas fa-eye"></i>
                             </a>
-                            <a href="{{ route('academic_years.edit', $year->id) }}" title="Sửa">
-                                <i class="far fa-edit"></i>
+                            <a href="{{ route('academic_years.edit', $year->id) }}" class="btn btn-sm btn-primary">
+                                <i class="fas fa-edit"></i>
                             </a>
-                            <form action="{{ route('academic_years.destroy', $year->id) }}" method="POST" style="display:inline;">
+                            <form action="{{ route('academic_years.destroy', $year->id) }}" method="POST" class="d-inline">
                                 @csrf
                                 @method('DELETE')
-                                <button type="submit" title="Xóa" onclick="return confirm('Bạn có chắc chắn muốn xóa?');">
-                                    <i class="far fa-trash-alt"></i>
+                                <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Bạn có chắc muốn xóa?')">
+                                    <i class="fas fa-trash"></i>
                                 </button>
                             </form>
                         </td>
@@ -141,5 +46,7 @@
                 </tbody>
             </table>
         </div>
+
+        {{ $academicYears->links() }}
     </div>
 @endsection

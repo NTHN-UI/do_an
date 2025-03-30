@@ -3,7 +3,6 @@
 @section('content')
     <style>
         .container {
-            background: linear-gradient(0deg, #ffedea, #ffffff);
             border-radius: 12px;
             box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
             padding: 20px;
@@ -56,13 +55,13 @@
             overflow: visible !important;
         }
 
-        .dropdown-menu {
+        .table-responsive .dropdown-menu {
             position: fixed !important;
             z-index: 1000 !important;
             min-width: 90px;
         }
 
-        .show > .dropdown-menu {
+        .table-responsive .show > .dropdown-menu {
             display: block !important;
         }
 

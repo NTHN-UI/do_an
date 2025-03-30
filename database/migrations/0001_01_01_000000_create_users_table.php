@@ -57,13 +57,18 @@ return new class extends Migration
         Schema::create('academic_years', function (Blueprint $table) {
             $table->id();
             $table->string('year');
+            $table->date('start_date');
+            $table->date('end_date');
             $table->timestamps();
         });
 
         Schema::create('semesters', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->foreignId('academic_year_id')->constrained('academic_years')->onDelete('cascade'); // Đúng
+            $table->foreignId('academic_year_id')->constrained('academic_years')->onDelete('cascade');
+            $table->date('start_date');
+            $table->date('end_date');
+            $table->boolean('is_current')->default(false);
             $table->timestamps();
         });
 
@@ -89,6 +94,7 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->enum('education_level', ['primary', 'secondary', 'high']);
+            $table->foreignId('school_id')->constrained('schools')->onDelete('cascade');
             $table->timestamps();
         });
 
@@ -100,20 +106,15 @@ return new class extends Migration
             $table->timestamps();
         });
 
-        Schema::create('teacher_classes', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
-            $table->foreignId('class_id')->constrained('classes')->onDelete('cascade');
-            $table->foreignId('subject_id')->constrained('subjects')->onDelete('cascade');
-            $table->foreignId('academic_year_id')->constrained('academic_years')->onDelete('cascade');
-            $table->timestamps();
-        });
-        Schema::create('homeroom_teachers', function (Blueprint $table) {
+        Schema::create('teacher_assignments', function (Blueprint $table) {
             $table->id();
             $table->foreignId('teacher_id')->constrained('users')->onDelete('cascade');
             $table->foreignId('class_id')->constrained('classes')->onDelete('cascade');
+            $table->foreignId('subject_id')->nullable()->constrained('subjects')->onDelete('cascade');
             $table->foreignId('academic_year_id')->constrained('academic_years')->onDelete('cascade');
-            $table->unique(['class_id', 'academic_year_id']);
+            $table->boolean('is_homeroom')->default(false);
+            $table->unique(['class_id', 'academic_year_id', 'is_homeroom'], 'unique_homeroom');
+            $table->unique(['teacher_id', 'class_id', 'subject_id', 'academic_year_id'], 'unique_teaching_assignment');
             $table->timestamps();
         });
 
@@ -141,7 +142,6 @@ return new class extends Migration
             $table->timestamps();
 
         });
-        // Bảng tài liệu tham khảo
         Schema::create('materials', function (Blueprint $table) {
             $table->id();
             $table->string('title');
@@ -152,7 +152,6 @@ return new class extends Migration
             $table->timestamps();
         });
 
-// Bảng đề kiểm tra
         Schema::create('exams', function (Blueprint $table) {
             $table->id();
             $table->string('title');
@@ -164,7 +163,6 @@ return new class extends Migration
             $table->timestamps();
         });
 
-// Bảng bài làm của học sinh
         Schema::create('student_exams', function (Blueprint $table) {
             $table->id();
             $table->foreignId('exam_id')->constrained('exams');
@@ -186,14 +184,13 @@ return new class extends Migration
         Schema::dropIfExists('materials');
         Schema::dropIfExists('notifications');
         Schema::dropIfExists('grades');
-        Schema::dropIfExists('homeroom_teachers');
-        Schema::dropIfExists('teacher_classes');
         Schema::dropIfExists('student_classes');
-        Schema::dropIfExists('subjects');
+        Schema::dropIfExists('teacher_assignments');
         Schema::dropIfExists('classes');
         Schema::dropIfExists('grade_levels');
         Schema::dropIfExists('semesters');
         Schema::dropIfExists('academic_years');
+        Schema::dropIfExists('subjects');
         Schema::dropIfExists('sessions');
         Schema::dropIfExists('users');
         Schema::dropIfExists('schools');

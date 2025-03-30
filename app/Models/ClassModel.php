@@ -11,13 +11,38 @@ class ClassModel extends Model
 
     protected $table = 'classes';
 
-    protected $fillable = ['name', 'grade_level_id', 'academic_year_id'];
+    protected $fillable = [
+        'name',
+        'school_id',
+        'grade_level_id',
+        'academic_year_id'
+    ];
 
-    public function gradeLevel() {
+    public function school()
+    {
+        return $this->belongsTo(School::class);
+    }
+
+    public function gradeLevel()
+    {
         return $this->belongsTo(GradeLevel::class);
     }
 
-    public function academicYear() {
+    public function academicYear()
+    {
         return $this->belongsTo(AcademicYear::class);
+    }
+
+    public function students()
+    {
+        return $this->belongsToMany(User::class, 'student_classes', 'class_id', 'user_id')
+            ->withPivot('academic_year_id')
+            ->withTimestamps();
+    }
+
+    public function teachers()
+    {
+        return $this->belongsToMany(User::class, 'teacher_classes')
+            ->withPivot('subject_id', 'academic_year_id');
     }
 }

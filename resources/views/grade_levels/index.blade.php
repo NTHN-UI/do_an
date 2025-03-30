@@ -1,143 +1,140 @@
 @extends('layouts.app')
 
 @section('content')
-    <style>
-        body {
-            background-color: #f4f7f6;
-            font-family: Arial, sans-serif;
-        }
-        .table-container {
-            background-color: white;
-            border-radius: 10px;
-            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-            padding: 15px;
-            overflow-x: auto;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            border-spacing: 0;
-            border-radius: 10px;
-            overflow: hidden;
-            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
-        }
-
-        thead {
-            background-color: #2c3e50;
-            color: white;
-        }
-
-        th, td {
-            padding: 12px;
-            text-align: center;
-        }
-
-        tbody tr {
-            border-bottom: 2px solid #ddd;
-        }
-
-        tbody tr:hover {
-            background-color: rgba(0, 0, 0, 0.05);
-            transition: background 0.2s ease-in-out;
-        }
-
-        .button-container {
-            display: flex;
-            justify-content: flex-end;
-        }
-        .btn-add {
-            background-color: #007bff;
-            color: white;
-            border: none;
-            padding: 8px 10px;
-            font-size: 14px;
-            font-weight: bold;
-            border-radius: 25px;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            text-decoration: none;
-            transition: filter 0.3s, box-shadow 0.3s;
-            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-            float: right;
-            margin-bottom: 15px;
-        }
-
-        .btn-add:hover {
-            filter: brightness(0.85);
-            box-shadow: 0px 5px 10px rgba(0, 0, 0, 0.15);
-            transform: scale(1.02);
-        }
-
-        .btn-add i {
-            font-size: 18px;
-        }
-        .action-icons {
-            display: flex;
-            justify-content: center;
-            gap: 12px;
-        }
-
-        .action-icons a, .action-icons button {
-            color: #333;
-            font-size: 16px;
-            padding: 5px;
-            border-radius: 5px;
-            transition: background 0.2s ease-in-out;
-            text-decoration: none;
-            background: none;
-            border: none;
-        }
-
-        .action-icons a:hover, .action-icons button:hover {
-            background-color: rgba(0, 0, 0, 0.1);
-        }
-        .action-icons button:hover {
-            cursor: pointer;
-        }
-    </style>
-
     <div class="container">
-        <h2>Danh sách Khối</h2>
-        <div class="button-container">
-            <a href="{{ route('grade_levels.create') }}" class="btn-add">
-                <i class="fas fa-plus-circle"></i> Thêm mới
-            </a>
-        </div>
+        <div class="row justify-content-center">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h3 class="mb-0">Danh Sách Khối Học</h3>
+                            <a href="{{ route('grade_levels.create') }}" class="btn btn-success">
+                                <i class="fas fa-plus"></i> Thêm Khối Học
+                            </a>
+                        </div>
+                    </div>
 
-        <div class="table-container">
-            <table>
-                <thead>
-                <tr>
-                    <th>STT</th>
-                    <th>Khối</th>
-                    <th>Hành động</th>
-                </tr>
-                </thead>
-                <tbody>
-                @foreach ($grades as $index => $grade)
-                    <tr>
-                        <td>{{ $index + 1 }}</td>
-                        <td>{{ $grade->grade_number }}</td>
-                        <td class="action-icons">
-                            <a href="{{ route('grade_levels.show', $grade->id) }}" title="Xem">
-                                <i class="far fa-eye"></i>
-                            </a>
-                            <a href="{{ route('grade_levels.edit', $grade->id) }}" title="Sửa">
-                                <i class="far fa-edit"></i>
-                            </a>
-                            <form action="{{ route('grade_levels.destroy', $grade->id) }}" method="POST" style="display:inline;">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" title="Xóa" onclick="return confirm('Bạn có chắc chắn muốn xóa?');">
-                                    <i class="far fa-trash-alt"></i>
+                    <div class="card-body">
+                        @if (session('success'))
+                            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                                {{ session('success') }}
+                                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
                                 </button>
-                            </form>
-                        </td>
-                    </tr>
-                @endforeach
-                </tbody>
-            </table>
+                            </div>
+                        @endif
+
+                        @if (session('error'))
+                            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                {{ session('error') }}
+                                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+                        @endif
+
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-striped table-hover">
+                                <thead class="thead-dark">
+                                <tr>
+                                    <th >ID</th>
+                                    <th >Khối</th>
+                                    <th>Trường</th>
+                                    <th >Cấp học</th>
+                                    <th >Địa chỉ</th>
+                                    <th >Số lớp</th>
+                                    <th >Thao tác</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                @forelse ($gradeLevels as $gradeLevel)
+                                    <tr>
+                                        <td>{{ $gradeLevel->id }}</td>
+                                        <td>
+                                        <span class="badge text-dark p-2">
+                                            Khối {{ $gradeLevel->grade_number }}
+                                        </span>
+                                        </td>
+                                        <td>{{ $gradeLevel->school->name }}</td>
+                                        <td>
+                                            @switch($gradeLevel->school->education_level)
+                                                @case('primary')
+                                                    <span class="badge text-dark">Tiểu học</span>
+                                                    @break
+                                                @case('secondary')
+                                                    <span class="badge text-dark">THCS</span>
+                                                    @break
+                                                @case('high')
+                                                    <span class="badge text-dark">THPT</span>
+                                                    @break
+                                            @endswitch
+                                        </td>
+                                        <td>{{ $gradeLevel->school->district }}, {{ $gradeLevel->school->province }}</td>
+                                        <td class="text-center">
+                                        <span class="badge badge-pill text-dark">
+                                            {{ $gradeLevel->classes_count ?? $gradeLevel->classes->count() }}
+                                        </span>
+                                        </td>
+                                        <td>
+                                            <div class="d-flex justify-content-around">
+                                                <a href="{{ route('grade_levels.show', $gradeLevel->id) }}"
+                                                   class="btn btn-sm btn-info" title="Xem chi tiết">
+                                                    <i class="fas fa-eye"></i>
+                                                </a>
+                                                <a href="{{ route('grade_levels.edit', $gradeLevel->id) }}"
+                                                   class="btn btn-sm btn-primary" title="Chỉnh sửa">
+                                                    <i class="fas fa-edit"></i>
+                                                </a>
+                                                <form action="{{ route('grade_levels.destroy', $gradeLevel->id) }}"
+                                                      method="POST" class="d-inline">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" class="btn btn-sm btn-danger"
+                                                            title="Xóa" onclick="return confirm('Bạn có chắc chắn muốn xóa?')">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                @empty
+                                    <tr>
+                                        <td colspan="7" class="text-center">Không có dữ liệu khối học</td>
+                                    </tr>
+                                @endforelse
+                                </tbody>
+                            </table>
+                        </div>
+
+                        @if ($gradeLevels->hasPages())
+                            <div class="d-flex justify-content-center mt-3">
+                                {{ $gradeLevels->links() }}
+                            </div>
+                        @endif
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
+@endsection
+
+@section('styles')
+    <style>
+        .badge {
+            font-size: 0.9rem;
+            font-weight: 500;
+
+
+        }
+        .table th {
+            white-space: nowrap;
+        }
+        .btn-sm {
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+    </style>
 @endsection

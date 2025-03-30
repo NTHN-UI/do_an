@@ -3,7 +3,6 @@
 @section('content')
     <style>
         .container {
-            background: linear-gradient(0deg, #ffedea, #ffffff);
             border-radius: 12px;
             box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
             padding: 20px;
@@ -33,14 +32,25 @@
             overflow: visible !important;
         }
 
-        .dropdown-menu {
+        .table-responsive .dropdown-menu  {
             position: fixed !important;
             z-index: 1000 !important;
             min-width: 90px;
         }
 
-        .show > .dropdown-menu {
+        .table-responsive .show > .dropdown-menu {
             display: block !important;
+        }
+        th {
+            font-weight: 500;
+        }
+        h3{
+            color : #013066;
+        }
+        .dropdown-item:active,
+        .dropdown-item:focus {
+            background-color: #013066 !important;
+            color: white !important;
         }
 
     </style>
@@ -52,19 +62,19 @@
                 <div class="input-group">
                     <input type="text" name="search" class="form-control" style="min-width: 300px"
                            placeholder="Tìm kiếm trường học..." value="{{ request('search') }}">
-                    <button type="submit" class="btn me-2" style="background-color: #E15336;">
+                    <button type="submit" class="btn me-2" style="background-color: #013066;">
                         <i class="fas fa-search" style="color: white"></i>
                     </button>
                     @if(request('search'))
                         <a href="{{ route('schools.index') }}" class="btn"
-                           style="background-color: #E15336;color: white">
+                           style="background-color: #013066;color: white">
                             <i class="fas fa-times"></i> Xóa
                         </a>
                     @endif
                 </div>
             </form>
             <a href="{{ route('schools.create') }}" class="btn shadow"
-               style="background-color: #E15336; border-color: #E15336; color: #fff;">
+               style="background-color: #013066; border-color: #013066; color: #fff;">
                 Thêm mới
             </a>
         </div>
@@ -136,13 +146,13 @@
             </div>
             <ul class="pagination pagination-sm mb-0">
                 <li class="page-item {{ $schools->onFirstPage() ? 'disabled' : '' }}">
-                    <a class="page-link" href="{{ $schools->previousPageUrl() }}">
+                    <a class="page-link"href="{{ $schools->previousPageUrl() }}">
                         <i class="fas fa-angle-left"></i>
                     </a>
                 </li>
                 @for ($i = 1; $i <= $schools->lastPage(); $i++)
                     <li class="page-item {{ $schools->currentPage() == $i ? 'active' : '' }}">
-                        <a class="page-link" href="{{ $schools->url($i) }}">{{ $i }}</a>
+                        <a class="page-link" style="background-color: #013066; border-color: #013066; color: #fff;" href="{{ $schools->url($i) }}">{{ $i }}</a>
                     </li>
                 @endfor
                 <li class="page-item {{ $schools->hasMorePages() ? '' : 'disabled' }}">

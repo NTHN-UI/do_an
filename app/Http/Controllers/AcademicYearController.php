@@ -13,7 +13,7 @@ class AcademicYearController extends Controller
      */
     public function index()
     {
-        $academicYears = AcademicYear::all();
+        $academicYears = AcademicYear::orderBy('year', 'desc')->paginate(10);
         return view('academic_years.index', compact('academicYears'));
     }
 
@@ -31,14 +31,15 @@ class AcademicYearController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'year' => 'required|string|max:255',
+            'year' => 'required|string|max:9|unique:academic_years,year',
+            'start_date' => 'required|date',
+            'end_date' => 'required|date|after:start_date',
         ]);
 
-        AcademicYear::create([
-            'year' => $request->year,
-        ]);
+        AcademicYear::create($request->all());
 
-        return redirect()->route('academic_years.index')->with('success', 'Thêm năm học thành công!');
+        return redirect()->route('academic_years.index')
+            ->with('success', 'Thêm năm học thành công!');
     }
 
     /**
@@ -63,28 +64,27 @@ class AcademicYearController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, $id)
+    public function update(Request $request, AcademicYear $academicYear)
     {
         $request->validate([
-            'year' => 'required|string|max:255',
+            'year' => 'required|string|max:9|unique:academic_years,year,'.$academicYear->id,
+            'start_date' => 'required|date',
+            'end_date' => 'required|date|after:start_date',
         ]);
 
-        $academicYear = AcademicYear::findOrFail($id);
-        $academicYear->update([
-            'year' => $request->year,
-        ]);
+        $academicYear->update($request->all());
 
-        return redirect()->route('academic_years.index')->with('success', 'Cập nhật năm học thành công!');
+        return redirect()->route('academic_years.index')
+            ->with('success', 'Cập nhật năm học thành công!');
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy($id)
+    public function destroy(AcademicYear $academicYear)
     {
-        $academicYear = AcademicYear::findOrFail($id);
         $academicYear->delete();
-
-        return redirect()->route('academic_years.index')->with('success', 'Xóa năm học thành công!');
+        return redirect()->route('academic_years.index')
+            ->with('success', 'Xóa năm học thành công!');
     }
 }

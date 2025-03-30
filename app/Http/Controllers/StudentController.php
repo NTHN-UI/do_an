@@ -18,9 +18,11 @@ class StudentController extends Controller
     {
         $search = $request->input('search');
 
-        $students = User::students()
+        $students = User::where('role', User::ROLE_STUDENT)
             ->when($search, function($query) use ($search) {
-                return $query->search($search);
+                return $query->where('full_name', 'like', '%'.$search.'%')
+                    ->orWhere('email', 'like', '%'.$search.'%')
+                    ->orWhere('phone', 'like', '%'.$search.'%');
             })
             ->with('school')
             ->paginate(10);

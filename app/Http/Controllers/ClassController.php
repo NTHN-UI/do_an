@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\AcademicYear;
 use App\Models\ClassModel;
 use App\Models\GradeLevel;
+use App\Models\School;
 use Illuminate\Http\Request;
 
 class ClassController extends Controller
@@ -14,7 +15,7 @@ class ClassController extends Controller
      */
     public function index()
     {
-        $classes = ClassModel::with(['gradeLevel', 'academicYear'])->get();
+        $classes = ClassModel::with(['school', 'gradeLevel', 'academicYear'])->paginate(10);
         return view('classes.index', compact('classes'));
     }
 
@@ -23,9 +24,10 @@ class ClassController extends Controller
      */
     public function create()
     {
-        $grades = GradeLevel::all();
+        $schools = School::all();
+        $gradeLevels = GradeLevel::all();
         $academicYears = AcademicYear::all();
-        return view('classes.create', compact('grades', 'academicYears'));
+        return view('classes.create', compact('schools', 'gradeLevels', 'academicYears'));
     }
 
     /**
@@ -34,68 +36,71 @@ class ClassController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'name' => 'required|string|unique:classes',
+            'name' => 'required|string|max:255',
+            'school_id' => 'required|exists:schools,id',
             'grade_level_id' => 'required|exists:grade_levels,id',
             'academic_year_id' => 'required|exists:academic_years,id',
         ]);
 
-        ClassModel::create([
-            'name' => $request->name,
-            'grade_level_id' => $request->grade_level_id,
-            'academic_year_id' => $request->academic_year_id,
-        ]);
-
-        return redirect()->route('classes.index')->with('success', 'Thêm lớp học thành công!');
+        try {
+            ClassModel::create($request->all());
+            return redirect()->route('classes.index')->with('success', 'Thêm lớp học thành công!');
+        } catch (\Exception $e) {
+            return redirect()->back()->withInput()->with('error', 'Có lỗi xảy ra: ' . $e->getMessage());
+        }
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show($id)
     {
-        $class = ClassModel::with(['gradeLevel', 'academicYear'])->findOrFail($id);
+        $class = ClassModel::with(['students', 'school'])->findOrFail($id);
         return view('classes.show', compact('class'));
     }
 
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(string $id)
+    public function edit(ClassModel $class)
     {
-        $class = ClassModel::findOrFail($id);
-        $grades = GradeLevel::all();
+        $schools = School::all();
+        $gradeLevels = GradeLevel::all();
         $academicYears = AcademicYear::all();
-        return view('classes.edit', compact('class', 'grades', 'academicYears'));
+        return view('classes.edit', compact('class', 'schools', 'gradeLevels', 'academicYears'));
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(Request $request, ClassModel $class)
     {
         $request->validate([
-            'name' => 'required|string|unique:classes,name,' . $id,
+            'name' => 'required|string|max:255',
+            'school_id' => 'required|exists:schools,id',
             'grade_level_id' => 'required|exists:grade_levels,id',
             'academic_year_id' => 'required|exists:academic_years,id',
         ]);
 
-        $class = ClassModel::findOrFail($id);
-        $class->update([
-            'name' => $request->name,
-            'grade_level_id' => $request->grade_level_id,
-            'academic_year_id' => $request->academic_year_id,
-        ]);
-
-        return redirect()->route('classes.index')->with('success', 'Cập nhật lớp học thành công!');
+        try {
+            $class->update($request->all());
+            return redirect()->route('classes.index')->with('success', 'Cập nhật lớp học thành công!');
+        } catch (\Exception $e) {
+            return redirect()->back()->withInput()->with('error', 'Có lỗi xảy ra: ' . $e->getMessage());
+        }
 
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy(ClassModel $class)
     {
-        ClassModel::destroy($id);
-        return redirect()->route('classes.index')->with('success', 'Xóa lớp học thành công!');
+        try {
+            $class->delete();
+            return redirect()->route('classes.index')->with('success', 'Xóa lớp học thành công!');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Có lỗi xảy ra: ' . $e->getMessage());
+        }
     }
 }

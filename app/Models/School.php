@@ -5,9 +5,13 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class School extends Model
+class  School extends Model
 {
     use HasFactory;
+    // Các cấp học
+    const LEVEL_PRIMARY = 'primary';
+    const LEVEL_SECONDARY = 'secondary';
+    const LEVEL_HIGH = 'high';
 
     protected $fillable = [
         'name',
@@ -15,19 +19,93 @@ class School extends Model
         'province',
         'education_level'
     ];
-    protected $casts = [
-        'created_at' => 'datetime: d/m/Y H:i:s',
-        'updated_at' => 'datetime: d/m/Y H:i:s',
-    ];
+    protected $appends = ['education_level_name'];
 
+    protected $casts = [
+        'created_at' => 'datetime:d/m/Y H:i:s',
+        'updated_at' => 'datetime:d/m/Y H:i:s',
+        'education_level' => 'string'
+
+    ];
+    // Quan hệ với admin trường
+    public function school_admins()
+    {
+        return $this->hasMany(User::class)->where('role', User::ROLE_SCHOOL_ADMIN);
+    }
+
+    // Quan hệ với giáo viên
+    public function teachers()
+    {
+        return $this->hasMany(User::class)->where('role', User::ROLE_TEACHER);
+    }
+
+    // Quan hệ với học sinh
+    public function students()
+    {
+        return $this->hasMany(User::class)->where('role', User::ROLE_STUDENT);
+    }
+
+    // School.php
+    public function classes()
+    {
+        return $this->hasMany(ClassModel::class);
+    }
+
+    public function subjects()
+    {
+        return $this->hasMany(Subject::class);
+    }
+
+// User.php
+    public function school()
+    {
+        return $this->belongsTo(School::class);
+    }
+    // Scope active
+    public function scopeActive($query)
+    {
+        return $query->whereNull('deleted_at');
+    }
+
+    // Lấy tên cấp học
     public function getEducationLevelNameAttribute()
     {
         return match($this->education_level) {
-            'primary' => 'Tiểu học',
-            'secondary' => 'THCS',
-            'high' => 'THPT',
+            self::LEVEL_PRIMARY => 'Tiểu học',
+            self::LEVEL_SECONDARY => 'Trung học cơ sở',
+            self::LEVEL_HIGH => 'Trung học phổ thông',
             default => 'Không xác định',
         };
     }
+    protected static function booted()
+    {
+        static::created(function (School $school) {
+            $subjects = match ($school->education_level) {
+                self::LEVEL_PRIMARY => [
+                    'Toán', 'Tiếng Việt', 'Đạo đức', 'Tự nhiên và Xã hội',
+                    'Lịch sử và Địa lý', 'Khoa học', 'Tin học và Công nghệ',
+                    'Giáo dục thể chất', 'Nghệ thuật (Âm nhạc, Mỹ thuật)',
+                    'Tiếng Anh'
+                ],
+                self::LEVEL_SECONDARY => [
+                    'Toán', 'Ngữ văn', 'Ngoại ngữ', 'Vật lý', 'Hóa học',
+                    'Sinh học', 'Lịch sử', 'Địa lý', 'Giáo dục công dân',
+                    'Công nghệ', 'Tin học', 'Giáo dục thể chất', 'Âm nhạc', 'Mỹ thuật'
+                ],
+                self::LEVEL_HIGH => [
+                    'Toán', 'Ngữ văn', 'Ngoại ngữ', 'Vật lý', 'Hóa học',
+                    'Sinh học', 'Lịch sử', 'Địa lý', 'Giáo dục kinh tế và pháp luật',
+                    'Giáo dục quốc phòng và an ninh', 'Công nghệ', 'Tin học',
+                    'Giáo dục thể chất', 'Nghệ thuật'
+                ],
+                default => [],
+            };
+
+            foreach($subjects as $name) {
+                $school->subjects()->create(compact('name'));
+            }
+        });
+    }
+
 
 }

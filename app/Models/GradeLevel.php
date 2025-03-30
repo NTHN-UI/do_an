@@ -8,5 +8,18 @@ use Illuminate\Database\Eloquent\Model;
 class GradeLevel extends Model
 {
     use HasFactory;
-    protected $fillable = ['grade_number'];
+    protected $fillable = [
+        'grade_number',
+        'school_id'
+    ];
+
+    public function school()
+    {
+        return $this->belongsTo(School::class);
+    }
+
+    public function classes()
+    {
+        return $this->hasMany(ClassModel::class);
+    }
 }
