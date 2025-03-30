@@ -58,11 +58,11 @@
         <h3 class="mb-3">Danh sách trường học</h3>
 
         <div class="d-flex justify-content-end align-items-center mb-3">
-            <form method="GET" action="{{ route('schools.index') }}" class="d-flex me-3">
+            <form method="GET" action="{{ route('schools.index') }}" class="d-flex me-2">
                 <div class="input-group">
                     <input type="text" name="search" class="form-control" style="min-width: 300px"
                            placeholder="Tìm kiếm trường học..." value="{{ request('search') }}">
-                    <button type="submit" class="btn me-2" style="background-color: #013066;">
+                    <button type="submit" class="btn me-0" style="background-color: #013066;">
                         <i class="fas fa-search" style="color: white"></i>
                     </button>
                     @if(request('search'))
