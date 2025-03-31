@@ -1,69 +1,92 @@
 @extends('layouts.app')
 
 @section('content')
+    <style>
+        .container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            overflow-x: auto;
+        }
+    </style>
     <div class="container">
-        <div class="card">
-            <div class="card-header">
-                <h5 class="mb-0">{{ isset($class) ? 'Chỉnh Sửa' : 'Thêm Mới' }} Lớp Học</h5>
-            </div>
-            <div class="card-body">
-                <form method="POST" action="{{ isset($class) ? route('classes.update', $class->id) : route('classes.store') }}">
-                    @csrf
-                    @if(isset($class))
-                        @method('PUT')
-                    @endif
+        <div class="d-flex align-items-center mb-4">
+            <a href="{{ route('classes.index') }}" class="btn btn-back me-3" style="color: #013066;" title="Quay lại">
+                <i class="fas fa-arrow-left"></i>
+            </a>
+            <h4 class="mb-0" style="color: #013066;">Thêm mới lớp học</h4>
+        </div>
+        <div class="card-body">
+            <form method="POST" action="{{ route('classes.store') }}">
+                @csrf
 
-                    <div class="form-group">
-                        <label for="name">Tên Lớp</label>
-                        <input type="text" class="form-control" id="name" name="name"
-                               value="{{ old('name', $class->name ?? '') }}" required>
-                    </div>
+                <div class="form-group">
+                    <label for="name">Tên Lớp <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control @error('name') is-invalid @enderror"
+                           id="name" name="name" value="{{ old('name') }}" required>
+                    @error('name')
+                    <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                </div>
 
-                    <div class="form-group">
-                        <label for="school_id">Trường</label>
-                        <select class="form-control" id="school_id" name="school_id" required>
-                            <option value="">-- Chọn Trường --</option>
-                            @foreach($schools as $school)
-                                <option value="{{ $school->id }}"
-                                    {{ old('school_id', $class->school_id ?? '') == $school->id ? 'selected' : '' }}>
-                                    {{ $school->name }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
+                <div class="form-group">
+                    <label for="school_id">Trường <span class="text-danger">*</span></label>
+                    <select class="form-control @error('school_id') is-invalid @enderror"
+                            id="school_id" name="school_id" required>
+                        <option value="">-- Chọn Trường --</option>
+                        @foreach($schools as $school)
+                            <option value="{{ $school->id }}" {{ old('school_id') == $school->id ? 'selected' : '' }}>
+                                {{ $school->name }}
+                            </option>
+                        @endforeach
+                    </select>
+                    @error('school_id')
+                    <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                </div>
 
-                    <div class="form-group">
-                        <label for="grade_level_id">Khối</label>
-                        <select class="form-control" id="grade_level_id" name="grade_level_id" required>
-                            <option value="">-- Chọn Khối --</option>
-                            @foreach($gradeLevels as $gradeLevel)
-                                <option value="{{ $gradeLevel->id }}"
-                                    {{ old('grade_level_id', $class->grade_level_id ?? '') == $gradeLevel->id ? 'selected' : '' }}>
-                                    Khối {{ $gradeLevel->grade_number }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
+                <div class="form-group">
+                    <label for="grade_level_id">Khối <span class="text-danger">*</span></label>
+                    <select class="form-control @error('grade_level_id') is-invalid @enderror"
+                            id="grade_level_id" name="grade_level_id" required>
+                        <option value="">-- Chọn Khối --</option>
+                        @foreach($gradeLevels as $gradeLevel)
+                            <option value="{{ $gradeLevel->id }}" {{ old('grade_level_id') == $gradeLevel->id ? 'selected' : '' }}>
+                                Khối {{ $gradeLevel->grade_number }}
+                            </option>
+                        @endforeach
+                    </select>
+                    @error('grade_level_id')
+                    <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                </div>
 
-                    <div class="form-group">
-                        <label for="academic_year_id">Năm Học</label>
-                        <select class="form-control" id="academic_year_id" name="academic_year_id" required>
-                            <option value="">-- Chọn Năm Học --</option>
-                            @foreach($academicYears as $academicYear)
-                                <option value="{{ $academicYear->id }}"
-                                    {{ old('academic_year_id', $class->academic_year_id ?? '') == $academicYear->id ? 'selected' : '' }}>
-                                    {{ $academicYear->year }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
+                <div class="form-group">
+                    <label for="academic_year_id">Năm Học <span class="text-danger">*</span></label>
+                    <select class="form-control @error('academic_year_id') is-invalid @enderror"
+                            id="academic_year_id" name="academic_year_id" required>
+                        <option value="">-- Chọn Năm Học --</option>
+                        @foreach($academicYears as $academicYear)
+                            <option value="{{ $academicYear->id }}" {{ old('academic_year_id') == $academicYear->id ? 'selected' : '' }}>
+                                {{ $academicYear->year }}
+                            </option>
+                        @endforeach
+                    </select>
+                    @error('academic_year_id')
+                    <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                </div>
 
-                    <button type="submit" class="btn btn-primary">
-                        {{ isset($class) ? 'Cập Nhật' : 'Thêm Mới' }}
+                <div class="d-flex justify-content-end mt-3">
+                    <a href="{{ route('classes.index') }}" class="btn btn-secondary me-2"
+                       style="background-color: #ffffff; border-color: #013066; color: #013066 ;">Đóng</a>
+                    <button type="submit" class="btn btn-primary "
+                            style="background-color: #013066; border-color: #013066; color: #fff;">
+                        Lưu
                     </button>
-                    <a href="{{ route('classes.index') }}" class="btn btn-secondary">Hủy</a>
-                </form>
-            </div>
+                </div>
+            </form>
         </div>
     </div>
 @endsection

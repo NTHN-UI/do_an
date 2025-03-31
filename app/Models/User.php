@@ -76,12 +76,15 @@ class User extends Authenticatable
     {
         return $this->role === self::ROLE_STUDENT;
     }
-
-
     // Quan hệ với trường học
     public function school()
     {
         return $this->belongsTo(School::class);
+    }
+    public function students()
+    {
+        return $this->belongsToMany(User::class, 'student_classes', 'class_id', 'user_id')
+            ->withPivot('academic_year_id');
     }
     public function classes()
     {

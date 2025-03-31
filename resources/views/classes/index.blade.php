@@ -44,13 +44,18 @@
         th {
             font-weight: 500;
         }
+        .dropdown-item:active,
+        .dropdown-item:focus {
+            background-color: #013066 !important;
+            color: white !important;
+        }
     </style>
 
     <div class="container">
-        <h3 class="mb-0">Danh sách lớp học</h3>
+        <h3 class="mb-0" style="color:#013066">Danh sách lớp học</h3>
         <div class="d-flex justify-content-end align-items-center mb-3">
-            <a href="{{ route('classes.create') }}" class="btn btn-primary">
-               Thêm Lớp
+            <a href="{{ route('classes.create') }}" class="btn" style="background-color:#013066; color:#ffffff">
+               Thêm mới
             </a>
         </div>
 
@@ -88,20 +93,20 @@
                                         <ul class="dropdown-menu dropdown-menu-end shadow-sm rounded-3 border-0">
                                             <li>
                                                 <a class="dropdown-item px-3 py-2" href="{{ route('classes.show', $class->id) }}">
-                                                    <i class="fas fa-eye me-2"></i>Xem
+                                                   Xem
                                                 </a>
                                             </li>
                                             <li>
                                                 <a class="dropdown-item px-3 py-2" href="{{ route('classes.edit', $class->id) }}">
-                                                    <i class="fas fa-edit me-2"></i>Sửa
+                                                    Sửa
                                                 </a>
                                             </li>
                                             <li>
                                                 <form action="{{ route('classes.destroy', $class->id) }}" method="POST">
                                                     @csrf
                                                     @method('DELETE')
-                                                    <button type="submit" class="dropdown-item px-3 py-2 text-danger" onclick="return confirm('Bạn có chắc muốn xóa?')">
-                                                        <i class="fas fa-trash me-2"></i>Xóa
+                                                    <button type="submit" class="dropdown-item px-3 py-2 " onclick="return confirm('Bạn có chắc muốn xóa?')">
+                                                        Xóa
                                                     </button>
                                                 </form>
                                             </li>
@@ -130,8 +135,8 @@
                     </a>
                 </li>
                 @for ($i = 1; $i <= $classes->lastPage(); $i++)
-                    <li class="page-item {{ $classes->currentPage() == $i ? 'active' : '' }}">
-                        <a class="page-link" href="{{ $classes->url($i) }}">{{ $i }}</a>
+                    <li class="page-item  {{ $classes->currentPage() == $i ? 'active' : '' }}">
+                        <a class="page-link" style="background-color: #013066; border-color: #013066; color: #fff;" href="{{ $classes->url($i) }}">{{ $i }}</a>
                     </li>
                 @endfor
                 <li class="page-item {{ $classes->hasMorePages() ? '' : 'disabled' }}">

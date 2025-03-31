@@ -98,7 +98,9 @@
                style="background-color: #E15336; border-color: #E15336; color: #fff;">
                 Thêm mới
             </a>
-
+            <a href="{{ route('class_assignments.index') }}" class="btn btn-info ms-2">
+                <i class="fas fa-users-class me-1"></i> Phân lớp
+            </a>
 
         </div>
 

@@ -45,4 +45,9 @@ class ClassModel extends Model
         return $this->belongsToMany(User::class, 'teacher_classes')
             ->withPivot('subject_id', 'academic_year_id');
     }
+    public function homeroomTeacher()
+    {
+        return $this->hasOne(TeacherAssignment::class, 'class_id')
+            ->where('is_homeroom', true);
+    }
 }

@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AcademicYearController;
+use App\Http\Controllers\ClassAssignmentController;
 use App\Http\Controllers\ClassController;
 use App\Http\Controllers\GradeLevelController;
 use App\Http\Controllers\SchoolAdminController;
@@ -30,3 +31,11 @@ Route::get('/teachers/{teacher}/assignments/create', [TeacherAssignmentControlle
 
 Route::post('teachers/{teacher}/assignments', [TeacherAssignmentController::class, 'store'])
     ->name('teacher_assignments.store');
+// Phân lớp học sinh
+Route::prefix('class_assignments')->name('class_assignments.')->group(function () {
+    Route::get('/', [ClassAssignmentController::class, 'index'])->name('index');
+    Route::get('/auto_assign', [ClassAssignmentController::class, 'showAutoAssignmentForm'])->name('auto_assign');
+    Route::post('/auto_assign', [ClassAssignmentController::class, 'autoAssign'])->name('auto_assign.process');
+    Route::get('/{class}', [ClassAssignmentController::class, 'showClassStudents'])->name('show');
+    Route::post('/move_student', [ClassAssignmentController::class, 'moveStudent'])->name('move_student');
+});

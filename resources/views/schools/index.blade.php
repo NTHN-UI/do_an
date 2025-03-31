@@ -44,9 +44,6 @@
         th {
             font-weight: 500;
         }
-        h3{
-            color : #013066;
-        }
         .dropdown-item:active,
         .dropdown-item:focus {
             background-color: #013066 !important;
@@ -55,8 +52,7 @@
 
     </style>
     <div class="container">
-        <h3 class="mb-3">Danh sách trường học</h3>
-
+        <h3 class="mb-3" style = "color:#013066">Danh sách trường học</h3>
         <div class="d-flex justify-content-end align-items-center mb-3">
             <form method="GET" action="{{ route('schools.index') }}" class="d-flex me-2">
                 <div class="input-group">
