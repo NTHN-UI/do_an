@@ -4,6 +4,7 @@ use App\Http\Controllers\AcademicYearController;
 use App\Http\Controllers\ClassAssignmentController;
 use App\Http\Controllers\ClassController;
 use App\Http\Controllers\GradeLevelController;
+use App\Http\Controllers\MaterialController;
 use App\Http\Controllers\SchoolAdminController;
 use App\Http\Controllers\SchoolController;
 use App\Http\Controllers\SemesterController;
@@ -39,3 +40,6 @@ Route::prefix('class_assignments')->name('class_assignments.')->group(function (
     Route::get('/{class}', [ClassAssignmentController::class, 'showClassStudents'])->name('show');
     Route::post('/move_student', [ClassAssignmentController::class, 'moveStudent'])->name('move_student');
 });
+
+Route::resource('materials', MaterialController::class);
+Route::get('materials/{material}/download', [MaterialController::class, 'download'])->name('materials.download');

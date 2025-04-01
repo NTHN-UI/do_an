@@ -145,7 +145,7 @@ return new class extends Migration
         Schema::create('materials', function (Blueprint $table) {
             $table->id();
             $table->string('title');
-            $table->text('description');
+            $table->text('description')->nullable();;
             $table->string('file_path');
             $table->foreignId('subject_id')->constrained('subjects');
             $table->foreignId('teacher_id')->constrained('users');
