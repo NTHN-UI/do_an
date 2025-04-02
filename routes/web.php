@@ -3,6 +3,7 @@
 use App\Http\Controllers\AcademicYearController;
 use App\Http\Controllers\ClassAssignmentController;
 use App\Http\Controllers\ClassController;
+use App\Http\Controllers\GradeController;
 use App\Http\Controllers\GradeLevelController;
 use App\Http\Controllers\MaterialController;
 use App\Http\Controllers\SchoolAdminController;
@@ -43,3 +44,12 @@ Route::prefix('class_assignments')->name('class_assignments.')->group(function (
 
 Route::resource('materials', MaterialController::class);
 Route::get('materials/{material}/download', [MaterialController::class, 'download'])->name('materials.download');
+Route::prefix('grades')->group(function () {
+    Route::get('/', [GradeController::class, 'index'])->name('grades.index');
+    Route::get('/{class}/{subject}/{semester}/create', [GradeController::class, 'create'])
+        ->name('grades.create');
+    Route::post('/{class}/{subject}/{semester}', [GradeController::class, 'store'])
+        ->name('grades.store');
+    Route::get('/{class}/{subject}/{semester}', [GradeController::class, 'show'])
+        ->name('grades.show');
+});

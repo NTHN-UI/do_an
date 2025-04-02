@@ -105,6 +105,10 @@ class User extends Authenticatable
     {
         return $this->hasMany(TeacherClass::class, 'user_id');
     }
+    public function teacherAssignments()
+    {
+        return $this->hasMany(TeacherAssignment::class, 'teacher_id');
+    }
     public function homeroomClasses()
     {
         return $this->hasMany(TeacherAssignment::class, 'teacher_id')
@@ -115,6 +119,15 @@ class User extends Authenticatable
     {
         return $this->hasMany(TeacherAssignment::class, 'teacher_id')
             ->where('is_homeroom', false);
+    }
+    public function gradesGiven()
+    {
+        return $this->hasMany(Grade::class, 'teacher_id');
+    }
+
+    public function gradesReceived()
+    {
+        return $this->hasMany(Grade::class, 'student_id');
     }
     protected function casts(): array
     {

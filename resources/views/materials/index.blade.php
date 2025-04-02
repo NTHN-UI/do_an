@@ -67,11 +67,10 @@
                                         aria-expanded="false">
                                     <i class="fas fa-ellipsis-v"></i>
                                 </button>
-                                <ul  class="dropdown-menu dropdown-menu-end"  style="min-width: 70px;"
+                                <ul  class="dropdown-menu dropdown-menu-end py-1 text-center" style="min-width: 50px;"
                                     aria-labelledby="dropdownMenuButton{{ $material->id }}" >
-                                    <!-- Chỉ hiển thị sửa/xóa trong dropdown -->
                                     <li>
-                                        <a class="dropdown-item"
+                                        <a class="dropdown-item px-2 py-1"
                                            href="{{ route('materials.edit', $material) }}">
                                             Sửa
                                         </a>
@@ -80,7 +79,7 @@
                                         <form action="{{ route('materials.destroy', $material) }}"
                                               method="POST" class="d-inline">
                                             @csrf @method('DELETE')
-                                            <button type="submit" class="dropdown-item"
+                                            <button type="submit" class="dropdown-item px-2 py-1"
                                                     onclick="return confirm('Bạn chắc chắn muốn xóa tài liệu này?')">
                                                 Xóa
                                             </button>
@@ -141,8 +140,6 @@
                 </div>
             @endforelse
         </div>
-
-        <!-- Phân trang -->
         <div class="d-flex justify-content-center mt-5">
             {{ $materials->links() }}
         </div>
