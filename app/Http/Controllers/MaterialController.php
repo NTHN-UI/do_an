@@ -20,36 +20,46 @@ class MaterialController extends Controller
     {
         $search = $request->input('search');
         $subjectId = $request->input('subject_id');
-        $teacherId = $request->input('teacher_id');
 
-        // Giáo viên chỉ xem được tài liệu của mình
-        $materials = Material::with(['subject', 'teacher'])
-            ->when(Auth::user()->isTeacher(), function($query) {
-                return $query->where('teacher_id', Auth::id());
-            })
-            ->when($search, function($query) use ($search) {
+        // GIÁO VIÊN: chỉ xem tài liệu của mình
+        if (Auth::user()->isTeacher()) {
+            $materials = Material::where('teacher_id', Auth::id());
+            $subjects = Subject::whereIn('id',
+                TeacherAssignment::where('teacher_id', Auth::id())->pluck('subject_id')
+            )->get();
+        }
+        // HỌC SINH: xem tất cả tài liệu (hoặc có thể lọc theo giáo viên dạy mình)
+        elseif (Auth::user()->isStudent()) {
+            $materials = Material::query();
+
+            // Nếu muốn học sinh chỉ xem tài liệu của giáo viên dạy mình:
+
+            $teacherIds = TeacherAssignment::whereIn('class_id',
+                Auth::user()->classes()->pluck('classes.id')
+            )->pluck('teacher_id')->unique();
+            $materials = Material::whereIn('teacher_id', $teacherIds);
+
+
+            $subjects = Subject::all();
+        }
+        // ADMIN: xem tất cả
+        else {
+            $materials = Material::query();
+            $subjects = Subject::all();
+        }
+
+        // Áp dụng filter chung
+        $materials = $materials->with(['subject', 'teacher'])
+            ->when($search, function($query, $search) {
                 return $query->where('title', 'like', "%$search%");
             })
-            ->when($subjectId, function($query) use ($subjectId) {
+            ->when($subjectId, function($query, $subjectId) {
                 return $query->where('subject_id', $subjectId);
-            })
-            ->when($teacherId, function($query) use ($teacherId) {
-                return $query->where('teacher_id', $teacherId);
             })
             ->orderBy('created_at', 'desc')
             ->paginate(10);
 
-        // Giáo viên chỉ xem được các môn mình dạy
-        $subjects = Auth::user()->isTeacher()
-            ? Subject::whereIn('id', TeacherAssignment::where('teacher_id', Auth::id())->pluck('subject_id'))->get()
-            : Subject::all();
-
-        // Lấy danh sách giáo viên (chỉ admin hoặc người có quyền xem tất cả)
-        $teachers = Auth::user()->isTeacher()
-            ? User::where('id', Auth::id())->get() // Giáo viên chỉ thấy chính mình
-            : User::where('role', 'teacher')->get(); // Admin xem tất cả giáo viên
-
-        return view('materials.index', compact('materials', 'subjects', 'teachers', 'search', 'subjectId', 'teacherId'));
+        return view('materials.index', compact('materials', 'subjects', 'search', 'subjectId'));
     }
 
 
@@ -162,4 +172,5 @@ class MaterialController extends Controller
         return Storage::download($material->file_path, $material->title);
 
     }
+
 }

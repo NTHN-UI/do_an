@@ -7,9 +7,11 @@
                 <h1 class="display-6 fw-bold text-primary">Tài liệu Tham khảo</h1>
                 <p class="text-muted">Tổng hợp tài liệu học tập từ các môn học và giáo viên</p>
             </div>
-            <a href="{{ route('materials.create') }}" class="btn btn-primary">
-                <i class="fas fa-upload"></i> Tải lên tài liệu
-            </a>
+            @if(Auth::user()->isTeacher())
+                <a href="{{ route('materials.create') }}" class="btn btn-primary">
+                    <i class="fas fa-upload"></i> Tải lên tài liệu
+                </a>
+            @endif
         </div>
 
         <!-- Bộ lọc tìm kiếm -->
@@ -34,16 +36,16 @@
                                 @endforeach
                             </select>
                         </div>
-                        <div class="col-md-3">
-                            <select name="teacher_id" class="form-select">
-                                <option value="">Tất cả giáo viên</option>
-                                @foreach($teachers as $teacher)
-                                    <option value="{{ $teacher->id }}" {{ request('teacher_id') == $teacher->id ? 'selected' : '' }}>
-                                        {{ $teacher->full_name }}
-                                    </option>
-                                @endforeach
-                            </select>
-                        </div>
+{{--                        <div class="col-md-3">--}}
+{{--                            <select name="teacher_id" class="form-select">--}}
+{{--                                <option value="">Tất cả giáo viên</option>--}}
+{{--                                @foreach($teachers as $teacher)--}}
+{{--                                    <option value="{{ $teacher->id }}" {{ request('teacher_id') == $teacher->id ? 'selected' : '' }}>--}}
+{{--                                        {{ $teacher->full_name }}--}}
+{{--                                    </option>--}}
+{{--                                @endforeach--}}
+{{--                            </select>--}}
+{{--                        </div>--}}
                         <div class="col-md-1">
                             <button type="submit" class="btn btn-primary w-100">
                                 <i class="fas fa-filter"></i>
@@ -62,13 +64,17 @@
                         <!-- Thêm dropdown menu ở góc phải card header -->
                         <div class="card-header bg-white border-0 pb-0 position-relative">
                             <div class="dropdown position-absolute top-0 end-0 mt-2 me-2">
+                                @if(Auth::user()->isTeacher())
                                 <button class="btn btn-sm btn-light rounded-circle" type="button"
                                         id="dropdownMenuButton{{ $material->id }}" data-bs-toggle="dropdown"
                                         aria-expanded="false">
                                     <i class="fas fa-ellipsis-v"></i>
                                 </button>
+
+
                                 <ul  class="dropdown-menu dropdown-menu-end py-1 text-center" style="min-width: 50px;"
                                     aria-labelledby="dropdownMenuButton{{ $material->id }}" >
+
                                     <li>
                                         <a class="dropdown-item px-2 py-1"
                                            href="{{ route('materials.edit', $material) }}">
@@ -86,6 +92,7 @@
                                         </form>
                                     </li>
                                 </ul>
+                                @endif
                             </div>
 
                             <!-- Phần header giữ nguyên -->
@@ -115,11 +122,15 @@
 
                         <!-- Phần footer giữ nguyên các nút hiện có -->
                         <div class="card-footer bg-white border-0 pt-0">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <a href="{{ route('materials.download', $material) }}"
-                                   class="btn btn-outline-primary btn-sm rounded-pill px-3">
-                                    <i class="fas fa-download me-1"></i> Tải xuống
-                                </a>
+                            <div class="d-flex align-items-center justify-content-between">
+                                <div>
+                                    @if(Auth::user()->isStudent())
+                                        <a href="{{ route('materials.download', $material) }}"
+                                           class="btn btn-outline-primary btn-sm rounded-pill px-3">
+                                            <i class="fas fa-download me-1"></i> Tải xuống
+                                        </a>
+                                    @endif
+                                </div>
                                 <a href="{{ route('materials.show', $material) }}"
                                    class="text-primary small">
                                     Xem chi tiết <i class="fas fa-arrow-right ms-1"></i>

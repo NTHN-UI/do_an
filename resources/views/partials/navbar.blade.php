@@ -139,7 +139,7 @@
                     </ul>
                 </li>
             @endif
-            @if(Auth::user()->isTeacher())
+            @if(Auth::user()->isTeacher() || Auth::user()->isStudent())
                 <!-- Tài liệu & Thi cử -->
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle" href="#" id="resourcesDropdown" role="button"

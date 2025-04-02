@@ -128,7 +128,14 @@
                             <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
-
+                        <div class="mb-3">
+                            <label for="password" class="form-label">Mật khẩu</label>
+                            <input type="password" class="form-control @error('password') is-invalid @enderror"
+                                   id="password" name="password" placeholder="">
+                            @error('password')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
                         <div class="mb-3">
                             <label for="guardian_phone" class="form-label">SĐT phụ huynh</label>
                             <input type="text" class="form-control @error('guardian_phone') is-invalid @enderror"

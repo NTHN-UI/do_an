@@ -25,30 +25,19 @@
                                     <span><i class="fas fa-user-tie me-1"></i> {{ $material->teacher->full_name }}</span>
                                 </div>
                             </div>
+                            @if(Auth::user()->isStudent())
                             <div class="dropdown">
                                 <button class="btn btn-sm btn-light rounded-circle" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown">
                                     <i class="fas fa-ellipsis-v"></i>
                                 </button>
+
                                 <ul class="dropdown-menu dropdown-menu-end">
                                     <li><a class="dropdown-item" href="{{ route('materials.download', $material) }}">
                                             <i class="fas fa-download me-2"></i>Tải xuống
                                         </a></li>
-                                    @auth
-                                        @if(auth()->user()->id === $material->teacher_id || auth()->user()->role === 'admin')
-                                            <li><hr class="dropdown-divider"></li>
-                                            <li><a class="dropdown-item text-warning" href="#">
-                                                    <i class="fas fa-edit me-2"></i>Chỉnh sửa
-                                                </a></li>
-                                            <li><a class="dropdown-item text-danger" href="#" onclick="event.preventDefault(); document.getElementById('delete-form').submit()">
-                                                    <i class="fas fa-trash me-2"></i>Xóa
-                                                </a></li>
-                                            <form id="delete-form" action="{{ route('materials.destroy', $material) }}" method="POST" class="d-none">
-                                                @csrf @method('DELETE')
-                                            </form>
-                                        @endif
-                                    @endauth
                                 </ul>
                             </div>
+                            @endif
                         </div>
 
                         <!-- Thông tin file -->
@@ -65,10 +54,13 @@
                                             Tải lên: {{ $material->created_at->format('d/m/Y H:i') }}
                                         </p>
                                     </div>
+                                    @if(Auth::user()->isStudent())
+
                                     <a href="{{ route('materials.download', $material) }}"
                                        class="btn btn-primary rounded-pill px-3">
                                         <i class="fas fa-download me-1"></i> Tải xuống
                                     </a>
+                                    @endif
                                 </div>
                             </div>
                         </div>

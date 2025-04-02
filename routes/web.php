@@ -67,18 +67,21 @@ Route::middleware(AdminMiddleware::class)->group(function(){
 });
 
 
-Route::middleware(TeacherMiddleware::class)->group(function(){
+Route::middleware(['auth'])->group(function () {
     Route::prefix('materials')->group(function () {
+        // Route xem chung cho cả Student và Teacher
         Route::get('/', [MaterialController::class, 'index'])->name('materials.index');
-        Route::get('/create', [MaterialController::class, 'create'])->name('materials.create');
-        Route::post('/', [MaterialController::class, 'store'])->name('materials.store');
-        Route::get('/{material}', [MaterialController::class, 'show'])->name('materials.show');
-        Route::get('/{material}/edit', [MaterialController::class, 'edit'])->name('materials.edit');
-        Route::put('/{material}', [MaterialController::class, 'update'])->name('materials.update');
-        Route::delete('/{material}', [MaterialController::class, 'destroy'])->name('materials.destroy');
         Route::get('/{material}/download', [MaterialController::class, 'download'])->name('materials.download');
+
+        Route::middleware([TeacherMiddleware::class])->group(function () {
+            Route::get('/create', [MaterialController::class, 'create'])->name('materials.create');
+            Route::post('/', [MaterialController::class, 'store'])->name('materials.store');
+            Route::get('/{material}/edit', [MaterialController::class, 'edit'])->name('materials.edit');
+            Route::put('/{material}', [MaterialController::class, 'update'])->name('materials.update');
+            Route::delete('/{material}', [MaterialController::class, 'destroy'])->name('materials.destroy');
+        });
+        Route::get('/{material}', [MaterialController::class, 'show'])->name('materials.show');
+
     });
-
 });
-
 

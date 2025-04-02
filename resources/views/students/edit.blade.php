@@ -52,7 +52,11 @@
                             <input type="email" class="form-control" id="email" name="email"
                                    value="{{ $student->email }}">
                         </div>
-
+                        <div class="mb-3">
+                            <label for="password" class="form-label">Mật khẩu mới</label>
+                            <input type="password" class="form-control"
+                                   id="password" name="password" placeholder="Để trống nếu không đổi mật khẩu">
+                        </div>
                         <div class="mb-3">
                             <label for="phone" class="form-label">Số điện thoại</label>
                             <input type="text" class="form-control" id="phone" name="phone"

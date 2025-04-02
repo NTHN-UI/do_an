@@ -6,6 +6,7 @@ use App\Models\School;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 
 class StudentController extends Controller
 {
@@ -55,12 +56,19 @@ class StudentController extends Controller
             'gender' => 'nullable|in:Nam,Nữ,Khác',
             'date_of_birth' => 'nullable|date',
             'school_id' => 'required|exists:schools,id',
+            'password' => 'nullable|string|min:8',
         ]);
-
         $validated['role'] = 'student';
         $validated['is_active'] = $request->has('is_active');
 
-        User::create($validated);
+        if (empty($validated['password'])) {
+            $validated['password'] = Str::random(8); // Tạo password ngẫu nhiên 8 ký tự
+        }
+
+        // Mã hóa password
+        $validated['password'] = Hash::make($validated['password']);
+
+        $student = User::create($validated);
 
         return redirect()->route('students.index')->with('success', 'Học sinh đã được thêm thành công.');
     }
@@ -97,7 +105,6 @@ class StudentController extends Controller
      */
     public function update(Request $request, User $student)
     {
-        // Đảm bảo chỉ cập nhật học sinh
         if ($student->role !== 'student') {
             abort(404);
         }
@@ -113,12 +120,19 @@ class StudentController extends Controller
             'gender' => 'nullable|in:Nam,Nữ,Khác',
             'date_of_birth' => 'nullable|date',
             'school_id' => 'required|exists:schools,id',
+            'password' => 'nullable|string|min:8', // Thêm validation cho password
         ]);
 
         $validated['is_active'] = $request->has('is_active');
 
-        $student->update($validated);
+        // Chỉ cập nhật password nếu có giá trị mới
+        if (!empty($validated['password'])) {
+            $validated['password'] = Hash::make($validated['password']);
+        } else {
+            unset($validated['password']); // Giữ nguyên password cũ nếu không nhập
+        }
 
+        $student->update($validated);
 
         return redirect()->route('students.index')->with('success', 'Thông tin học sinh đã được cập nhật.');
     }
