@@ -4,6 +4,9 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\ValidationException;
 
 class LoginController extends Controller
 {
@@ -14,12 +17,12 @@ class LoginController extends Controller
 
     public function login(Request $request)
     {
+        Log::info("Xin chao");
         $request->validate([
             'login' => 'required|string',
             'password' => 'required|string',
         ]);
 
-        // Xác định field đăng nhập (email hoặc phone)
         $field = filter_var($request->login, FILTER_VALIDATE_EMAIL) ? 'email' : 'phone';
 
         $credentials = [
@@ -32,22 +35,23 @@ class LoginController extends Controller
             $request->session()->regenerate();
 
             $user = Auth::user();
+            Log::info("Xin chao");
 
             // Kiểm tra role và chuyển hướng phù hợp
-            if ($user->isAdmin() || $user->isSchoolAdmin()) {
-                return redirect()->intended(route('admin.dashboard'));
+            if ($user->isSuperAdmin() || $user->isSchoolAdmin()) {
+                return redirect()->intended(route('home.index'));
             } elseif ($user->isTeacher()) {
-                return redirect()->intended(route('teacher.dashboard'));
+                return redirect()->intended(route('home.index'));
             } elseif ($user->isStudent()) {
-                return redirect()->intended(route('student.dashboard'));
+                return redirect()->intended(route('home.index'));
             }
         }
 
         throw ValidationException::withMessages([
             'login' => [trans('auth.failed')],
         ]);
-    }
 
+    }
     public function logout(Request $request)
     {
         Auth::logout();
@@ -55,7 +59,7 @@ class LoginController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect('/');
+        return redirect()->route('login')->with('status', 'Bạn đã đăng xuất thành công!');
     }
 
 }

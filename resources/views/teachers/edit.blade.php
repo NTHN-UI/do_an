@@ -77,19 +77,11 @@
                     <!-- Trường học & Địa chỉ -->
                     <div class="row mb-4">
                         <div class="col-md-6 mb-3">
-                            <label for="school_id" class="form-label">Trường <span class="text-danger">*</span></label>
-                            <select name="school_id" id="school_id"
-                                    class="form-select @error('school_id') is-invalid @enderror" required>
-                                <option value="">-- Chọn trường --</option>
-                                @foreach($schools as $school)
-                                    <option value="{{ $school->id }}" {{ old('school_id', $teacher->school_id) == $school->id ? 'selected' : '' }}>
-                                        {{ $school->name }} ({{ $school->education_level_name }})
-                                    </option>
-                                @endforeach
-                            </select>
-                            @error('school_id')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
+                            <label class="form-label">Trường</label>
+                            <input type="hidden" name="school_id" value="{{ Auth::user()->school->id }}">
+                            <div class="form-control bg-light">
+                                {{ Auth::user()->school->name }} ({{ Auth::user()->school->education_level_name }})
+                            </div>
                         </div>
 
                         <div class="col-md-6 mb-3">

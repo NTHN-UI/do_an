@@ -20,22 +20,14 @@
                             @method('PUT')
 
                             <div class="form-group row">
-                                <label for="school_id" class="col-md-4 col-form-label text-md-right">Trường học</label>
+                                <label class="col-md-4 col-form-label text-md-right">Trường học</label>
+                                <input type="hidden" name="school_id" value="{{ Auth::user()->school_id  }}">
                                 <div class="col-md-6">
-                                    <select id="school_id" name="school_id" class="form-control @error('school_id') is-invalid @enderror" required>
-                                        <option value="">-- Chọn trường --</option>
-                                        @foreach($schools as $school)
-                                            <option value="{{ $school->id }}"
-                                                {{ old('school_id', $gradeLevel->school_id) == $school->id ? 'selected' : '' }}>
-                                                {{ $school->name }} ({{ $school->education_level == 'primary' ? 'Tiểu học' : ($school->education_level == 'secondary' ? 'THCS' : 'THPT') }})
-                                            </option>
-                                        @endforeach
-                                    </select>
-                                    @error('school_id')
-                                    <span class="invalid-feedback" role="alert">
-                                        <strong>{{ $message }}</strong>
-                                    </span>
-                                    @enderror
+                                    <div class="form-control bg-light">
+                                        {{ Auth::user()->school->name }}
+                                        ({{ Auth::user()->school->education_level == 'primary' ? 'Tiểu học' :
+                                          (Auth::user()->school->education_level == 'secondary' ? 'THCS' : 'THPT') }})
+                                    </div>
                                 </div>
                             </div>
 

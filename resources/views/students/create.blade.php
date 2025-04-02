@@ -104,19 +104,11 @@
                         </div>
 
                         <div class="mb-3">
-                            <label for="school_id" class="form-label">Trường học <span
-                                    class="text-danger">*</span></label>
-                            <select class="form-select @error('school_id') is-invalid @enderror" id="school_id"
-                                    name="school_id" required>
-                                <option value="">Chọn trường</option>
-                                @foreach($schools as $school)
-                                    <option
-                                        value="{{ $school->id }}" {{ old('school_id') == $school->id ? 'selected' : '' }}>{{ $school->name }}</option>
-                                @endforeach
-                            </select>
-                            @error('school_id')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
+                            <label class="form-label">Trường học</label>
+                            <input type="hidden" name="school_id" value="{{ Auth::user()->school->id }}">
+                            <div class="form-control bg-light">
+                                {{ Auth::user()->school->name }}
+                            </div>
                         </div>
 
                         <div class="mb-3">

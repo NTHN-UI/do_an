@@ -78,14 +78,11 @@
                         </div>
 
                         <div class="mb-3">
-                            <label for="school_id" class="form-label">Trường học</label>
-                            <select class="form-select" id="school_id" name="school_id" required>
-                                <option value="">Chọn trường</option>
-                                @foreach($schools as $school)
-                                    <option
-                                        value="{{ $school->id }}" {{ $student->school_id == $school->id ? 'selected' : '' }}>{{ $school->name }}</option>
-                                @endforeach
-                            </select>
+                            <label class="form-label">Trường học</label>
+                            <input type="hidden" name="school_id" value="{{ Auth::user()->school->id }}">
+                            <div class="form-control bg-light">
+                                {{ Auth::user()->school->name }}
+                            </div>
                         </div>
 
                         <div class="mb-3">

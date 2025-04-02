@@ -20,7 +20,6 @@
         <div class="card-body">
             <form method="POST" action="{{ route('classes.store') }}">
                 @csrf
-
                 <div class="form-group">
                     <label for="name">Tên Lớp <span class="text-danger">*</span></label>
                     <input type="text" class="form-control @error('name') is-invalid @enderror"
@@ -31,19 +30,11 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="school_id">Trường <span class="text-danger">*</span></label>
-                    <select class="form-control @error('school_id') is-invalid @enderror"
-                            id="school_id" name="school_id" required>
-                        <option value="">-- Chọn Trường --</option>
-                        @foreach($schools as $school)
-                            <option value="{{ $school->id }}" {{ old('school_id') == $school->id ? 'selected' : '' }}>
-                                {{ $school->name }}
-                            </option>
-                        @endforeach
-                    </select>
-                    @error('school_id')
-                    <div class="invalid-feedback">{{ $message }}</div>
-                    @enderror
+                    <label>Trường</label>
+                    <input type="hidden" name="school_id" value="{{ Auth::user()->school->id }}">
+                    <div class="form-control bg-light">
+                        {{ Auth::user()->school->name }}
+                    </div>
                 </div>
 
                 <div class="form-group">

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Material;
 use App\Models\Subject;
+use App\Models\TeacherAssignment;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -21,7 +22,11 @@ class MaterialController extends Controller
         $subjectId = $request->input('subject_id');
         $teacherId = $request->input('teacher_id');
 
+        // Giáo viên chỉ xem được tài liệu của mình
         $materials = Material::with(['subject', 'teacher'])
+            ->when(Auth::user()->isTeacher(), function($query) {
+                return $query->where('teacher_id', Auth::id());
+            })
             ->when($search, function($query) use ($search) {
                 return $query->where('title', 'like', "%$search%");
             })
@@ -34,8 +39,15 @@ class MaterialController extends Controller
             ->orderBy('created_at', 'desc')
             ->paginate(10);
 
-        $subjects = Subject::all();
-        $teachers = User::where('role', User::ROLE_TEACHER)->get();
+        // Giáo viên chỉ xem được các môn mình dạy
+        $subjects = Auth::user()->isTeacher()
+            ? Subject::whereIn('id', TeacherAssignment::where('teacher_id', Auth::id())->pluck('subject_id'))->get()
+            : Subject::all();
+
+        // Lấy danh sách giáo viên (chỉ admin hoặc người có quyền xem tất cả)
+        $teachers = Auth::user()->isTeacher()
+            ? User::where('id', Auth::id())->get() // Giáo viên chỉ thấy chính mình
+            : User::where('role', 'teacher')->get(); // Admin xem tất cả giáo viên
 
         return view('materials.index', compact('materials', 'subjects', 'teachers', 'search', 'subjectId', 'teacherId'));
     }
@@ -46,7 +58,10 @@ class MaterialController extends Controller
      */
     public function create()
     {
-        $subjects = Subject::all();
+        $subjects = Auth::user()->isTeacher()
+            ? Subject::whereIn('id', TeacherAssignment::where('teacher_id', Auth::id())->pluck('subject_id'))->get()
+            : Subject::all();
+
         return view('materials.create', compact('subjects'));
     }
 
@@ -59,7 +74,18 @@ class MaterialController extends Controller
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
             'file' => 'required|file|mimes:pdf,doc,docx,ppt,pptx,xls,xlsx|max:10240',
-            'subject_id' => 'required|exists:subjects,id'
+            'subject_id' => [
+                'required',
+                'exists:subjects,id',
+                function ($attribute, $value, $fail) {
+                    if (Auth::user()->isTeacher() &&
+                        !TeacherAssignment::where('teacher_id', Auth::id())
+                            ->where('subject_id', $value)
+                            ->exists()) {
+                        $fail('Bạn không được phép tải lên tài liệu cho môn học này.');
+                    }
+                }
+            ]
         ]);
 
         $filePath = $request->file('file')->store('materials');
@@ -69,7 +95,7 @@ class MaterialController extends Controller
             'description' => $request->description,
             'file_path' => $filePath,
             'subject_id' => $request->subject_id,
-            'teacher_id' => auth()->id() ?? 1// Sau này sẽ thay bằng giáo viên thực tế
+            'teacher_id' => Auth::id() // Luôn là giáo viên hiện tại
         ]);
 
         return redirect()->route('materials.index')->with('success', 'Tài liệu đã được tải lên thành công!');

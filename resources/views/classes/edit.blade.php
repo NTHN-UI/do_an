@@ -32,18 +32,11 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="school_id">Trường *</label>
-                    <select id="school_id" name="school_id" class="form-control @error('school_id') is-invalid @enderror" required>
-                        <option value="">-- Chọn trường --</option>
-                        @foreach($schools as $school)
-                            <option value="{{ $school->id }}" {{ old('school_id', $class->school_id) == $school->id ? 'selected' : '' }}>
-                                {{ $school->name }}
-                            </option>
-                        @endforeach
-                    </select>
-                    @error('school_id')
-                    <div class="invalid-feedback">{{ $message }}</div>
-                    @enderror
+                    <label>Trường</label>
+                    <input type="hidden" name="school_id" value="{{ Auth::user()->school->id }}">
+                    <div class="form-control bg-light">
+                        {{ Auth::user()->school->name }}
+                    </div>
                 </div>
 
                 <div class="form-group">
