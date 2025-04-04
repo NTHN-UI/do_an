@@ -99,14 +99,13 @@
                     <ul class="dropdown-menu">
                         <li><a class="dropdown-item" href="{{ route('classes.index') }}"><i
                                     class="fas fa-users-class me-2"></i> Lớp học</a></li>
+                        <li><a class="dropdown-item" href="{{ route('grade_levels.index') }}"><i
+                                    class="fas fa-layer-group me-2"></i> Khối lớp</a></li>
                         {{--                        <li><a class="dropdown-item" href="{{ route('subjects.index') }}"><i class="fas fa-book me-2"></i> Môn học</a></li>--}}
                         <li><a class="dropdown-item" href="{{ route('teacher_assignments.index') }}"><i
                                     class="fas fa-tasks me-2"></i> Phân công giảng dạy</a></li>
-                        <li>
-                            <hr class="dropdown-divider">
-                        </li>
-                        <li><a class="dropdown-item" href="{{ route('grade_levels.index') }}"><i
-                                    class="fas fa-star me-2"></i> Điểm số</a></li>
+
+
                     </ul>
                 </li>
 
@@ -160,10 +159,15 @@
                 {{--                    </a>--}}
                 {{--                </li>--}}
 
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ route('grades.index') }}">
+                        <i class="fas fa-star me-1"></i> Điểm số
+                    </a>
+                </li>
 
            @endif
         </ul>
-        @if(Auth::user()->isSchoolAdmin())
+        @if(Auth::user()->isSuperAdmin())
 
             <!-- Menu bên phải -->
         <ul class="navbar-nav">
@@ -174,12 +178,8 @@
                 <ul class="dropdown-menu dropdown-menu-end">
                     <li><a class="dropdown-item" href="{{ route('schools.index') }}"><i class="fas fa-school me-2"></i>
                             Trường học</a></li>
-                    <li><a class="dropdown-item" href="{{ route('grade_levels.index') }}"><i
-                                class="fas fa-layer-group me-2"></i> Khối lớp</a></li>
-                    <li>
-                        <hr class="dropdown-divider">
-                    </li>
-                    {{--                        <li><a class="dropdown-item" href="{{ route('system.settings') }}"><i class="fas fa-sliders-h me-2"></i> Cài đặt hệ thống</a></li>--}}
+
+                                            <li><a class="dropdown-item" href="{{ route('school_admins.index') }}"><i class="fas fa-sliders-h me-2"></i> Admin</a></li>
                 </ul>
             </li>
 

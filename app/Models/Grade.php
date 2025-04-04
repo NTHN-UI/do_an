@@ -33,6 +33,10 @@ class Grade extends Model
     public function semester(){
         return $this->belongsTo(Semester::class);
     }
+    public function teacherAssignments()
+    {
+        return $this->hasMany(TeacherAssignment::class, 'teacher_id');
+    }
     public function getLetterGradeAttribute()
     {
         if ($this->score >= 8.5) return 'A';

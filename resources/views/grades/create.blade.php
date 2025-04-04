@@ -6,7 +6,7 @@
             <div class="card-header bg-primary text-white">
                 <h4 class="mb-0">
                     <i class="fas fa-edit me-2"></i>
-                    Nhập điểm {{ $subject->name }} - Lớp {{ $class->name }} (HK{{ $semester->name }})
+                    Nhập điểm {{ $subject->name }} - {{ $class->name }} ({{ $semester->name }})
                 </h4>
             </div>
 

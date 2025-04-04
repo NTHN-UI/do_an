@@ -39,6 +39,24 @@ class GradeController extends Controller
      */
     public function create(ClassModel $class, Subject $subject, Semester $semester)
     {
+        // Kiểm tra giáo viên hiện tại có được phân công dạy môn này trong lớp này không
+        $currentTeacher = auth()->user();
+        $currentSemester = Semester::where('is_current', true)->first();
+
+        if (!$currentSemester) {
+            return redirect()->back()->with('error', 'Không có học kỳ hiện tại');
+        }
+
+        $isAssigned = $currentTeacher->teacherAssignments()
+            ->where('class_id', $class->id)
+            ->where('subject_id', $subject->id)
+            ->where('academic_year_id', $currentSemester->academic_year_id)
+            ->exists();
+
+        if (!$isAssigned) {
+            abort(403, 'Bạn không được phân công dạy môn này trong lớp này');
+        }
+
         $students = $class->students()->orderBy('full_name')->get();
 
         // Lấy các loại điểm đã nhập
@@ -61,13 +79,23 @@ class GradeController extends Controller
      */
     public function store(Request $request, ClassModel $class, Subject $subject, Semester $semester)
     {
+        $currentTeacher = auth()->user();
+
+        // Kiểm tra phân công
+        $isAssigned = $currentTeacher->teacherAssignments()
+            ->where('class_id', $class->id)
+            ->where('subject_id', $subject->id)
+            ->where('academic_year_id', $semester->academic_year_id)
+            ->exists();
+
+        if (!$isAssigned) {
+            abort(403, 'Bạn không được phân công dạy môn này trong lớp này');
+        }
+
         $validated = $request->validate([
             'grades' => 'required|array',
             'grades.*.*.score' => 'nullable|numeric|min:0|max:10|decimal:0,2',
-            'teacher_id' => 'required|exists:users,id' // Thêm validation cho teacher_id
         ]);
-
-        $teacher = User::where('role', 'teacher')->first();
 
         foreach ($request->grades as $studentId => $studentGrades) {
             foreach ($studentGrades as $testType => $gradeData) {
@@ -81,7 +109,7 @@ class GradeController extends Controller
                             'test_type' => $testType,
                         ],
                         [
-                            'teacher_id' => $teacher, // Sử dụng teacherId từ request
+                            'teacher_id' => $currentTeacher->id, // Sử dụng teacher hiện tại
                             'academic_year_id' => $semester->academic_year_id,
                             'score' => $gradeData['score'],
                         ]
@@ -98,6 +126,19 @@ class GradeController extends Controller
      */
     public function show(ClassModel $class, Subject $subject, Semester $semester)
     {
+        $currentTeacher = auth()->user();
+
+        // Kiểm tra phân công
+        $isAssigned = $currentTeacher->teacherAssignments()
+            ->where('class_id', $class->id)
+            ->where('subject_id', $subject->id)
+            ->where('academic_year_id', $semester->academic_year_id)
+            ->exists();
+
+        if (!$isAssigned) {
+            abort(403, 'Bạn không được phân công dạy môn này trong lớp này');
+        }
+
         $students = $class->students()->orderBy('full_name')->get();
 
         $grades = Grade::where('class_id', $class->id)

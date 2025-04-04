@@ -52,6 +52,9 @@ Route::middleware(AdminMiddleware::class)->group(function(){
     Route::resource('students', StudentController::class);
     Route::resource('teachers', TeacherController::class);
     Route::resource('teacher_assignments', TeacherAssignmentController::class);
+
+
+
     Route::get('/teachers/{teacher}/assignments/create', [TeacherAssignmentController::class, 'create'])
         ->name('teacher_assignments.create');
     Route::post('teachers/{teacher}/assignments', [TeacherAssignmentController::class, 'store'])
@@ -69,7 +72,6 @@ Route::middleware(AdminMiddleware::class)->group(function(){
 
 Route::middleware(['auth'])->group(function () {
     Route::prefix('materials')->group(function () {
-        // Route xem chung cho cả Student và Teacher
         Route::get('/', [MaterialController::class, 'index'])->name('materials.index');
         Route::get('/{material}/download', [MaterialController::class, 'download'])->name('materials.download');
 
@@ -79,6 +81,20 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/{material}/edit', [MaterialController::class, 'edit'])->name('materials.edit');
             Route::put('/{material}', [MaterialController::class, 'update'])->name('materials.update');
             Route::delete('/{material}', [MaterialController::class, 'destroy'])->name('materials.destroy');
+
+            Route::get('/grades', [GradeController::class, 'index'])->name('grades.index');
+
+            // Form nhập điểm (create)
+            Route::get('/class/{class}/subject/{subject}/semester/{semester}/create', [GradeController::class, 'create'])
+                ->name('grades.create');
+
+            // Lưu điểm (store)
+            Route::post('/class/{class}/subject/{subject}/semester/{semester}/store', [GradeController::class, 'store'])
+                ->name('grades.store');
+
+            // Xem chi tiết điểm đã nhập (show)
+            Route::get('/class/{class}/subject/{subject}/semester/{semester}', [GradeController::class, 'show'])
+                ->name('grades.show');
         });
         Route::get('/{material}', [MaterialController::class, 'show'])->name('materials.show');
 
