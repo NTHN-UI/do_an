@@ -45,11 +45,11 @@
                 <table class="table table-striped table-hover mb-0">
                     <thead>
                     <tr>
-                        <th width="5%">STT</th>
-                        <th width="25%">Tên Admin</th>
-                        <th width="25%">Email</th>
-                        <th width="25%">Trường</th>
-                        <th width="20%">Hành động</th>
+                        <th>STT</th>
+                        <th>Tên Admin</th>
+                        <th>Email</th>
+                        <th>Trường</th>
+                        <th>Hành động</th>
                     </tr>
                     </thead>
                     <tbody>

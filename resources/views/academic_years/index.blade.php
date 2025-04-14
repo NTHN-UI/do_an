@@ -22,7 +22,7 @@
                 <tbody>
                 @foreach($academicYears as $year)
                     <tr>
-                        <td>{{ $year->id }}</td>
+                        <td>{{ $year->school_auto_id }}</td>
                         <td>{{ $year->year }}</td>
                         <td>{{ $year->start_date->format('d/m/Y') }}</td>
                         <td>{{ $year->end_date->format('d/m/Y') }}</td>

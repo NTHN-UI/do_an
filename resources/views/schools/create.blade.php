@@ -52,8 +52,6 @@
                     <select class="form-control @error('education_level') is-invalid @enderror"
                             id="education_level" name="education_level" required>
                         <option value="">-- Chọn cấp học --</option>
-                        <option value="primary" {{ old('education_level') == 'primary' ? 'selected' : '' }}>Tiểu học
-                        </option>
                         <option value="secondary" {{ old('education_level') == 'secondary' ? 'selected' : '' }}>THCS
                         </option>
                         <option value="high" {{ old('education_level') == 'high' ? 'selected' : '' }}>THPT</option>

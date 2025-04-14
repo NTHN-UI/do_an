@@ -49,7 +49,7 @@
                                 <tbody>
                                 @forelse ($gradeLevels as $gradeLevel)
                                     <tr>
-                                        <td>{{ $gradeLevel->id }}</td>
+                                        <td>{{ $gradeLevel-> school_auto_id }}</td>
                                         <td>
                                         <span class="badge text-dark p-2">
                                             Khối {{ $gradeLevel->grade_number }}

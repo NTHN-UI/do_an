@@ -36,16 +36,19 @@
                                 @endforeach
                             </select>
                         </div>
-{{--                        <div class="col-md-3">--}}
-{{--                            <select name="teacher_id" class="form-select">--}}
-{{--                                <option value="">Tất cả giáo viên</option>--}}
-{{--                                @foreach($teachers as $teacher)--}}
-{{--                                    <option value="{{ $teacher->id }}" {{ request('teacher_id') == $teacher->id ? 'selected' : '' }}>--}}
-{{--                                        {{ $teacher->full_name }}--}}
-{{--                                    </option>--}}
-{{--                                @endforeach--}}
-{{--                            </select>--}}
-{{--                        </div>--}}
+                        @if(Auth::user()->isStudent())
+
+                                                <div class="col-md-3">
+                            <select name="teacher_id" class="form-select">
+                                <option value="">Tất cả giáo viên</option>
+                                @foreach($teachers as $teacher)
+                                    <option value="{{ $teacher->id }}" {{ request('teacher_id') == $teacher->id ? 'selected' : '' }}>
+                                        {{ $teacher->full_name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                        @endif
                         <div class="col-md-1">
                             <button type="submit" class="btn btn-primary w-100">
                                 <i class="fas fa-filter"></i>

@@ -9,7 +9,6 @@ class  School extends Model
 {
     use HasFactory;
     // Các cấp học
-    const LEVEL_PRIMARY = 'primary';
     const LEVEL_SECONDARY = 'secondary';
     const LEVEL_HIGH = 'high';
 
@@ -55,12 +54,11 @@ class  School extends Model
     {
         return $this->hasMany(Subject::class);
     }
-
-// User.php
-    public function school()
+    public function users()
     {
-        return $this->belongsTo(School::class);
+        return $this->hasMany(User::class);
     }
+
     // Scope active
     public function scopeActive($query)
     {
@@ -71,7 +69,6 @@ class  School extends Model
     public function getEducationLevelNameAttribute()
     {
         return match($this->education_level) {
-            self::LEVEL_PRIMARY => 'Tiểu học',
             self::LEVEL_SECONDARY => 'Trung học cơ sở',
             self::LEVEL_HIGH => 'Trung học phổ thông',
             default => 'Không xác định',
@@ -81,12 +78,6 @@ class  School extends Model
     {
         static::created(function (School $school) {
             $subjects = match ($school->education_level) {
-                self::LEVEL_PRIMARY => [
-                    'Toán', 'Tiếng Việt', 'Đạo đức', 'Tự nhiên và Xã hội',
-                    'Lịch sử và Địa lý', 'Khoa học', 'Tin học và Công nghệ',
-                    'Giáo dục thể chất', 'Nghệ thuật (Âm nhạc, Mỹ thuật)',
-                    'Tiếng Anh'
-                ],
                 self::LEVEL_SECONDARY => [
                     'Toán', 'Ngữ văn', 'Ngoại ngữ', 'Vật lý', 'Hóa học',
                     'Sinh học', 'Lịch sử', 'Địa lý', 'Giáo dục công dân',

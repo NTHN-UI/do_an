@@ -14,8 +14,17 @@ class Material extends Model
         'description',
         'file_path',
         'subject_id',
-        'teacher_id'
+        'teacher_id',
+        'school_auto_id'
     ];
+    protected static function booted()
+    {
+        static::creating(function ($model) {
+            $model->school_id = $model->school_id ?? auth()->user()->school_id;
+            $maxAutoId = static::where('school_id', $model->school_id)->max('school_auto_id') ?? 0;
+            $model->school_auto_id = $maxAutoId + 1;
+        });
+    }
 
     // Quan hệ với môn học
     public function subject()
@@ -39,5 +48,9 @@ class Material extends Model
     public function scopeForSubject($query, $subjectId)
     {
         return $query->where('subject_id', $subjectId);
+    }
+    public function belongsToSchool($schoolId)
+    {
+        return $this->teacher->school_id == $schoolId;
     }
 }

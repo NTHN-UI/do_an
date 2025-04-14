@@ -53,15 +53,26 @@
 
     <div class="container">
         <h3 class="mb-0" style="color:#013066">Danh sách lớp học</h3>
-        <div class="d-flex justify-content-end align-items-center mb-3">
+        <div class="row mb-3">
+            <div class="col-md-4">
+                <form method="GET" action="{{ route('classes.index') }}">
+                    <div class="input-group">
+                        <select name="academic_year_id" class="form-control" onchange="this.form.submit()">
+                            @foreach($academicYears as $year)
+                                <option value="{{ $year->id }}" {{ $selectedYearId == $year->id ? 'selected' : '' }}>
+                                    {{ $year->year }}
+                                </option>
+                            @endforeach
+                        </select>
+        <div>
             <a href="{{ route('classes.create') }}" class="btn" style="background-color:#013066; color:#ffffff">
                Thêm mới
             </a>
         </div>
-
-        @if(session('success'))
-            <div class="alert alert-success">{{ session('success') }}</div>
-        @endif
+                    </div>
+                </form>
+            </div>
+        </div>
 
         <div class="card border-0 shadow-sm">
             <div class="card-body p-0">
@@ -73,18 +84,16 @@
                             <th>Tên Lớp</th>
                             <th>Trường</th>
                             <th>Khối</th>
-                            <th>Năm Học</th>
                             <th class="text-end pe-4" style="width: 50px;"></th>
                         </tr>
                         </thead>
                         <tbody>
                         @forelse($classes as $class)
                             <tr class="text-center">
-                                <td>{{ $class->id }}</td>
+                                <td>{{ $class->school_auto_id }}</td>
                                 <td>{{ $class->name }}</td>
                                 <td>{{ $class->school->name }}</td>
                                 <td>Khối {{ $class->gradeLevel->grade_number }}</td>
-                                <td>{{ $class->academicYear->year }}</td>
                                 <td class="text-end pe-4">
                                     <div class="dropdown">
                                         <button class="btn btn-sm" type="button" data-bs-toggle="dropdown" aria-expanded="false">

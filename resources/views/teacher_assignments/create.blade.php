@@ -96,44 +96,34 @@
                 allowClear: true
             });
 
-            // Kiểm tra khi form submit
             $('#assignment-form').on('submit', function(e) {
+                e.preventDefault();
+
                 const isHomeroom = $('#is_homeroom').is(':checked');
                 const classCount = $('.select2-multiple').val()?.length || 0;
 
                 if (isHomeroom && classCount > 1) {
-                    e.preventDefault();
                     alert('Giáo viên chủ nhiệm chỉ được phân công 1 lớp!');
                     return false;
                 }
-            });
-        });
-        $(document).ready(function() {
-            $('#assignment-form').on('submit', function(e) {
-                e.preventDefault();
 
                 const form = $(this);
                 const submitBtn = form.find('button[type="submit"]');
 
-                // Disable button to prevent double submit
                 submitBtn.prop('disabled', true);
                 submitBtn.html('<i class="fas fa-spinner fa-spin"></i> Đang lưu...');
 
-                // Submit form via AJAX
                 $.ajax({
                     url: form.attr('action'),
                     method: form.attr('method'),
                     data: form.serialize(),
                     success: function(response) {
-                        // Redirect to index page if success
                         window.location.href = "{{ route('teacher_assignments.index') }}";
                     },
                     error: function(xhr) {
-                        // Enable button again
                         submitBtn.prop('disabled', false);
                         submitBtn.html('<i class="fas fa-save"></i> Lưu phân công');
 
-                        // Show error message
                         if (xhr.responseJSON && xhr.responseJSON.message) {
                             alert(xhr.responseJSON.message);
                         } else {
@@ -143,5 +133,6 @@
                 });
             });
         });
+
     </script>
 @endsection

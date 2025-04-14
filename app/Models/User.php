@@ -45,7 +45,38 @@ class User extends Authenticatable
         'is_active' => 'boolean'
 
     ];
+    protected static function booted()
+    {
+        static::creating(function ($model) {
+            // Đảm bảo rằng school_id và role đã được thiết lập
+            if ($model->school_id && $model->role) {
+                // Lấy giá trị lớn nhất hiện có và tăng lên 1
+                $maxAutoId = static::where('school_id', $model->school_id)
+                    ->where('role', $model->role)
+                    ->lockForUpdate() // Chống race condition
+                    ->max('school_auto_id') ?? 0;
 
+                $model->school_auto_id = $maxAutoId + 1;
+            }
+        });
+
+        static::deleted(function ($model) {
+            // Cập nhật lại school_auto_id sau khi xóa người dùng
+            $users = static::where('school_id', $model->school_id)
+                ->where('role', $model->role)
+                ->orderBy('id')
+                ->get();
+
+            // Cập nhật lại theo STT mới
+            foreach ($users as $index => $user) {
+                $newAutoId = $index + 1;
+                if ($user->school_auto_id !== $newAutoId) {
+                    $user->school_auto_id = $newAutoId;
+                    $user->saveQuietly(); // dùng saveQuietly để tránh kích hoạt sự kiện tạo mới nữa
+                }
+            }
+        });
+    }
     public function scopeActive($query)
     {
         return $query->where('is_active', true);
@@ -81,6 +112,7 @@ class User extends Authenticatable
     {
         return $this->belongsTo(School::class);
     }
+
     public function students()
     {
         return $this->belongsToMany(User::class, 'student_classes', 'class_id', 'user_id')
@@ -94,16 +126,11 @@ class User extends Authenticatable
     public function studentClasses()
     {
         return $this->belongsToMany(ClassModel::class, 'student_classes', 'user_id', 'class_id')
-            ->withPivot('academic_year_id')
-            ->withTimestamps();
+            ->withPivot('academic_year_id');
     }
     public function assignments()
     {
         return $this->hasMany(TeacherAssignment::class, 'teacher_id');
-    }
-    public function teachingAssignments()
-    {
-        return $this->hasMany(TeacherClass::class, 'user_id');
     }
     public function teacherAssignments()
     {

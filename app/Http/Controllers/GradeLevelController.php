@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\GradeLevel;
 use App\Models\School;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rule;
 
 class GradeLevelController extends Controller
 {
@@ -13,10 +15,11 @@ class GradeLevelController extends Controller
      */
     public function index(Request $request)
     {
-        $gradeLevels = GradeLevel::with('school')->paginate(10);
-        $schools = School::all();
+        $gradeLevels = GradeLevel::where('school_id', auth()->user()->school_id)
+            ->orderBy('grade_number', 'asc')
+            ->paginate(10);
 
-        return view('grade_levels.index', compact('gradeLevels', 'schools'));
+        return view('grade_levels.index', compact('gradeLevels'));
     }
 
     /**
@@ -24,16 +27,16 @@ class GradeLevelController extends Controller
      */
     public function create()
     {
-        $schools = School::all();
-        return view('grade_levels.create', compact('schools'));
+        $school = auth()->user()->school;
+        $educationLevel = $school->education_level;
+
+        return view('grade_levels.create', compact('educationLevel'));
     }
     private function validateGradeNumber($school_id, $grade_number)
     {
-        $school = School::findOrFail($school_id);
+        $school = auth()->user()->school;
 
         switch ($school->education_level) {
-            case 'primary':
-                return $grade_number >= 1 && $grade_number <= 5;
             case 'secondary':
                 return $grade_number >= 6 && $grade_number <= 9;
             case 'high':
@@ -42,33 +45,56 @@ class GradeLevelController extends Controller
                 return false;
         }
     }
+
     /**
      * Store a newly created resource in storage.
      */
     public function store(Request $request)
     {
-        $request->validate([
-            'grade_number' => 'required|integer',
-            'school_id' => 'required|exists:schools,id',
-        ]);
+        $school = auth()->user()->school;
 
+        $messages = [
+            'grade_number.required' => 'Vui lòng nhập số khối',
+            'grade_number.unique' => 'Khối học này đã tồn tại trong trường',
+        ];
+
+        $validator = Validator::make($request->all(), [
+            'grade_number' => [
+                'required',
+                'integer',
+                Rule::unique('grade_levels')->where(function ($query) use ($school) {
+                    return $query->where('school_id', $school->id);
+                }),
+                function ($attribute, $value, $fail) use ($school) {
+                    if (!$this->validateGradeNumber($school->id, $value)) {
+                        $fail('Số khối không hợp lệ với cấp học của trường');
+                    }
+                }
+            ],
+        ], $messages);
+
+        // Thêm rules tùy theo cấp học
+        if ($school->education_level === 'secondary') {
+            $validator->sometimes('grade_number', 'min:6|max:9', function () {
+                return true;
+            });
+        } elseif ($school->education_level === 'high') {
+            $validator->sometimes('grade_number', 'min:10|max:12', function () {
+                return true;
+            });
+        }
+
+        if ($validator->fails()) {
+            return redirect()->back()
+                ->withErrors($validator)
+                ->withInput();
+        }
 
         try {
-            if (!$this->validateGradeNumber($request->school_id, $request->grade_number)) {
-                return redirect()->back()
-                    ->withInput()
-                    ->with('error', 'Số khối không hợp lệ với cấp học của trường!');
-            }
-
-            if (GradeLevel::where('school_id', $request->school_id)
-                ->where('grade_number', $request->grade_number)
-                ->exists()) {
-                return redirect()->back()
-                    ->withInput()
-                    ->with('error', 'Khối học này đã tồn tại trong trường!');
-            }
-
-            GradeLevel::create($request->all());
+            GradeLevel::create([
+                'grade_number' => $request->grade_number,
+                'school_id' => $school->id,
+            ]);
 
             return redirect()->route('grade_levels.index')
                 ->with('success', 'Thêm khối học thành công!');
@@ -77,52 +103,90 @@ class GradeLevelController extends Controller
                 ->withInput()
                 ->with('error', 'Có lỗi xảy ra: ' . $e->getMessage());
         }
-}
+    }
     /**
      * Display the specified resource.
      */
-    public function show(GradeLevel $gradeLevel)
+    public function show($id)
     {
-        $gradeLevel->load(['school', 'classes']);
-        return view('grade_levels.show', compact('gradeLevel'));
+        $gradeLevel = GradeLevel::where('school_id', auth()->user()->school_id)
+            ->with(['classes' => function($query) {
+                $query->with('academicYear')
+                    ->orderBy('academic_year_id', 'desc')
+                    ->orderBy('name', 'asc');
+            }])
+            ->findOrFail($id);
+
+        // Nhóm lớp theo năm học
+        $groupedClasses = $gradeLevel->classes->groupBy('academic_year_id');
+
+        return view('grade_levels.show', compact('gradeLevel', 'groupedClasses'));
     }
 
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(GradeLevel $gradeLevel)
+    public function edit($id)
     {
-        $schools = School::all();
-        return view('grade_levels.edit', compact('gradeLevel', 'schools'));
+        $gradeLevel = GradeLevel::where('school_id', auth()->user()->school_id)
+            ->findOrFail($id);
+
+        $school = auth()->user()->school;
+        $educationLevel = $school->education_level;
+
+        return view('grade_levels.edit', compact('gradeLevel', 'educationLevel'));
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, GradeLevel $gradeLevel)
+    public function update(Request $request, $id)
     {
-        $request->validate([
-            'grade_number' => 'required|integer',
-            'school_id' => 'required|exists:schools,id',
-        ]);
+        $school = auth()->user()->school;
+        $gradeLevel = GradeLevel::where('school_id', $school->id)
+            ->findOrFail($id);
+
+        $messages = [
+            'grade_number.required' => 'Vui lòng nhập số khối',
+            'grade_number.unique' => 'Khối học này đã tồn tại trong trường',
+        ];
+
+        $validator = Validator::make($request->all(), [
+            'grade_number' => [
+                'required',
+                'integer',
+                Rule::unique('grade_levels')->where(function ($query) use ($school) {
+                    return $query->where('school_id', $school->id);
+                })->ignore($gradeLevel->id),
+                function ($attribute, $value, $fail) use ($school) {
+                    if (!$this->validateGradeNumber($school->id, $value)) {
+                        $fail('Số khối không hợp lệ với cấp học của trường');
+                    }
+                }
+            ],
+        ], $messages);
+
+        // Thêm rules tùy theo cấp học
+        if ($school->education_level === 'secondary') {
+            $validator->sometimes('grade_number', 'min:6|max:9', function () {
+                return true;
+            });
+        } elseif ($school->education_level === 'high') {
+            $validator->sometimes('grade_number', 'min:10|max:12', function () {
+                return true;
+            });
+        }
+
+        if ($validator->fails()) {
+            return redirect()->back()
+                ->withErrors($validator)
+                ->withInput();
+        }
 
         try {
-            if (!$this->validateGradeNumber($request->school_id, $request->grade_number)) {
-                return redirect()->back()
-                    ->withInput()
-                    ->with('error', 'Số khối không hợp lệ với cấp học của trường!');
-            }
-
-            if (GradeLevel::where('school_id', $request->school_id)
-                ->where('grade_number', $request->grade_number)
-                ->where('id', '!=', $gradeLevel->id)
-                ->exists()) {
-                return redirect()->back()
-                    ->withInput()
-                    ->with('error', 'Khối học này đã tồn tại trong trường!');
-            }
-
-            $gradeLevel->update($request->all());
+            $gradeLevel->update([
+                'grade_number' => $request->grade_number,
+            ]);
 
             return redirect()->route('grade_levels.index')
                 ->with('success', 'Cập nhật khối học thành công!');
@@ -137,15 +201,21 @@ class GradeLevelController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(GradeLevel $gradeLevel)
+    public function destroy($id)
     {
+        $gradeLevel = GradeLevel::where('school_id', auth()->user()->school_id)
+            ->findOrFail($id);
+
         try {
             if ($gradeLevel->classes()->exists()) {
                 return redirect()->route('grade_levels.index')
                     ->with('error', 'Không thể xóa khối học vì có lớp học thuộc khối này!');
             }
 
+            $school_id = $gradeLevel->school_id;
             $gradeLevel->delete();
+
+            $this->reorderGradeLevelNumbers($school_id);
 
             return redirect()->route('grade_levels.index')
                 ->with('success', 'Xóa khối học thành công!');
@@ -153,6 +223,16 @@ class GradeLevelController extends Controller
             return redirect()->route('grade_levels.index')
                 ->with('error', 'Có lỗi xảy ra khi xóa: ' . $e->getMessage());
         }
+    }
+    private function reorderGradeLevelNumbers($school_id)
+    {
+        $gradeLevels = GradeLevel::where('school_id', $school_id)
+            ->orderBy('school_auto_id')
+            ->get();
 
+        foreach ($gradeLevels as $index => $gradeLevel) {
+            $gradeLevel->school_auto_id = $index + 1;
+            $gradeLevel->save();
+        }
     }
 }

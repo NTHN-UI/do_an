@@ -20,12 +20,6 @@ class Subject extends Model
     public static function getDefaultSubjects(string $level): array
     {
         return match ($level) {
-            School::LEVEL_PRIMARY => [
-                'Toán', 'Tiếng Việt', 'Đạo đức', 'Tự nhiên và Xã hội',
-                'Lịch sử và Địa lý', 'Khoa học', 'Tin học và Công nghệ',
-                'Giáo dục thể chất', 'Nghệ thuật (Âm nhạc, Mỹ thuật)',
-                'Tiếng Anh'
-            ],
             School::LEVEL_SECONDARY => [
                 'Toán', 'Ngữ văn', 'Ngoại ngữ', 'Vật lý', 'Hóa học',
                 'Sinh học', 'Lịch sử', 'Địa lý', 'Giáo dục công dân',

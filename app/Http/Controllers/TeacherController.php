@@ -19,21 +19,17 @@ class TeacherController extends Controller
     {
         $search = $request->input('search');
 
-        $teachers = User::with('school')
-            ->where('role', User::ROLE_TEACHER)
+        $teachers = User::where('role', User::ROLE_TEACHER)
+            ->where('school_id', auth()->user()->school_id)
             ->when($search, function($query) use ($search) {
                 return $query->where(function($q) use ($search) {
                     $q->where('full_name', 'like', "%$search%")
                         ->orWhere('email', 'like', "%$search%")
-                        ->orWhere('phone', 'like', "%$search%")
-                        ->orWhereHas('school', function($q) use ($search) {
-                            $q->where('name', 'like', "%$search%");
-                        });
+                        ->orWhere('phone', 'like', "%$search%");
                 });
             })
             ->orderBy('full_name')
-            ->paginate(10)
-            ->withQueryString();
+            ->paginate(10);
 
         return view('teachers.index', compact('teachers', 'search'));
     }
@@ -42,9 +38,8 @@ class TeacherController extends Controller
      */
     public function create()
     {
-        $schools = School::all();
-        return view('teachers.create', compact('schools'));    }
-
+        return view('teachers.create');
+    }
     /**
      * Store a newly created resource in storage.
      */
@@ -52,13 +47,12 @@ class TeacherController extends Controller
     {
         $request->validate([
             'full_name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users',
-            'phone' => 'required|string|max:20',
+            'email' => 'required|string|email|max:255|unique:users,email,NULL,id,school_id,'.auth()->user()->school_id,
+            'phone' => 'required|string|max:20|unique:users,phone,NULL,id,school_id,'.auth()->user()->school_id,
             'password' => ['required', 'confirmed', Password::defaults()],
             'gender' => 'required|in:Nam,Nữ,Khác',
             'date_of_birth' => 'required|date',
             'address' => 'required|string',
-            'school_id' => 'required|exists:schools,id',
         ]);
 
         User::create([
@@ -70,7 +64,7 @@ class TeacherController extends Controller
             'date_of_birth' => $request->date_of_birth,
             'address' => $request->address,
             'role' => User::ROLE_TEACHER,
-            'school_id' => $request->school_id,
+            'school_id' => auth()->user()->school_id,
             'is_active' => true
         ]);
 
@@ -81,43 +75,47 @@ class TeacherController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(User $teacher)
+    public function show($id)
     {
-        abort_unless($teacher->isTeacher(), 404);
+        $teacher = User::where('school_id', auth()->user()->school_id)
+            ->where('role', User::ROLE_TEACHER)
+            ->findOrFail($id);
         return view('teachers.show', compact('teacher'));
     }
 
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(User $teacher)
+    public function edit($id)
     {
-        abort_unless($teacher->isTeacher(), 404);
-        $schools = School::all();
-        return view('teachers.edit', compact('teacher', 'schools'));
+        $teacher = User::where('school_id', auth()->user()->school_id)
+            ->where('role', User::ROLE_TEACHER)
+            ->findOrFail($id);
+        return view('teachers.edit', compact('teacher'));
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, User $teacher)
+    public function update(Request $request, $id)
     {
-        abort_unless($teacher->isTeacher(), 404);
+        $teacher = User::where('school_id', auth()->user()->school_id)
+            ->where('role', User::ROLE_TEACHER)
+            ->findOrFail($id);
 
         $request->validate([
             'full_name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users,email,'.$teacher->id,
-            'phone' => 'required|string|max:20',
+            'email' => 'required|string|email|max:255|unique:users,email,'.$teacher->id.',id,school_id,'.auth()->user()->school_id,
+            'phone' => 'required|string|max:20|unique:users,phone,'.$teacher->id.',id,school_id,'.auth()->user()->school_id,
             'gender' => 'required|in:Nam,Nữ,Khác',
             'date_of_birth' => 'required|date',
             'address' => 'required|string',
-            'school_id' => 'required|exists:schools,id',
             'is_active' => 'boolean'
         ]);
 
         $data = $request->only([
             'full_name', 'email', 'phone', 'gender',
-            'date_of_birth', 'address', 'school_id', 'is_active'
+            'date_of_birth', 'address', 'is_active'
         ]);
 
         if ($request->filled('password')) {
@@ -136,14 +134,18 @@ class TeacherController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(User $teacher)
+    public function destroy($id)
     {
-        abort_unless($teacher->isTeacher(), 404);
-
+        $teacher = User::where('school_id', auth()->user()->school_id)
+            ->where('role', User::ROLE_TEACHER)
+            ->findOrFail($id);
         // Kiểm tra phân công giảng dạy
-        $assignments = TeacherAssignment::with(['class', 'subject'])
-            ->where('teacher_id', $teacher->id)
+        $assignments = TeacherAssignment::where('teacher_id', $teacher->id)
+            ->whereHas('class', function ($query) {
+                $query->where('school_id', auth()->user()->school_id);
+            })
             ->get();
+
 
         if ($assignments->count() > 0) {
             $errorMessage = 'Không thể xóa giáo viên <strong>"' . $teacher->full_name . '"</strong> vì đang có <strong>' . $assignments->count() . '</strong> phân công giảng dạy:';
@@ -163,7 +165,9 @@ class TeacherController extends Controller
 
         try {
             $teacherName = $teacher->full_name;
+            $school_id = $teacher->school_id;
             $teacher->delete();
+            $this->reorderTeacherNumbers($school_id);
 
             return redirect()
                 ->route('teachers.index')
@@ -174,4 +178,17 @@ class TeacherController extends Controller
                 ->with('error', 'Xảy ra lỗi khi xóa giáo viên: ' . $e->getMessage());
         }
     }
+
+        private function reorderTeacherNumbers($school_id)
+        {
+            $teachers = User::where('school_id', $school_id)
+                ->where('role', User::ROLE_TEACHER)
+                ->orderBy('school_auto_id')
+                ->get();
+
+            foreach ($teachers as $index => $teacher) {
+                $teacher->school_auto_id = $index + 1;
+                $teacher->save();
+            }
+        }
 }

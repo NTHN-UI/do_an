@@ -22,12 +22,13 @@ return new class extends Migration
             $table->string('name');
             $table->string('district');
             $table->string('province');
-            $table->enum('education_level', ['primary', 'secondary', 'high']);
+            $table->enum('education_level', ['secondary', 'high']);
             $table->timestamps();
         });
 
         Schema::create('users', function (Blueprint $table) {
             $table->id();
+            $table->unsignedInteger('school_auto_id')->nullable();
             $table->string('full_name');
             $table->string('email')->unique()->nullable();
             $table->string('password')->nullable();
@@ -41,6 +42,7 @@ return new class extends Migration
             $table->enum('role', ['super_admin', 'school_admin', 'teacher', 'student']);
             $table->boolean('is_active')->default(true);
             $table->foreignId('school_id')->nullable()->constrained('schools')->onDelete('cascade');
+            $table->unique(['school_id', 'role', 'school_auto_id']);
             $table->timestamps();
         });
 
@@ -56,19 +58,27 @@ return new class extends Migration
 
         Schema::create('academic_years', function (Blueprint $table) {
             $table->id();
+            $table->unsignedInteger('school_auto_id');
             $table->string('year');
             $table->date('start_date');
             $table->date('end_date');
+            $table->foreignId('school_id')->constrained('schools')->onDelete('cascade');
+            $table->unique(['school_id', 'school_auto_id']);
+            $table->unique(['year', 'school_id']);
             $table->timestamps();
         });
 
         Schema::create('semesters', function (Blueprint $table) {
             $table->id();
+            $table->unsignedInteger('school_auto_id');
             $table->string('name');
             $table->foreignId('academic_year_id')->constrained('academic_years')->onDelete('cascade');
+            $table->foreignId('school_id')->constrained('schools')->onDelete('cascade');
+            $table->unique(['name', 'academic_year_id', 'school_id']);
             $table->date('start_date');
             $table->date('end_date');
             $table->boolean('is_current')->default(false);
+            $table->unique(['school_id', 'school_auto_id']);
             $table->timestamps();
         });
 
@@ -76,24 +86,31 @@ return new class extends Migration
 
         Schema::create('grade_levels', function (Blueprint $table) {
             $table->id();
+            $table->unsignedInteger('school_auto_id');
             $table->integer('grade_number');
             $table->foreignId('school_id')->constrained('schools')->onDelete('cascade');
+            $table->unique(['grade_number', 'school_id']);
+            $table->unique(['school_id', 'school_auto_id']);
             $table->timestamps();
         });
 
         Schema::create('classes', function (Blueprint $table) {
             $table->id();
+            $table->unsignedInteger('school_auto_id');
             $table->foreignId('school_id')->constrained('schools')->onDelete('cascade');
             $table->string('name');
             $table->foreignId('grade_level_id')->constrained('grade_levels')->onDelete('cascade');
             $table->foreignId('academic_year_id')->constrained('academic_years')->onDelete('cascade');
+            $table->unique(['school_id', 'school_auto_id']);
+            $table->unique(['name', 'grade_level_id', 'academic_year_id', 'school_id']);
+
             $table->timestamps();
         });
 
         Schema::create('subjects', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->enum('education_level', ['primary', 'secondary', 'high']);
+            $table->enum('education_level', ['secondary', 'high']);
             $table->foreignId('school_id')->constrained('schools')->onDelete('cascade');
             $table->timestamps();
         });
@@ -115,6 +132,7 @@ return new class extends Migration
             $table->boolean('is_homeroom')->default(false);
             $table->unique(['class_id', 'academic_year_id', 'is_homeroom'], 'unique_homeroom');
             $table->unique(['teacher_id', 'class_id', 'subject_id', 'academic_year_id'], 'unique_teaching_assignment');
+            $table->foreignId('school_id')->nullable()->constrained('schools')->onDelete('cascade');
             $table->timestamps();
         });
 
@@ -127,6 +145,7 @@ return new class extends Migration
             $table->foreignId('class_id')->constrained('classes')->onDelete('cascade');
             $table->foreignId('academic_year_id')->constrained('academic_years')->onDelete('cascade');
             $table->foreignId('semester_id')->constrained('semesters')->onDelete('cascade');
+            $table->foreignId('school_id')->nullable()->constrained('schools')->onDelete('cascade');
             $table->enum('test_type', ['fifteen_minutes', 'one_period', 'semester', 'final']);
             $table->decimal('score', 5, 2);
             $table->timestamps();
@@ -144,32 +163,43 @@ return new class extends Migration
         });
         Schema::create('materials', function (Blueprint $table) {
             $table->id();
+            $table->unsignedInteger('school_auto_id');
             $table->string('title');
             $table->text('description')->nullable();;
             $table->string('file_path');
             $table->foreignId('subject_id')->constrained('subjects');
             $table->foreignId('teacher_id')->constrained('users');
+            $table->foreignId('school_id')->constrained('schools')->onDelete('cascade');
+            $table->unique(['school_id', 'school_auto_id']);
+
             $table->timestamps();
         });
 
         Schema::create('exams', function (Blueprint $table) {
             $table->id();
+            $table->unsignedInteger('school_auto_id');
             $table->string('title');
             $table->text('description');
             $table->enum('type', ['quiz', 'midterm', 'final']);
             $table->foreignId('subject_id')->constrained('subjects');
             $table->foreignId('teacher_id')->constrained('users');
             $table->foreignId('class_id')->constrained('classes');
+            $table->foreignId('school_id')->constrained('schools')->onDelete('cascade');
+            $table->unique(['school_id', 'school_auto_id']);
             $table->timestamps();
         });
 
         Schema::create('student_exams', function (Blueprint $table) {
             $table->id();
+            $table->unsignedInteger('school_auto_id');
             $table->foreignId('exam_id')->constrained('exams');
             $table->foreignId('student_id')->constrained('users');
             $table->string('answer_file_path');
             $table->decimal('score', 5, 2)->nullable();
             $table->text('feedback')->nullable();
+            $table->foreignId('school_id')->constrained('schools')->onDelete('cascade');
+            $table->unique(['school_id', 'school_auto_id']);
+
             $table->timestamps();
         });
 

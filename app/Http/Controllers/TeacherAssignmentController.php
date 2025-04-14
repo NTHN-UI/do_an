@@ -22,6 +22,15 @@ class TeacherAssignmentController extends Controller
         $isHomeroom = $request->input('is_homeroom');
 
         $assignments = TeacherAssignment::with(['teacher', 'class', 'subject', 'academicYear'])
+            ->whereHas('teacher', function($query) {
+                $query->where('users.school_id', auth()->user()->school_id); // Thêm tên bảng 'users.'
+            })
+            ->whereHas('class', function($query) {
+                $query->where('school_id', auth()->user()->school_id);
+            })
+            ->whereHas('subject', function($query) {
+                $query->where('school_id', auth()->user()->school_id);
+            })
             ->when($subjectId, function($query, $subjectId) {
                 return $query->where('subject_id', $subjectId);
             })
@@ -31,12 +40,16 @@ class TeacherAssignmentController extends Controller
             ->when($isHomeroom !== null, function($query) use ($isHomeroom) {
                 return $query->where('is_homeroom', $isHomeroom);
             })
-            ->orderBy('created_at', 'desc') // Sắp xếp mới nhất lên đầu
+            ->orderBy('created_at', 'desc')
             ->paginate(20);
 
-        $subjects = Subject::all();
-        $classes = ClassModel::with('gradeLevel')->get();
-        $currentAcademicYear = AcademicYear::latest()->first();
+        $subjects = Subject::where('school_id', auth()->user()->school_id)->get();
+        $classes = ClassModel::where('school_id', auth()->user()->school_id)
+            ->with('gradeLevel')
+            ->get();
+        $currentAcademicYear = AcademicYear::where('school_id', auth()->user()->school_id)
+            ->latest()
+            ->first();
 
         return view('teacher_assignments.index', compact(
             'assignments',
@@ -54,18 +67,19 @@ class TeacherAssignmentController extends Controller
     public function create(User $teacher)
     {
         try {
-            if (!$teacher->school) {
-                return redirect()->route('teachers.index')
-                    ->with('error', 'Giáo viên chưa được gán vào trường học!');
+            if ($teacher->school_id !== auth()->user()->school_id) {
+                abort(403, 'Không được phép truy cập giáo viên từ trường khác');
             }
 
-            $currentAcademicYear = AcademicYear::latest()->firstOrFail();
+            $currentAcademicYear = AcademicYear::where('school_id', auth()->user()->school_id)
+                ->latest()
+                ->firstOrFail();
 
-            $classes = ClassModel::where('school_id', $teacher->school->id)
+            $classes = ClassModel::where('school_id', auth()->user()->school_id)
                 ->where('academic_year_id', $currentAcademicYear->id)
                 ->get();
 
-            $subjects = Subject::where('school_id', $teacher->school->id)->get();
+            $subjects = Subject::where('school_id', auth()->user()->school_id)->get();
 
             return view('teacher_assignments.create', compact(
                 'teacher',
@@ -82,11 +96,14 @@ class TeacherAssignmentController extends Controller
     public function store(Request $request, User $teacher)
     {
         try {
+            if ($teacher->school_id !== auth()->user()->school_id) {
+                abort(403, 'Không được phép phân công giáo viên từ trường khác');
+            }
             $validated = $request->validate([
                 'class_ids' => 'required|array',
-                'class_ids.*' => 'exists:classes,id',
-                'subject_id' => 'required|exists:subjects,id',
-                'academic_year_id' => 'required|exists:academic_years,id',
+                'class_ids.*' => 'exists:classes,id,school_id,'.auth()->user()->school_id,
+                'subject_id' => 'required|exists:subjects,id,school_id,'.auth()->user()->school_id,
+                'academic_year_id' => 'required|exists:academic_years,id,school_id,'.auth()->user()->school_id,
                 'is_homeroom' => 'sometimes|boolean',
             ]);
 
@@ -137,6 +154,7 @@ class TeacherAssignmentController extends Controller
                     'subject_id' => $validated['subject_id'],
                     'academic_year_id' => $validated['academic_year_id'],
                     'is_homeroom' => $validated['is_homeroom'] ?? false,
+
                 ]);
             }
 
@@ -151,25 +169,40 @@ class TeacherAssignmentController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(TeacherAssignment $teacherAssignment)
+    public function show($id)
     {
-        return view('teacher_assignments.show', compact('teacherAssignment'));
+        $teacherAssignment = TeacherAssignment::whereHas('teacher', function($query) {
+            $query->where('school_id', auth()->user()->school_id);
+        })
+            ->whereHas('class', function($query) {
+                $query->where('school_id', auth()->user()->school_id);
+            })
+            ->findOrFail($id);
 
+        return view('teacher_assignments.show', compact('teacherAssignment'));
     }
 
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(TeacherAssignment $teacherAssignment)
+    public function edit($id)
     {
+        $teacherAssignment = TeacherAssignment::whereHas('teacher', function($query) {
+            $query->where('school_id', auth()->user()->school_id);
+        })
+            ->whereHas('class', function($query) {
+                $query->where('school_id', auth()->user()->school_id);
+            })
+            ->findOrFail($id);
+
         $teacher = $teacherAssignment->teacher;
         $currentAcademicYear = $teacherAssignment->academicYear;
 
-        $classes = ClassModel::where('school_id', $teacher->school->id)
+        $classes = ClassModel::where('school_id', auth()->user()->school_id)
             ->where('academic_year_id', $currentAcademicYear->id)
             ->get();
 
-        $subjects = Subject::where('school_id', $teacher->school->id)->get();
+        $subjects = Subject::where('school_id', auth()->user()->school_id)->get();
 
         return view('teacher_assignments.edit', compact(
             'teacherAssignment',
@@ -183,12 +216,20 @@ class TeacherAssignmentController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, TeacherAssignment $teacherAssignment)
+    public function update(Request $request, $id)
     {
         try {
+            $teacherAssignment = TeacherAssignment::whereHas('teacher', function($query) {
+                $query->where('school_id', auth()->user()->school_id);
+            })
+                ->whereHas('class', function($query) {
+                    $query->where('school_id', auth()->user()->school_id);
+                })
+                ->findOrFail($id);
+
             $validated = $request->validate([
-                'class_id' => 'required|exists:classes,id',
-                'subject_id' => 'required|exists:subjects,id',
+                'class_id' => 'required|exists:classes,id,school_id,'.auth()->user()->school_id,
+                'subject_id' => 'required|exists:subjects,id,school_id,'.auth()->user()->school_id,
                 'is_homeroom' => 'sometimes|boolean',
             ]);
 
@@ -235,9 +276,16 @@ class TeacherAssignmentController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(TeacherAssignment $teacherAssignment)
+    public function destroy($id)
     {
         try {
+            $teacherAssignment = TeacherAssignment::whereHas('teacher', function($query) {
+                $query->where('school_id', auth()->user()->school_id);
+            })
+                ->whereHas('class', function($query) {
+                    $query->where('school_id', auth()->user()->school_id);
+                })
+                ->findOrFail($id);
             $teacherAssignment->delete();
             return redirect()->route('teacher_assignments.index')
                 ->with('success', 'Xóa phân công thành công!');
@@ -255,6 +303,15 @@ class TeacherAssignmentController extends Controller
         $subjectId = $request->input('subject_id');
         $academicYearId = $request->input('academic_year_id');
         $isHomeroom = $request->input('is_homeroom', false);
+
+        // Kiểm tra giáo viên và lớp có cùng trường không
+        $teacher = User::where('id', $teacherId)
+            ->where('school_id', auth()->user()->school_id)
+            ->firstOrFail();
+
+        $class = ClassModel::where('id', $classId)
+            ->where('school_id', auth()->user()->school_id)
+            ->firstOrFail();
 
         // Kiểm tra trùng lặp phân công
         $exists = TeacherAssignment::where([

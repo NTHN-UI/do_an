@@ -91,9 +91,20 @@ class SchoolController extends Controller
      */
     public function destroy(School $school)
     {
-        $school->delete();
+        try {
+            // Kiểm tra xem trường có giáo viên/học sinh không
+            if ($school->users()->exists()) {
+                return redirect()->back()
+                    ->with('error', 'Không thể xóa trường vì còn giáo viên/học sinh');
+            }
 
-        return redirect()->route('schools.index')
-            ->with('success', 'Xóa trường học thành công!');
+            $school->delete();
+
+            return redirect()->route('schools.index')
+                ->with('success', 'Xóa trường học thành công!');
+        } catch (\Exception $e) {
+            return redirect()->back()
+                ->with('error', 'Xóa trường học thất bại: ' . $e->getMessage());
+        }
     }
 }

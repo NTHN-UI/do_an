@@ -14,6 +14,8 @@ class Semester extends Model
         'academic_year_id',
         'start_date',
         'end_date',
+        'school_id',
+        'school_auto_id',
         'is_current'
     ];
 
@@ -22,18 +24,61 @@ class Semester extends Model
         'end_date' => 'date',
         'is_current' => 'boolean'
     ];
-    // Tự động xử lý học kỳ hiện tại
-    protected static function booted()
+
+    public function classes()
     {
-        static::saving(function ($semester) {
-            if ($semester->is_current) {
-                self::where('id', '!=', $semester->id)
-                    ->update(['is_current' => false]);
-            }
-        });
+        return $this->hasMany(ClassModel::class);
+    }
+    public function studentClasses()
+    {
+        return $this->hasMany(StudentClass::class);
+    }
+    public function grades()
+    {
+        return $this->hasMany(Grade::class);
     }
     public function academicYear()
     {
         return $this->belongsTo(AcademicYear::class);
     }
+
+    public function teacherAssignments()
+    {
+        return $this->hasMany(TeacherAssignment::class);
+    }
+    protected static function booted()
+    {
+        static::creating(function ($model) {
+            // Chỉ tự động tăng nếu không được gán giá trị
+            if (empty($model->school_auto_id)) {
+                $maxAutoId = static::where('school_id', $model->school_id)
+                    ->max('school_auto_id') ?? 0;
+
+                $model->school_auto_id = $maxAutoId + 1;
+            }
+        });
+
+        static::deleted(function ($model) {
+            // Chỉ sắp xếp lại nếu đây là học kỳ cuối cùng
+            $maxAutoId = static::where('school_id', $model->school_id)
+                ->max('school_auto_id') ?? 0;
+
+            if ($model->school_auto_id < $maxAutoId) {
+                return; // Không cần sắp xếp lại nếu không phải học kỳ cuối cùng
+            }
+
+            // Sắp xếp lại các học kỳ còn lại
+            $semesters = static::where('school_id', $model->school_id)
+                ->orderBy('school_auto_id')
+                ->get();
+
+            foreach ($semesters as $index => $semester) {
+                if ($semester->school_auto_id != $index + 1) {
+                    $semester->school_auto_id = $index + 1;
+                    $semester->save();
+                }
+            }
+        });
+    }
+
 }

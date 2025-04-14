@@ -35,9 +35,11 @@ Route::middleware(['auth'])->group(function () {
     Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
 });
 
+
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 Route::get("/login", [LoginController::class, 'showLoginForm']);
 Route::post("/login", [LoginController::class, 'login'])->name('login');
+
 
 Route::middleware(SuperAdminMiddleware::class)->group(function(){
     Route::resource('schools', SchoolController::class);
@@ -71,9 +73,11 @@ Route::middleware(AdminMiddleware::class)->group(function(){
 
 
 Route::middleware(['auth'])->group(function () {
+    // Nhóm route cho tài liệu (materials)
     Route::prefix('materials')->group(function () {
         Route::get('/', [MaterialController::class, 'index'])->name('materials.index');
         Route::get('/{material}/download', [MaterialController::class, 'download'])->name('materials.download');
+        Route::get('/{material}', [MaterialController::class, 'show'])->name('materials.show');
 
         Route::middleware([TeacherMiddleware::class])->group(function () {
             Route::get('/create', [MaterialController::class, 'create'])->name('materials.create');
@@ -81,23 +85,30 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/{material}/edit', [MaterialController::class, 'edit'])->name('materials.edit');
             Route::put('/{material}', [MaterialController::class, 'update'])->name('materials.update');
             Route::delete('/{material}', [MaterialController::class, 'destroy'])->name('materials.destroy');
-
-            Route::get('/grades', [GradeController::class, 'index'])->name('grades.index');
-
-            // Form nhập điểm (create)
-            Route::get('/class/{class}/subject/{subject}/semester/{semester}/create', [GradeController::class, 'create'])
-                ->name('grades.create');
-
-            // Lưu điểm (store)
-            Route::post('/class/{class}/subject/{subject}/semester/{semester}/store', [GradeController::class, 'store'])
-                ->name('grades.store');
-
-            // Xem chi tiết điểm đã nhập (show)
-            Route::get('/class/{class}/subject/{subject}/semester/{semester}', [GradeController::class, 'show'])
-                ->name('grades.show');
         });
-        Route::get('/{material}', [MaterialController::class, 'show'])->name('materials.show');
-
     });
-});
 
+// Nhóm route riêng cho điểm số (grades)
+    Route::prefix('grades')->middleware([TeacherMiddleware::class])->group(function () {
+        Route::get('/', [GradeController::class, 'index'])->name('grades.index');
+        Route::get('/export', [GradeController::class, 'exportTemplate'])->name('grades.export');
+        Route::post('/import', [GradeController::class, 'import'])->name('grades.import');
+        Route::get('/student/{student}', [GradeController::class, 'viewAllGrades'])->name('grades.student_grades');
+
+        // API hỗ trợ
+        Route::get('/api/get-semesters-by-year', [GradeController::class, 'getSemestersByYear'])->name('get_semesters_by_year');
+        Route::get('/api/get-classes-by-year', [GradeController::class, 'getClassesByYear'])->name('get_classes_by_year');    });
+
+//        // Route cho trang nhập điểm (sửa lại bằng cách bỏ /grades thừa)
+//        Route::get('/class/{class}/subject/{subject}/semester/{semester}/create', [
+//            GradeController::class, 'create'
+//        ])->name('grades.create');
+//
+//        // Route để lưu điểm
+//        Route::post('/class/{class}/subject/{subject}/semester/{semester}/store', [GradeController::class, 'store'])
+//            ->name('grades.store');
+//
+//        Route::get('/class/{class}/subject/{subject}/semester/{semester}',
+//            [GradeController::class, 'show'])
+//            ->name('grades.show');
+});

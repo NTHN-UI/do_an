@@ -4,9 +4,27 @@
     <div class="container">
         <h2>Danh sách Học kỳ</h2>
 
-        <a href="{{ route('semesters.create') }}" class="btn btn-primary mb-3">
-            <i class="fas fa-plus"></i> Thêm học kỳ
-        </a>
+        <div class="row mb-3">
+            <div class="col-md-4">
+                <form method="GET" action="{{ route('semesters.index') }}">
+                    <div class="input-group">
+                        <select name="academic_year_id" class="form-control" onchange="this.form.submit()">
+                            @foreach($academicYears as $year)
+                                <option value="{{ $year->id }}" {{ $selectedYearId == $year->id ? 'selected' : '' }}>
+                                    {{ $year->year }}
+                                </option>
+                            @endforeach
+                        </select>
+                        <div class="input-group-append">
+                            <a href="{{ route('semesters.create') }}"
+                               class="btn btn-primary">
+                                <i class="fas fa-plus"></i> Thêm học kỳ
+                            </a>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
 
         <div class="table-responsive">
             <table class="table table-bordered">
@@ -14,7 +32,6 @@
                 <tr>
                     <th>ID</th>
                     <th>Tên học kỳ</th>
-                    <th>Năm học</th>
                     <th>Ngày bắt đầu</th>
                     <th>Ngày kết thúc</th>
                     <th>Hiện tại</th>
@@ -24,9 +41,8 @@
                 <tbody>
                 @foreach($semesters as $semester)
                     <tr>
-                        <td>{{ $semester->id }}</td>
+                        <td>{{ $semester-> school_auto_id }}</td>
                         <td>{{ $semester->name }}</td>
-                        <td>{{ $semester->academicYear->year }}</td>
                         <td>{{ $semester->start_date->format('d/m/Y') }}</td>
                         <td>{{ $semester->end_date->format('d/m/Y') }}</td>
                         <td>{{ $semester->is_current ? '✓' : '' }}</td>

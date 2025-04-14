@@ -29,7 +29,7 @@
                         <tbody>
                         @foreach($students as $student)
                             <tr>
-                                <td>{{ $student->id }}</td>
+                                <td>{{ $student->school_auto_id }}</td>
                                 <td>{{ $student->full_name }}</td>
                                 <td>{{ $student->date_of_birth ? $student->date_of_birth->format('d/m/Y') : 'N/A' }}</td>
                                 <td>{{ $student->gender ?? 'N/A' }}</td>

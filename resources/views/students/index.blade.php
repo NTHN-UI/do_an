@@ -86,12 +86,6 @@
                     <button type="submit" class="btn me-2" style="background-color: #E15336;">
                         <i class="fas fa-search" style="color: white"></i>
                     </button>
-                    @if($search)
-                        <a href="{{ route('students.index') }}" class="btn"
-                           style="background-color: #E15336;color: white">
-                            <i class="fas fa-times"></i> Xóa
-                        </a>
-                    @endif
                 </div>
             </form>
             <a href="{{ route('students.create') }}" class="btn shadow"
@@ -123,7 +117,7 @@
                         <tbody>
                         @foreach($students as $student)
                             <tr class="text-center">
-                                <td class="ps-4">{{ $student->id }}</td>
+                                <td class="ps-4">{{ $student->school_auto_id }}</td>
                                 <td>{{ $student->full_name }}</td>
                                 <td>{{ $student->email }}</td>
                                 <td>{{ $student->phone }}</td>
