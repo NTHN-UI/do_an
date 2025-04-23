@@ -31,9 +31,6 @@
                 </div>
                 <div class="col-md-6">
                     <p><strong>Trường:</strong> {{ $student->school->name ?? 'N/A' }}</p>
-                    <p><strong>Phụ huynh:</strong> {{ $student->guardian_name ?? 'N/A' }}</p>
-                    <p><strong>SĐT phụ huynh:</strong> {{ $student->guardian_phone ?? 'N/A' }}</p>
-                    <p><strong>Email phụ huynh:</strong> {{ $student->guardian_email ?? 'N/A' }}</p>
                     <p><strong>Trạng thái:</strong>
                         <span class="badge {{ $student->is_active ? 'bg-success' : 'bg-secondary' }}">
                             {{ $student->is_active ? 'Hoạt động' : 'Ngừng' }}

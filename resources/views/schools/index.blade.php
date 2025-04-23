@@ -160,7 +160,7 @@
         </div>
     </div>
 @endsection
-@section('scripts')
+@push('scripts')
     <script>
         $(document).ready(function () {
             // Tìm kiếm khi nhập (debounce 300ms)
@@ -172,4 +172,4 @@
         });
 
     </script>
-@endsection
+@endpush

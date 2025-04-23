@@ -1,4 +1,3 @@
-<!-- resources/views/students/create.blade.php -->
 @extends('layouts.app')
 
 @section('content')
@@ -15,8 +14,6 @@
             background-color: #E15336;
             border-color: #E15336;
         }
-
-
     </style>
 
     <div class="container">
@@ -53,14 +50,8 @@
                             @enderror
                         </div>
 
-                        <div class="mb-3">
-                            <label for="email" class="form-label">Email</label>
-                            <input type="email" class="form-control @error('email') is-invalid @enderror" id="email"
-                                   name="email" value="{{ old('email') }}">
-                            @error('email')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
+                        <!-- Đã ẩn trường email -->
+                        <input type="hidden" name="email" value="">
 
                         <div class="mb-3">
                             <label for="phone" class="form-label">Số điện thoại</label>
@@ -111,39 +102,10 @@
                             </div>
                         </div>
 
-                        <div class="mb-3">
-                            <label for="guardian_name" class="form-label">Tên phụ huynh</label>
-                            <input type="text" class="form-control @error('guardian_name') is-invalid @enderror"
-                                   id="guardian_name" name="guardian_name" value="{{ old('guardian_name') }}">
-                            @error('guardian_name')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
+                        <!-- Đã ẩn trường password và set giá trị mặc định -->
+                        <input type="hidden" name="password" value="12345678">
 
-                        <div class="mb-3">
-                            <label for="guardian_email" class="form-label">Email phụ huynh</label>
-                            <input type="email" class="form-control @error('guardian_email') is-invalid @enderror"
-                                   id="guardian_email" name="guardian_email" value="{{ old('guardian_email') }}">
-                            @error('guardian_email')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-                        <div class="mb-3">
-                            <label for="password" class="form-label">Mật khẩu</label>
-                            <input type="password" class="form-control @error('password') is-invalid @enderror"
-                                   id="password" name="password" placeholder="">
-                            @error('password')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-                        <div class="mb-3">
-                            <label for="guardian_phone" class="form-label">SĐT phụ huynh</label>
-                            <input type="text" class="form-control @error('guardian_phone') is-invalid @enderror"
-                                   id="guardian_phone" name="guardian_phone" value="{{ old('guardian_phone') }}">
-                            @error('guardian_phone')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
+
                     </div>
                 </div>
                 <div class="d-flex justify-content-end">
@@ -155,22 +117,5 @@
                 </div>
             </form>
         </div>
-
     </div>
 @endsection
-@section('scripts')
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const checkbox = document.getElementById('is_active');
-            const statusText = document.getElementById('statusText');
-            statusText.textContent = checkbox.checked ? 'Hoạt động' : 'Ngừng';
-        });
-
-        function toggleStatusText(checkbox) {
-            document.getElementById('statusText').textContent = checkbox.checked ? 'Hoạt động' : 'Ngừng';
-        }
-
-    </script>
-
-@endsection
-

@@ -77,24 +77,10 @@
     </div>
 @endsection
 
-@section('styles')
-    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-    <style>
-        .select2-container--default .select2-selection--multiple {
-            min-height: 38px;
-            padding: 5px;
-        }
-    </style>
-@endsection
-
-@section('scripts')
+@push('scripts')
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script>
         $(document).ready(function() {
-            $('.select2-multiple').select2({
-                placeholder: "Chọn lớp học",
-                allowClear: true
-            });
 
             $('#assignment-form').on('submit', function(e) {
                 e.preventDefault();
@@ -135,4 +121,4 @@
         });
 
     </script>
-@endsection
+@endpush

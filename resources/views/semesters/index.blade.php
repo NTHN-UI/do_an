@@ -17,8 +17,8 @@
                         </select>
                         <div class="input-group-append">
                             <a href="{{ route('semesters.create') }}"
-                               class="btn btn-primary">
-                                <i class="fas fa-plus"></i> Thêm học kỳ
+                               class="btn" style="background-color:#013066; color:#ffffff">
+                                Thêm mới
                             </a>
                         </div>
                     </div>

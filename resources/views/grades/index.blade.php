@@ -199,7 +199,7 @@
     </div>
 @endsection
 
-@section('scripts')
+@push('scripts')
     <script>
         $(document).ready(function() {
             // Xử lý thay đổi năm học
@@ -228,5 +228,4 @@
             });
         });
     </script>
-@endsection
-
+@endpush

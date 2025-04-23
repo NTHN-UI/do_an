@@ -3,13 +3,13 @@
 @section('content')
     <div class="container">
         <div class="row justify-content-center">
+            <h3 class="mb-0">Danh Sách Khối Học</h3>
             <div class="col-md-12">
                 <div class="card">
                     <div class="card-header">
                         <div class="d-flex justify-content-between align-items-center">
-                            <h3 class="mb-0">Danh Sách Khối Học</h3>
-                            <a href="{{ route('grade_levels.create') }}" class="btn btn-success">
-                                <i class="fas fa-plus"></i> Thêm Khối Học
+                            <a href="{{ route('grade_levels.create') }}" class="btn" style="background-color:#013066; color:#ffffff">
+                                Thêm mới
                             </a>
                         </div>
                     </div>

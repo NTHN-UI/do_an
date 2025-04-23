@@ -2,14 +2,10 @@
 
 @section('content')
     <div class="container">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h2>Quản lý Phân công giảng dạy</h2>
+        <h2>Quản lý Phân công giảng dạy</h2>
+        <div class="d-flex justify-content-end align-items-center mb-4">
             <div>
-                <a href="{{ route('teachers.index') }}?assign=1" class="btn btn-primary">
-                    <i class="fas fa-plus"></i> Thêm phân công
-                </a>
-                <a href="{{ route('teachers.index') }}" class="btn btn-outline-secondary">
-                    <i class="fas fa-users"></i> Quản lý Giáo viên
+                <a href="{{ route('teachers.index') }}?assign=1" class="btn" style="background-color:#013066; color:#ffffff">Thêm phân công
                 </a>
             </div>
         </div>
@@ -62,7 +58,7 @@
                             </select>
                         </div>
                         <div class="col-md-3 d-flex align-items-end">
-                            <button type="submit" class="btn btn-primary me-2">
+                            <button type="submit" class="btn me-2" style="background-color:#013066; color:#ffffff">
                                 <i class="fas fa-filter"></i> Lọc
                             </button>
                             <a href="{{ route('teacher_assignments.index') }}" class="btn btn-outline-secondary">
@@ -100,9 +96,9 @@
                                 <td>{{ $assignment->subject->name }}</td>
                                 <td>
                                     @if($assignment->is_homeroom)
-                                        <span class="badge bg-primary">Giáo viên chủ nhiệm</span>
+                                        <span class="badge" style="background-color:#013066; color:#ffffff">Giáo viên chủ nhiệm</span>
                                     @else
-                                        <span class="badge bg-info">Giáo viên bộ môn</span>
+                                        <span class="badge" style="background-color:#013066; color:#ffffff">Giáo viên bộ môn</span>
                                     @endif
                                 </td>
                                 <td>{{ $assignment->academicYear->year }}</td>

@@ -2,9 +2,6 @@
 
 namespace App\Exports;
 
-use App\Models\ClassModel;
-use App\Models\Subject;
-use App\Models\User;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithTitle;

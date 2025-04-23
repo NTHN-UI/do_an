@@ -24,7 +24,7 @@ class ProfileController extends Controller
     public function edit(Request $request): View
     {
         $user = Auth::user();
-        return view('profile.show', compact('user'));
+        return view('profile.edit', compact('user'));
     }
 
 
@@ -35,34 +35,52 @@ class ProfileController extends Controller
     {
         $user = Auth::user();
 
-        $validated = $request->validate([
+        $rules = [
             'full_name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email,'.$user->id,
             'phone' => 'nullable|string|max:20',
             'avatar' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'current_password' => 'nullable|required_with:new_password',
             'new_password' => 'nullable|min:8|confirmed',
-        ]);
+        ];
 
-        // Cập nhật thông tin cơ bản
-        $user->update([
+        // Thêm rules cho thông tin phụ huynh nếu là học sinh
+        if ($user->isStudent()) {
+            $rules = array_merge($rules, [
+                'guardian_name' => 'nullable|string|max:255',
+                'guardian_email' => 'nullable|email|unique:users,guardian_email,'.$user->id,
+                'guardian_phone' => 'nullable|string|max:20',
+            ]);
+        }
+
+        $validated = $request->validate($rules);
+
+        // Dữ liệu cơ bản
+        $updateData = [
             'full_name' => $validated['full_name'],
             'email' => $validated['email'],
             'phone' => $validated['phone'],
-        ]);
+        ];
 
-        // Xử lý ảnh đại diện
+        // Thêm thông tin phụ huynh nếu là học sinh
+        if ($user->isStudent()) {
+            $updateData['guardian_name'] = $validated['guardian_name'] ?? null;
+            $updateData['guardian_email'] = $validated['guardian_email'] ?? null;
+            $updateData['guardian_phone'] = $validated['guardian_phone'] ?? null;
+        }
+
+        $user->update($updateData);
+
+        // Xử lý avatar
         if ($request->hasFile('avatar')) {
-            // Xóa avatar cũ nếu tồn tại
             if ($user->avatar) {
                 Storage::delete($user->avatar);
             }
-
             $path = $request->file('avatar')->store('avatars');
             $user->update(['avatar' => $path]);
         }
 
-        // Đổi mật khẩu nếu có
+        // Đổi mật khẩu
         if ($request->filled('current_password')) {
             if (Hash::check($validated['current_password'], $user->password)) {
                 $user->update([
@@ -75,5 +93,4 @@ class ProfileController extends Controller
 
         return redirect()->route('profile.show')
             ->with('success', 'Cập nhật hồ sơ thành công!');
-    }
-}
+    }}

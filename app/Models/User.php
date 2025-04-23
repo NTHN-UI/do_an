@@ -156,6 +156,11 @@ class User extends Authenticatable
     {
         return $this->hasMany(Grade::class, 'student_id');
     }
+    public function studentAcademicYears()
+    {
+        return $this->belongsToMany(AcademicYear::class, 'student_classes', 'user_id', 'academic_year_id')
+            ->withTimestamps();
+    }
     protected function casts(): array
     {
         return [

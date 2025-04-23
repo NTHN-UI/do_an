@@ -49,13 +49,11 @@
 
                         <div class="mb-3">
                             <label for="email" class="form-label">Email</label>
-                            <input type="email" class="form-control" id="email" name="email"
-                                   value="{{ $student->email }}">
-                        </div>
-                        <div class="mb-3">
-                            <label for="password" class="form-label">Mật khẩu mới</label>
-                            <input type="password" class="form-control"
-                                   id="password" name="password" placeholder="Để trống nếu không đổi mật khẩu">
+                            <input type="hidden" name="email" value="{{ $student->email }}">
+
+                            <div class="form-control bg-light">
+                                {{ $student->email }}
+                            </div>
                         </div>
                         <div class="mb-3">
                             <label for="phone" class="form-label">Số điện thoại</label>
@@ -89,17 +87,6 @@
                             </div>
                         </div>
 
-                        <div class="mb-3">
-                            <label for="guardian_name" class="form-label">Tên phụ huynh</label>
-                            <input type="text" class="form-control" id="guardian_name" name="guardian_name"
-                                   value="{{ $student->guardian_name }}">
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="guardian_phone" class="form-label">SĐT phụ huynh</label>
-                            <input type="text" class="form-control" id="guardian_phone" name="guardian_phone"
-                                   value="{{ $student->guardian_phone }}">
-                        </div>
                     </div>
                 </div>
 
@@ -122,7 +109,7 @@
         </div>
 
         @endsection
-        @section('scripts')
+        @push('scripts')
             <script>
                 document.addEventListener('DOMContentLoaded', function () {
                     const checkbox = document.getElementById('is_active');
@@ -137,4 +124,4 @@
 
             </script>
 
-@endsection
+@endpush

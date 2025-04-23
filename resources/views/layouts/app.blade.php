@@ -77,6 +77,7 @@
                 right: 0.5rem;
             }
         }
+
         .content {
             padding-top: 1.5rem;
         }
@@ -89,43 +90,45 @@
 <div class="content">
     <main>
     </main>@yield('content')
-</div>
-@if(session('success'))
-    <div class="toast text-white bg-success border-0 position-fixed"
-         style="top: 5rem; right: 1rem; max-width: 235px; z-index: 9999;"
-         role="alert" aria-live="assertive" aria-atomic="true" data-bs-delay="5000" data-bs-autohide="true">
-        <div class="d-flex">
-            <div class="toast-body small">
-                {{ session('success') }}
-            </div>
-            <button type="button" class="btn-close btn-close-white me-2 m-auto"
-                    data-bs-dismiss="toast" aria-label="Close"></button>
-        </div>
-    </div>
-@endif
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script>
-    $(document).ready(function() {
-        // Thêm hiệu ứng active khi click vào menu
-        $('.nav-link').click(function() {
-            $('.nav-link').removeClass('active');
-            $(this).addClass('active');
-        });
-    });
     @if(session('success'))
-    document.addEventListener('DOMContentLoaded', function() {
-        var toastEl = document.querySelector('.toast');
-        var toast = new bootstrap.Toast(toastEl, {
-        animation: true,
-        autohide: true,
-        delay: 5000
-    });
-        toast.show();
-    });
-@endif
+        <div class="toast text-white bg-success border-0 position-fixed"
+             style="top: 5rem; right: 1rem; max-width: 235px; z-index: 9999;"
+             role="alert" aria-live="assertive" aria-atomic="true" data-bs-delay="5000" data-bs-autohide="true">
+            <div class="d-flex">
+                <div class="toast-body small">
+                    {{ session('success') }}
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto"
+                        data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        </div>
+    @endif
 
-</script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            // Thêm hiệu ứng active khi click vào menu
+            $('.nav-link').click(function () {
+                $('.nav-link').removeClass('active');
+                $(this).addClass('active');
+            });
+        });
+        @if(session('success'))
+        document.addEventListener('DOMContentLoaded', function () {
+            var toastEl = document.querySelector('.toast');
+            var toast = new bootstrap.Toast(toastEl, {
+                animation: true,
+                autohide: true,
+                delay: 5000
+            });
+            toast.show();
+        });
+        @endif
+
+    </script>
+
+    @stack('scripts')
+</div>
 </body>
 </html>

@@ -3,9 +3,9 @@
 @section('content')
     <div class="container">
         <div class="card shadow-sm">
-            <div class="card-header bg-primary text-white">
+            <div class="card-header text-black">
                 <h5 class="mb-0">
-                    <i class="fas fa-user-plus me-2"></i>Thêm giáo viên mới
+                    <i class="fas fa-user-plus me-2" ></i>Thêm mới
                 </h5>
             </div>
             <div class="card-body">
@@ -20,16 +20,6 @@
                                    class="form-control @error('full_name') is-invalid @enderror"
                                    value="{{ old('full_name') }}" required>
                             @error('full_name')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-
-                        <div class="col-md-6 mb-3">
-                            <label for="email" class="form-label">Email <span class="text-danger">*</span></label>
-                            <input type="email" name="email" id="email"
-                                   class="form-control @error('email') is-invalid @enderror"
-                                   value="{{ old('email') }}" required>
-                            @error('email')
                             <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
@@ -93,30 +83,12 @@
                         </div>
                     </div>
 
-                    <!-- Mật khẩu -->
-                    <div class="row mb-4">
-                        <div class="col-md-6 mb-3">
-                            <label for="password" class="form-label">Mật khẩu <span class="text-danger">*</span></label>
-                            <input type="password" name="password" id="password"
-                                   class="form-control @error('password') is-invalid @enderror" required>
-                            @error('password')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-
-                        <div class="col-md-6 mb-3">
-                            <label for="password_confirmation" class="form-label">Xác nhận mật khẩu <span class="text-danger">*</span></label>
-                            <input type="password" name="password_confirmation" id="password_confirmation"
-                                   class="form-control" required>
-                        </div>
-                    </div>
-
                     <!-- Nút submit -->
                     <div class="d-flex justify-content-end gap-2">
                         <a href="{{ route('teachers.index') }}" class="btn btn-secondary">
                             <i class="fas fa-arrow-left me-1"></i> Quay lại
                         </a>
-                        <button type="submit" class="btn btn-primary">
+                        <button type="submit" class="btn" style="background-color:#013066; color:#ffffff">
                             <i class="fas fa-save me-1"></i> Lưu thông tin
                         </button>
                     </div>
@@ -124,8 +96,9 @@
             </div>
         </div>
     </div>
+@endsection
 
-    @section('scripts')
+    @push('scripts')
         <script>
             document.addEventListener('DOMContentLoaded', function() {
                 // Validate form trước khi submit
@@ -146,5 +119,4 @@
                 });
             });
         </script>
-    @endsection
-@endsection
+@endpush

@@ -70,7 +70,7 @@
     </div>
 @endsection
 
-@section('scripts')
+@push('scripts')
     <script>
         $(document).ready(function() {
             // Dynamic load grade levels when school changes
@@ -107,4 +107,4 @@
             @endif
         });
     </script>
-@endsection
+@endpush

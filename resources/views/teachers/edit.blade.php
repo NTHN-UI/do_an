@@ -144,8 +144,9 @@
             </div>
         </div>
     </div>
+@endsection
 
-    @section('scripts')
+    @push('scripts')
         <script>
             document.addEventListener('DOMContentLoaded', function() {
                 // Validate form trước khi submit
@@ -166,5 +167,4 @@
                 });
             });
         </script>
-    @endsection
-@endsection
+    @endpush
