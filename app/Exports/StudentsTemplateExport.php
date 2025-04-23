@@ -23,8 +23,6 @@ class StudentsTemplateExport implements FromArray, WithHeadings, ShouldAutoSize,
 
     public function array(): array
     {
-        $gradeLevel = GradeLevel::find($this->gradeLevelId);
-
         return [
             [
                 'Nguyễn Văn A',
@@ -49,21 +47,25 @@ class StudentsTemplateExport implements FromArray, WithHeadings, ShouldAutoSize,
         $gradeLevel = GradeLevel::find($this->gradeLevelId);
 
         $headings = [
-            'Họ tên*',
-            'Số điện thoại',
-            'Giới tính (Nam/Nữ/Khác)',
-            'Ngày sinh (dd/mm/yyyy)',
-            'Địa chỉ',
+            [
+                'Họ tên*',
+                'Số điện thoại',
+                'Giới tính (Nam/Nữ/Khác)',
+                'Ngày sinh (dd/mm/yyyy)',
+                'Địa chỉ',
+            ]
         ];
 
-        // Thêm thông tin năm học nếu có
-        if ($academicYear) {
-            $headings[] = 'Năm học: ' . ($academicYear->year ?? $academicYear->name ?? 'N/A');
-        }
+        if ($academicYear || $gradeLevel) {
+            $headings[] = [];
 
-        // Thêm thông tin khối học nếu có
-        if ($gradeLevel) {
-            $headings[] = 'Khối: ' . ($gradeLevel->grade_number ?? $gradeLevel->name ?? 'N/A');
+            if ($academicYear) {
+                $headings[] = ['Năm học: ' . ($academicYear->year ?? $academicYear->name ?? 'N/A')];
+            }
+
+            if ($gradeLevel) {
+                $headings[] = ['Khối: ' . ($gradeLevel->grade_number ?? $gradeLevel->name ?? 'N/A')];
+            }
         }
 
         return $headings;
@@ -71,9 +73,15 @@ class StudentsTemplateExport implements FromArray, WithHeadings, ShouldAutoSize,
 
     public function styles(Worksheet $sheet)
     {
+        // Merge instruction rows
+        $sheet->mergeCells('A1:E1');
+        $sheet->mergeCells('A2:E2');
+
         return [
-            1 => ['font' => ['bold' => true]],
-            'A:F' => [
+            1 => ['font' => ['bold' => true, 'color' => ['rgb' => 'FF0000']]],
+            2 => ['font' => ['italic' => true]],
+            4 => ['font' => ['bold' => true]],
+            'A:E' => [
                 'alignment' => [
                     'wrapText' => true,
                     'vertical' => 'top'

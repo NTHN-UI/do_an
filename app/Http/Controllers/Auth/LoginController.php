@@ -3,10 +3,12 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Models\User;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 
@@ -39,13 +41,7 @@ class LoginController extends Controller
 
                 $user = Auth::user();
 
-                // Kiểm tra role và chuyển hướng phù hợp
-                if ($user->isSuperAdmin() || $user->isSchoolAdmin()) {
-                    return redirect()->intended(route('home.index'));
-                } elseif ($user->isTeacher()) {
-                    return redirect()->intended(route('home.index'));
-                } elseif ($user->isStudent()) {
-                    Log::info("Xin chao");
+                if(Auth::check()){
                     return redirect()->intended(route('home.index'));
                 }
             }
@@ -56,6 +52,7 @@ class LoginController extends Controller
         }
         catch(Exception $ex){
             Log::error("Loi tai dang nhap: " . $ex->getMessage());
+            return back()->withInput();
         }
 
     }

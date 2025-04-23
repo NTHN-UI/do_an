@@ -55,7 +55,7 @@
                                     </span>
                                 <input id="login" type="text"
                                        class="form-control form-control-lg"
-                                       name="login" required
+                                       name="login" required value="{{ old('login') }}"
                                        placeholder="Email hoặc số điện thoại">
                                 <div class="invalid-feedback">
                                     Vui lòng nhập email hoặc số điện thoại

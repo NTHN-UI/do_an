@@ -90,160 +90,152 @@
                     <i class="fas fa-home me-1"></i> Trang chủ
                 </a>
             </li>
-            @if(Auth::user()->isSchoolAdmin())
-                <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" id="learningDropdown" role="button"
-                       data-bs-toggle="dropdown">
-                        <i class="fas fa-book-open me-1"></i> Học tập
-                    </a>
-                    <ul class="dropdown-menu">
-                        <li><a class="dropdown-item" href="{{ route('classes.index') }}"><i
-                                    class="fas fa-users-class me-2"></i> Lớp học</a></li>
-                        <li><a class="dropdown-item" href="{{ route('grade_levels.index') }}"><i
-                                    class="fas fa-layer-group me-2"></i> Khối lớp</a></li>
-                        {{--                        <li><a class="dropdown-item" href="{{ route('subjects.index') }}"><i class="fas fa-book me-2"></i> Môn học</a></li>--}}
-                        <li><a class="dropdown-item" href="{{ route('teacher_assignments.index') }}"><i
-                                    class="fas fa-tasks me-2"></i> Phân công giảng dạy</a></li>
-
-
-                    </ul>
-                </li>
-
-                <!-- Quản lý người dùng -->
-
-                <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" id="usersDropdown" role="button"
-                       data-bs-toggle="dropdown">
-                        <i class="fas fa-users me-1"></i> Người dùng
-                    </a>
-                    <ul class="dropdown-menu">
-                        <li><a class="dropdown-item" href="{{ route('teachers.index') }}"><i
-                                    class="fas fa-chalkboard-teacher me-2"></i> Giáo viên</a></li>
-                        <li><a class="dropdown-item" href="{{ route('students.index') }}"><i
-                                    class="fas fa-user-graduate me-2"></i> Học sinh</a></li>
-                    </ul>
-                </li>
-
-                <!-- Năm học/Học kỳ -->
-                <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" id="academicDropdown" role="button"
-                       data-bs-toggle="dropdown">
-                        <i class="fas fa-calendar-alt me-1"></i> Năm học
-                    </a>
-                    <ul class="dropdown-menu">
-                        <li><a class="dropdown-item" href="{{ route('academic_years.index') }}"><i
-                                    class="fas fa-calendar me-2"></i> Năm học</a></li>
-                        <li><a class="dropdown-item" href="{{ route('semesters.index') }}"><i
-                                    class="fas fa-calendar-week me-2"></i> Học kỳ</a></li>
-                    </ul>
-                </li>
-            @endif
-            @if(Auth::user()->isTeacher() || Auth::user()->isStudent())
-                <!-- Tài liệu & Thi cử -->
-                <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" id="resourcesDropdown" role="button"
-                       data-bs-toggle="dropdown">
-                        <i class="fas fa-file-alt me-1"></i> Học liệu
-                    </a>
-                    <ul class="dropdown-menu">
-                        <li><a class="dropdown-item" href="{{ route('materials.index') }}"><i
-                                    class="fas fa-file-download me-2"></i> Tài liệu</a></li>
-                        {{--                        <li><a class="dropdown-item" href="{{ route('exams.index') }}"><i class="fas fa-edit me-2"></i> Bài thi</a></li>--}}
-                    </ul>
-                </li>
-
-                <!-- Báo cáo -->
-                {{--                <li class="nav-item">--}}
-                {{--                    <a class="nav-link" href="{{ route('reports.index') }}">--}}
-                {{--                        <i class="fas fa-chart-bar me-1"></i> Báo cáo--}}
-                {{--                    </a>--}}
-                {{--                </li>--}}
-
-                <li class="nav-item">
-                    <a class="nav-link" href="{{ route('grades.index') }}">
-                        <i class="fas fa-star me-1"></i> Điểm số
-                    </a>
-                </li>
-
-           @endif
-        </ul>
-        @if(Auth::user()->isSuperAdmin())
-
-            <!-- Menu bên phải -->
-        <ul class="navbar-nav">
-            <li class="nav-item dropdown">
-                <a class="nav-link dropdown-toggle" href="#" id="adminDropdown" role="button" data-bs-toggle="dropdown">
-                    <i class="fas fa-cog me-1"></i> Quản trị
-                </a>
-                <ul class="dropdown-menu dropdown-menu-end">
-                    <li><a class="dropdown-item" href="{{ route('schools.index') }}"><i class="fas fa-school me-2"></i>
-                            Trường học</a></li>
-
-                                            <li><a class="dropdown-item" href="{{ route('school_admins.index') }}"><i class="fas fa-sliders-h me-2"></i> Admin</a></li>
-                </ul>
-            </li>
-
-            {{--                <li class="nav-item">--}}
-            {{--                    <a class="nav-link" href="{{ route('notifications.index') }}">--}}
-            {{--                        <i class="fas fa-bell"></i>--}}
-            {{--                        <span class="badge bg-danger rounded-pill">3</span>--}}
-            {{--                    </a>--}}
-            {{--                </li>--}}
-            @endif
-            <ul class="navbar-nav ms-auto">
-                @auth
-                    <!-- Hiển thị thông báo (nếu có) -->
-                    {{-- <li class="nav-item">
-                        <a class="nav-link" href="{{ route('notifications.index') }}">
-                            <i class="fas fa-bell"></i>
-                            @if(auth()->user()->unreadNotifications->count() > 0)
-                                <span class="badge bg-danger rounded-pill">{{ auth()->user()->unreadNotifications->count() }}</span>
-                            @endif
-                        </a>
-                    </li> --}}
-
-                    <!-- Dropdown người dùng -->
+            @if(Auth::check())
+                @if(Auth::user()->isSchoolAdmin())
                     <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="userMenu" role="button"
+                        <a class="nav-link dropdown-toggle" href="#" id="learningDropdown" role="button"
                            data-bs-toggle="dropdown">
-                            @if(Auth::user()->avatar)
-                                <img src="{{ asset('storage/' . Auth::user()->avatar) }}" alt="Avatar"
-                                     class="rounded-circle me-1" style="width: 30px; height: 30px; object-fit: cover;">
-                            @else
-                                <i class="fas fa-user-circle me-1"></i>
-                            @endif
-                            {{ Auth::user()->full_name }}
+                            <i class="fas fa-book-open me-1"></i> Học tập
                         </a>
-                        <ul class="dropdown-menu dropdown-menu-end">
-                            <li>
-                                <a class="dropdown-item" href="{{ route('profile.show') }}">
-                                    <i class="fas fa-user me-2"></i> Hồ sơ cá nhân
-                                </a>
-                            </li>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="{{ route('classes.index') }}"><i
+                                        class="fas fa-users-class me-2"></i> Lớp học</a></li>
+                            <li><a class="dropdown-item" href="{{ route('grade_levels.index') }}"><i
+                                        class="fas fa-layer-group me-2"></i> Khối lớp</a></li>
+                            {{--                        <li><a class="dropdown-item" href="{{ route('subjects.index') }}"><i class="fas fa-book me-2"></i> Môn học</a></li>--}}
+                            <li><a class="dropdown-item" href="{{ route('teacher_assignments.index') }}"><i
+                                        class="fas fa-tasks me-2"></i> Phân công giảng dạy</a></li>
 
-                            <li>
-                                <hr class="dropdown-divider">
-                            </li>
 
-                            <li>
-                                <form method="POST" action="{{ route('logout') }}">
-                                    @csrf
-                                    <button type="submit" class="dropdown-item">
-                                        <i class="fas fa-sign-out-alt me-2"></i> Đăng xuất
-                                    </button>
-                                </form>
-                            </li>
                         </ul>
                     </li>
-                @endauth
 
-                @guest
+                    <!-- Quản lý người dùng -->
+
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="usersDropdown" role="button"
+                           data-bs-toggle="dropdown">
+                            <i class="fas fa-users me-1"></i> Người dùng
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="{{ route('teachers.index') }}"><i
+                                        class="fas fa-chalkboard-teacher me-2"></i> Giáo viên</a></li>
+                            <li><a class="dropdown-item" href="{{ route('students.index') }}"><i
+                                        class="fas fa-user-graduate me-2"></i> Học sinh</a></li>
+                        </ul>
+                    </li>
+
+                    <!-- Năm học/Học kỳ -->
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="academicDropdown" role="button"
+                           data-bs-toggle="dropdown">
+                            <i class="fas fa-calendar-alt me-1"></i> Năm học
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="{{ route('academic_years.index') }}"><i
+                                        class="fas fa-calendar me-2"></i> Năm học</a></li>
+                            <li><a class="dropdown-item" href="{{ route('semesters.index') }}"><i
+                                        class="fas fa-calendar-week me-2"></i> Học kỳ</a></li>
+                        </ul>
+                    </li>
+                @endif
+                @if(Auth::user()->isTeacher() || Auth::user()->isStudent())
+                    <!-- Tài liệu & Thi cử -->
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="resourcesDropdown" role="button"
+                           data-bs-toggle="dropdown">
+                            <i class="fas fa-file-alt me-1"></i> Học liệu
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="{{ route('materials.index') }}"><i
+                                        class="fas fa-file-download me-2"></i> Tài liệu</a></li>
+                            {{--                        <li><a class="dropdown-item" href="{{ route('exams.index') }}"><i class="fas fa-edit me-2"></i> Bài thi</a></li>--}}
+                        </ul>
+                    </li>
+
+                    <!-- Báo cáo -->
+                    {{--                <li class="nav-item">--}}
+                    {{--                    <a class="nav-link" href="{{ route('reports.index') }}">--}}
+                    {{--                        <i class="fas fa-chart-bar me-1"></i> Báo cáo--}}
+                    {{--                    </a>--}}
+                    {{--                </li>--}}
+
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ route('login') }}">
-                            <i class="fas fa-sign-in-alt me-1"></i> Đăng nhập
+                        <a class="nav-link" href="{{ route('grades.index') }}">
+                            <i class="fas fa-star me-1"></i> Điểm số
                         </a>
                     </li>
-                @endguest
-            </ul>
+
+                @endif
+            @endif
+        </ul>
+        @if(Auth::check())
+            @if(Auth::user()->isSuperAdmin())
+
+                <!-- Menu bên phải -->
+                <ul class="navbar-nav">
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="adminDropdown" role="button"
+                           data-bs-toggle="dropdown">
+                            <i class="fas fa-cog me-1"></i> Quản trị
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="{{ route('schools.index') }}"><i
+                                        class="fas fa-school me-2"></i>
+                                    Trường học</a></li>
+
+                            <li><a class="dropdown-item" href="{{ route('school_admins.index') }}"><i
+                                        class="fas fa-sliders-h me-2"></i> Admin</a></li>
+                        </ul>
+                    </li>
+                </ul>
+            @endif
+        @endif
+        <ul class="navbar-nav ms-auto">
+            @auth
+                <!-- Dropdown người dùng -->
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="userMenu" role="button"
+                       data-bs-toggle="dropdown">
+                        @if(Auth::user()->avatar)
+                            <img src="{{ asset('storage/' . Auth::user()->avatar) }}" alt="Avatar"
+                                 class="rounded-circle me-1"
+                                 style="width: 30px; height: 30px; object-fit: cover;">
+                        @else
+                            <i class="fas fa-user-circle me-1"></i>
+                        @endif
+                        {{ Auth::user()->full_name }}
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li>
+                            <a class="dropdown-item" href="{{ route('profile.show') }}">
+                                <i class="fas fa-user me-2"></i> Hồ sơ cá nhân
+                            </a>
+                        </li>
+
+                        <li>
+                            <hr class="dropdown-divider">
+                        </li>
+
+                        <li>
+                            <form method="POST" action="{{ route('logout') }}">
+                                @csrf
+                                <button type="submit" class="dropdown-item">
+                                    <i class="fas fa-sign-out-alt me-2"></i> Đăng xuất
+                                </button>
+                            </form>
+                        </li>
+                    </ul>
+                </li>
+            @endauth
+
+            @guest
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ route('login') }}">
+                        <i class="fas fa-sign-in-alt me-1"></i> Đăng nhập
+                    </a>
+                </li>
+            @endguest
+        </ul>
     </div>
 </nav>

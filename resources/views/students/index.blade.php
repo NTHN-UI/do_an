@@ -18,12 +18,6 @@
             overflow: visible !important;
         }
 
-
-        .table {
-            border-radius: 10px;
-            overflow: hidden;
-        }
-
         .table thead {
             background: linear-gradient(45deg, #f1f3f5, #e9ecef);
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
@@ -55,16 +49,6 @@
             overflow: visible !important;
         }
 
-        .table-responsive .dropdown-menu {
-            position: fixed;
-            z-index: 1000 ;
-            min-width: 90px;
-        }
-
-        .table-responsive .show > .dropdown-menu {
-            display: block !important;
-        }
-
         .input-group .btn {
             border: 0.5rem;
         }
@@ -80,11 +64,11 @@
                     <div class="row g-3">
                         <!-- Search Input -->
                         <div class="col-md-4">
-                            <div class="input-group" >
+                            <div class="input-group">
                                 <input type="text" name="search" class="form-control"
                                        placeholder="Tìm kiếm học sinh..." value="{{ $search }}">
                                 <button type="submit" class="btn" style="background-color:#013066; color:#ffffff">
-                                    <i class="fas fa-search text-white" ></i>
+                                    <i class="fas fa-search text-white"></i>
                                 </button>
                             </div>
                         </div>
@@ -95,9 +79,9 @@
                             <select class="form-select" id="academic_year_id" name="academic_year_id">
                                 <option value="">-- Chọn năm học --</option>
                                 @foreach($academicYears as $year)
-                                    <option
-                                        value="{{ $year->id }}" {{ $academicYearId == $year->id ? 'selected' : '' }}>
-                                        {{ $year->year }} <!-- Đảm bảo đây là trường hiển thị -->
+                                    <option value="{{ $year->id }}"
+                                        {{ old('academic_year_id', $academicYearId ?? null) == $year->id ? 'selected' : '' }}>
+                                        {{ $year->year }}
                                     </option>
                                 @endforeach
                             </select>
@@ -109,9 +93,9 @@
                             <select class="form-select" id="grade_level_id" name="grade_level_id">
                                 <option value="">-- Chọn khối --</option>
                                 @foreach($gradeLevels as $grade)
-                                    <option
-                                        value="{{ $grade->id }}" {{ $gradeLevelId == $grade->id ? 'selected' : '' }}>
-                                        {{ $grade->grade_number }} <!-- Đảm bảo đây là trường hiển thị -->
+                                    <option value="{{ $grade->id }}"
+                                        {{ old('grade_level_id', $gradeLevelId ?? null) == $grade->id ? 'selected' : '' }}>
+                                        {{ $grade->grade_number }}
                                     </option>
                                 @endforeach
                             </select>
@@ -128,7 +112,8 @@
                    style="background-color:#013066; color:#ffffff">
                     Thêm mới
                 </a>
-                <a href="{{ route('class_assignments.index') }}" class="btn me-2" style="background-color:#013066; color:#ffffff">Phân lớp
+                <a href="{{ route('class_assignments.index') }}" class="btn me-2"
+                   style="background-color:#013066; color:#ffffff">Phân lớp
                 </a>
             </div>
 
@@ -182,90 +167,13 @@
                             <th class="text-end pe-4" style="width: 50px;"></th>
                         </tr>
                         </thead>
-                        <tbody>
-                        @foreach($students as $student)
-                            <tr>
-                                <td class="ps-4">{{ $student->school_auto_id }}</td>
-                                <td>{{ $student->full_name }}</td>
-                                <td>{{ $student->email }}</td>
-                                <td class="text-center">{{ $student->phone }}</td>
-                                <td>{{ $student->school->name ?? 'N/A' }}</td>
-                                <td class="text-center">
-                                    <span
-                                        class="badge rounded-pill {{ $student->is_active ? 'bg-success' : 'bg-secondary' }}">
-                                        {{ $student->is_active ? 'Hoạt động' : 'Ngừng' }}
-                                    </span>
-                                </td>
-                                <td class="text-end pe-4">
-                                    <div class="dropdown">
-                                        <button class="btn btn-sm" type="button" data-bs-toggle="dropdown"
-                                                aria-expanded="false">
-                                            <i class="fas fa-ellipsis-v text-muted"></i>
-                                        </button>
-                                        <ul class="dropdown-menu dropdown-menu-end shadow-sm rounded-3 border-0"
-                                            data-bs-popper="static">
-                                            <li>
-                                                <a class="dropdown-item px-3 py-2"
-                                                   href="{{ route('students.show', $student->id) }}">
-                                                    Xem
-                                                </a>
-                                            </li>
-                                            <li>
-                                                <a class="dropdown-item px-3 py-2"
-                                                   href="{{ route('students.edit', $student->id) }}">
-                                                    Sửa
-                                                </a>
-                                            </li>
-                                            <li>
-                                                <form action="{{ route('students.destroy', $student->id) }}"
-                                                      method="POST">
-                                                    @csrf
-                                                    @method('DELETE')
-                                                    <button type="submit" class="dropdown-item px-3 py-2 shadow"
-                                                            onclick="return confirm('Bạn có chắc chắn muốn xóa học sinh này?')">
-                                                        Xóa
-                                                    </button>
-                                                </form>
-                                            </li>
-                                        </ul>
-                                    </div>
-
-                                </td>
-                            </tr>
-                        @endforeach
+                        <tbody id="students-container">
+                        @include('students.partials.results', ['students' => $students])
                         </tbody>
                     </table>
                 </div>
             </div>
-        </div>
-
-        <!-- Pagination and info -->
-        <div class="d-flex justify-content-end align-items-center mt-2">
-            <div class="text-muted me-3">
-                {{ $students->firstItem() }}-{{ $students->lastItem() }} của {{ $students->total() }} bản ghi
-            </div>
-            <ul class="pagination pagination-sm mb-0">
-                <!-- Nút "Trang Trước" -->
-                <li class="page-item {{ $students->onFirstPage() ? 'disabled' : '' }}">
-                    <a class="page-link" href="{{ $students->previousPageUrl() }}">
-                        <i class="fas fa-angle-left"></i>
-                    </a>
-                </li>
-
-                <!-- Số trang -->
-                @for ($i = 1; $i <= $students->lastPage(); $i++)
-                    <li class="page-item {{ $students->currentPage() == $i ? 'active' : '' }}">
-                        <a class="page-link" href="{{ $students->url($i) }}">{{ $i }}</a>
-                    </li>
-                @endfor
-
-                <!-- Nút "Trang Kế" -->
-                <li class="page-item {{ $students->hasMorePages() ? '' : 'disabled' }}">
-                    <a class="page-link" href="{{ $students->nextPageUrl() }}">
-                        <i class="fas fa-angle-right"></i>
-                    </a>
-                </li>
-            </ul>
+            @include('students.partials.pagination', ['students' => $students])
         </div>
     </div>
 @endsection
@@ -282,20 +190,6 @@
                 // Tìm kiếm khi nhập (debounce)
                 const $searchInput = $('input[name="search"]');
 
-                /*if ($searchInput.length) {
-                    let debounceTimer;
-                    $searchInput.on('keyup', function () {
-                        clearTimeout(debounceTimer);
-                        const $input = $(this);
-                        debounceTimer = setTimeout(function () {
-                            const val = $input.val();
-                            if (val.length === 0 || val.length > 2) {
-                                searchForm.submit();
-                            }
-                        }, 300);
-                    });
-                }*/
-
                 function toggleActionButtons() {
                     const yearSelected = academicYearSelect.val();
                     const gradeSelected = gradeLevelSelect.val();
@@ -309,16 +203,60 @@
                 // Gọi lại khi người dùng chọn lại năm học hoặc khối
                 academicYearSelect.on('change', function () {
                     toggleActionButtons();
+
+                    const academic_year_id = $(this).val();
+                    const grade_id = gradeLevelSelect.val();
+
+                    if (!grade_id) return;
+
+                    render(grade_id, academic_year_id);
                 });
 
                 gradeLevelSelect.on('change', function () {
                     toggleActionButtons();
+                    const academic_year_id = academicYearSelect.val();
+                    const grade_id = $(this).val();
+
+                    if (!academic_year_id) return;
+
+                    render(grade_id, academic_year_id);
                 });
 
+                const getData = (grade_id, academic_year_id) => {
+                    return $.ajax({
+                        url: '{{ route("students.index") }}',
+                        type: 'GET',
+                        data: {
+                            _token: '{{ csrf_token() }}',
+                            grade_id: grade_id,
+                            academic_year_id: academic_year_id
+                        },
+                        error: function (xhr) {
+                            alert('Lỗi: ' + (xhr.responseText || 'Vui lòng thử lại'));
+                            console.log("Error: ", xhr.responseText);
+                        }
+                    });
+                }
+
+                const render = async (grade_id, academic_year_id) => {
+                    try {
+                        const response = await getData(grade_id, academic_year_id);
+                        const studentContainer = $("#students-container");
+                        const paginationContainer = $("#pagination-container");
+
+                        studentContainer.html(response.data);
+                        paginationContainer.html(response.pagination);
+                    } catch (error) {
+                        console.error("Failed to fetch data: ", error);
+                        alert("Có lỗi xảy ra khi tải dữ liệu, vui lòng thử lại");
+                    }
+                }
+
                 // Xử lý import file
-                inputFile.on("change", function () {
+                inputFile.on("change", function (e) {
                     if (!this.files.length) return;
 
+                    e.preventDefault();
                     const academicYearId = academicYearSelect.val();
                     const gradeLevelId = gradeLevelSelect.val();
 
@@ -333,29 +271,26 @@
                     formData.append('grade_level_id', gradeLevelId || '');
                     formData.append('_token', '{{ csrf_token() }}');
 
-                    // Trong file blade, sửa phần AJAX thành:
                     $.ajax({
                         url: '{{ route("students.import") }}',
                         type: 'POST',
                         data: formData,
                         processData: false,
                         contentType: false,
-                        success: function(response) {
+                        success: function (response) {
                             if (response.success) {
-                                // Hiển thị thông báo thành công
-                                alert(response.message);
-                                // Tự động tải lại trang để xem kết quả
-                                window.location.reload();
+                                alert(response.message)
+                                render(gradeLevelSelect.val(), academicYearSelect.val())
                             } else {
                                 alert('Lỗi: ' + response.message);
                             }
                         },
-                        error: function(xhr) {
+                        error: function (xhr) {
                             alert('Lỗi: ' + (xhr.responseJSON?.message || 'Vui lòng thử lại'));
                         },
-                        complete: function() {
+                        complete: function () {
                             btn.prop('disabled', false).html('<i class="fas fa-file-import me-1"></i> Import');
-                            inputFile.val(''); // Reset input file
+                            inputFile.val('');
                         }
                     });
                 });

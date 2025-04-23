@@ -11,6 +11,8 @@ use App\Models\School;
 use App\Models\User;
 use App\Models\GradeLevel;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -31,6 +33,26 @@ class StudentController extends Controller
         $academicYearId = $request->input('academic_year_id');
         $gradeLevelId = $request->input('grade_level_id');
 
+        if ($request->ajax()) {
+            $grade_id = $request->input('grade_id');
+            $academic_year_id = $request->input('academic_year_id');
+
+            $students = User::join('grade_users', 'users.id', '=', 'grade_users.user_id')
+                ->where('grade_id', '=', $grade_id)
+                ->where('academic_year_id', '=', $academic_year_id)
+                ->select('users.id', 'users.full_name', 'users.email',
+                    'users.phone', 'users.is_active', 'users.school_id')
+                ->with(['school' => function($query) {
+                    $query->select('id', 'name');
+                }])
+                ->paginate(10);
+
+            return response()->json([
+                'success' => true,
+                'data' => view('students.partials.results', ['students' => $students])->render(),
+                'pagination' => view('students.partials.pagination', ['students' => $students])->render()
+            ]);
+        }
 
         $students = User::where('role', User::ROLE_STUDENT)
             ->where('school_id', auth()->user()->school_id)
@@ -238,7 +260,6 @@ class StudentController extends Controller
             $student->update($validated);
 
 
-
             return redirect()->route('students.index')->with('success', 'Thông tin học sinh đã được cập nhật.');
 
         } catch (\Exception $e) {
@@ -301,7 +322,6 @@ class StudentController extends Controller
             'academic_year_id' => 'required|exists:academic_years,id,school_id,' . auth()->user()->school_id,
             'grade_level_id' => 'required|exists:grade_levels,id,school_id,' . auth()->user()->school_id,
         ]);
-
         try {
             $import = new StudentsImport(
                 auth()->user()->school_id,
@@ -322,6 +342,7 @@ class StudentController extends Controller
             ]);
 
         } catch (\Exception $e) {
+            Log::error("Error in StudentController@importDirect: " . $e->getMessage());
             return response()->json([
                 'success' => false,
                 'message' => 'Lỗi: ' . $e->getMessage()
@@ -361,5 +382,36 @@ class StudentController extends Controller
             new StudentsTemplateExport($academicYearId, $gradeLevelId),
             'mau-nhap-hoc-sinh.xlsx'
         );
+    }
+
+    public function getStudentsByGrade(Request $request)
+    {
+        try {
+            if ($request->ajax()) {
+                $grade_id = $request->input('grade_id');
+                $academic_year_id = $request->input('academic_year_id');
+
+                $students = User::join('grade_users', 'users.id', '=', 'grade_users.user_id')
+                    ->where('grade_id', '=', $grade_id)
+                    ->where('academic_year_id', '=', $academic_year_id)
+                    ->select('users.id', 'users.full_name', 'users.email',
+                        'users.phone', 'users.is_active', 'users.school_id')
+                    ->with(['school' => function($query) {
+                        $query->select('id', 'name');
+                    }])
+                    ->paginate(10);
+
+                return response()->json([
+                    'success' => true,
+                    'data' => view('students.partials.results', ['students' => $students])->render(),
+                    'pagination' => view('students.partials.pagination', ['students' => $students])->render()
+                ]);
+            }
+        } catch (\Exception $ex) {
+            Log::error('Error in StudentController@getStudentsByGrade: ' . $ex->getMessage());
+            return response()->json([
+                'error' => 'Có lỗi xảy ra',
+            ]);
+        }
     }
 }
