@@ -66,6 +66,8 @@ Route::middleware(['auth'])->group(function () {
             ->name('teacher_assignments.create');
         Route::post('teachers/{teacher}/assignments', [TeacherAssignmentController::class, 'store'])
             ->name('teacher_assignments.store');
+        Route::get('teacher-assignments/get-classes-by-year', [TeacherAssignmentController::class, 'getClassesByAcademicYear'])
+            ->name('teacher_assignments.getClassesByAcademicYear');
 
         // Phân lớp học sinh
         Route::prefix('class_assignments')->name('class_assignments.')->group(function () {
@@ -73,7 +75,7 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/auto_assign', [ClassAssignmentController::class, 'showAutoAssignmentForm'])->name('auto_assign');
             Route::post('/auto_assign', [ClassAssignmentController::class, 'autoAssign'])->name('auto_assign.process');
             Route::get('/{class}', [ClassAssignmentController::class, 'showClassStudents'])->name('show');
-            Route::post('/move_student', [ClassAssignmentController::class, 'moveStudent'])->name('move_student');
+            Route::post('/move_student/{id}', [ClassAssignmentController::class, 'moveStudent'])->name('move_student');
         });
     });
 

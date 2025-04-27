@@ -5,11 +5,6 @@
     <div class="container">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h3>Danh sách học sinh lớp {{ $class->name }} - Năm học {{ $academicYear->year }}</h3>
-            <div>
-                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#moveStudentModal">
-                    <i class="fas fa-exchange-alt me-2"></i>Chuyển lớp học sinh
-                </button>
-            </div>
         </div>
 
         <div class="card">
@@ -42,6 +37,14 @@
                                     <a href="{{ route('students.show', $student) }}" class="btn btn-sm btn-outline-primary">
                                         Xem
                                     </a>
+
+                                    <button class="btn btn-primary btn-sm"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#moveStudentModal"
+                                            data-student-id="{{ $student->id }}"
+                                            data-student-name="{{ $student->full_name }}">
+                                        <i class="fas fa-exchange-alt me-1"></i>Chuyển lớp
+                                    </button>
                                 </td>
                             </tr>
                         @endforeach
@@ -58,7 +61,7 @@
     <div class="modal fade" id="moveStudentModal" tabindex="-1" aria-labelledby="moveStudentModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
-                <form method="POST" action="{{ route('class_assignments.move_student') }}">
+                <form method="POST">
                     @csrf
                     <input type="hidden" name="academic_year_id" value="{{ $academicYear->id }}">
                     <input type="hidden" name="current_class_id" value="{{ $class->id }}">
@@ -70,12 +73,8 @@
                     <div class="modal-body">
                         <div class="mb-3">
                             <label for="student_id" class="form-label">Học sinh</label>
-                            <select name="user_id" id="student_id" class="form-select" required>
-                                <option value="">-- Chọn học sinh --</option>
-                                @foreach($class->students as $student)
-                                    <option value="{{ $student->id }}">{{ $student->full_name }}</option>
-                                @endforeach
-                            </select>
+                            <input type="hidden" name="user_id" id="student_id">
+                            <div class="form-control" id="student_name_display">Vui lòng chọn học sinh</div>
                         </div>
 
                         <div class="mb-3">
@@ -100,3 +99,23 @@
         </div>
     </div>
 @endsection
+@push('scripts')
+    <script>
+        $(document).ready(function(){
+            const moveStudentModal = $('moveStudentModal');
+
+            if (moveStudentModal) {
+                $('#moveStudentModal').on('show.bs.modal', function (event) {
+                    const button = $(event.relatedTarget); // Nút đã click
+                    const form = $(this).find("form");
+
+                    const studentId = button.data('student-id');
+                    const studentName = button.data('student-name');
+                    form.attr('action', `/class_assignments/move_student/${studentId}`);
+                    $('#student_id').val(studentId);
+                    $('#student_name_display').text(studentName);
+                });
+            }
+        })
+    </script>
+@endpush

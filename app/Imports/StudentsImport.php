@@ -65,6 +65,27 @@ class StudentsImport implements ToCollection, WithHeadingRow
                     $lineNumber++;
                     continue;
                 }
+
+                // Validate số điện thoại
+                $phone = $row['so_dien_thoai'] ?? null;
+                if ($phone) {
+                    // Xóa dấu cách, ký tự không phải số
+                    $phone = preg_replace('/\D/', '', $phone);
+
+                    // Kiểm tra định dạng số điện thoại
+                    if (strlen($phone) < 9 || strlen($phone) > 11) {
+                        $this->errors[] = "Dòng $lineNumber: Số điện thoại không hợp lệ (phải từ 9-11 chữ số)";
+                        $lineNumber++;
+                        continue;
+                    }
+
+                    // Kiểm tra số điện thoại đã tồn tại
+                    if (User::where('phone', $phone)->exists()) {
+                        $this->errors[] = "Dòng $lineNumber: Số điện thoại đã tồn tại trong hệ thống";
+                        $lineNumber++;
+                        continue;
+                    }
+                }
                 // Create email
                 $email = $this->generateEmail($row['ho_ten'], $schoolDomain);
 
@@ -78,7 +99,7 @@ class StudentsImport implements ToCollection, WithHeadingRow
                 $student = User::create([
                     'full_name' => $row['ho_ten'],
                     'email' => $email,
-                    'phone' => $row['so_dien_thoai'] ?? null,
+                    'phone' =>  $phone,
                     'gender' => $gender,
                     'date_of_birth' => $dateOfBirth,
                     'address' => $row['dia_chi'] ?? null,

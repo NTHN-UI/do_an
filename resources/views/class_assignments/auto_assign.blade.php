@@ -35,14 +35,6 @@
                         </div>
                     </div>
 
-                    <div class="row mb-3">
-                        <label for="max_students_per_class" class="col-md-3 col-form-label">Số học sinh tối đa/lớp</label>
-                        <div class="col-md-9">
-                            <input type="number" name="max_students_per_class" id="max_students_per_class"
-                                   class="form-control" value="40" min="1" required>
-                        </div>
-                    </div>
-
                     <div class="row">
                         <div class="col-md-9 offset-md-3">
                             <button type="submit" class="btn btn-primary">

@@ -33,54 +33,66 @@ class StudentController extends Controller
         $academicYearId = $request->input('academic_year_id');
         $gradeLevelId = $request->input('grade_level_id');
 
-        if ($request->ajax()) {
-            $grade_id = $request->input('grade_id');
-            $academic_year_id = $request->input('academic_year_id');
+        // Tạo base query
+        $query = User::where('role', User::ROLE_STUDENT)
+            ->where('users.school_id', auth()->user()->school_id);
 
-            $students = User::join('grade_users', 'users.id', '=', 'grade_users.user_id')
-                ->where('grade_id', '=', $grade_id)
-                ->where('academic_year_id', '=', $academic_year_id)
-                ->select('users.id', 'users.full_name', 'users.email',
-                    'users.phone', 'users.is_active', 'users.school_id')
-                ->with(['school' => function($query) {
-                    $query->select('id', 'name');
-                }])
-                ->paginate(10);
+        // Xử lý AJAX request
+        if ($request->ajax()) {
+            $query->when($request->grade_id, function($q) use ($request) {
+                $q->join('grade_users', 'users.id', '=', 'grade_users.user_id')
+                    ->where('grade_id', $request->grade_id);
+            })
+                ->when($request->academic_year_id, function($q) use ($request) {
+                    $q->where('academic_year_id', $request->academic_year_id);
+                });
+
+            $students = $query->select('users.*')
+                ->with(['school:id,name'])
+                ->orderBy('school_auto_id')
+                ->paginate(10)
+                ->appends($request->except('page')); // Thêm dòng này để giữ bộ lọc
 
             return response()->json([
                 'success' => true,
                 'data' => view('students.partials.results', ['students' => $students])->render(),
-                'pagination' => view('students.partials.pagination', ['students' => $students])->render()
+                'pagination' => view('students.partials.pagination', [
+                    'students' => $students,
+                    'filters' => $request->only(['grade_id', 'academic_year_id'])
+                ])->render()
             ]);
         }
 
-        $students = User::where('role', User::ROLE_STUDENT)
-            ->where('school_id', auth()->user()->school_id)
-            ->when($search, function ($query) use ($search) {
-                return $query->where('full_name', 'like', '%' . $search . '%')
-                    ->orWhere('email', 'like', '%' . $search . '%')
-                    ->orWhere('phone', 'like', '%' . $search . '%');
-            })
-            ->when($classId, function ($query, $classId) {
-                return $query->whereHas('studentClasses', function ($q) use ($classId) {
+        // Xử lý request thông thường
+        $query->when($search, function ($q) use ($search) {
+            $q->where(function($q) use ($search) {
+                $q->where('full_name', 'like', '%'.$search.'%')
+                    ->orWhere('email', 'like', '%'.$search.'%')
+                    ->orWhere('phone', 'like', '%'.$search.'%');
+            });
+        })
+            ->when($classId, function ($q, $classId) {
+                $q->whereHas('studentClasses', function ($q) use ($classId) {
                     $q->where('class_id', $classId);
                 });
             })
-            ->when($academicYearId, function ($query, $academicYearId) {
-                return $query->whereHas('studentAcademicYears', function ($q) use ($academicYearId) {
+            ->when($academicYearId, function ($q, $academicYearId) {
+                $q->whereHas('studentAcademicYears', function ($q) use ($academicYearId) {
                     $q->where('academic_year_id', $academicYearId);
                 });
             })
-            ->when($gradeLevelId, function ($query, $gradeLevelId) {
-                return $query->whereHas('studentClasses', function ($q) use ($gradeLevelId) {
+            ->when($gradeLevelId, function ($q, $gradeLevelId) {
+                $q->whereHas('studentClasses', function ($q) use ($gradeLevelId) {
                     $q->whereHas('gradeLevel', function ($q) use ($gradeLevelId) {
                         $q->where('id', $gradeLevelId);
                     });
                 });
-            })
-            ->with(['school', 'studentClasses.gradeLevel'])
+            });
+
+        $students = $query->with(['school', 'studentClasses.gradeLevel'])
             ->orderBy('school_auto_id')
-            ->paginate(10);
+            ->paginate(10)
+            ->appends($request->except('page'));
 
         $classes = ClassModel::where('school_id', auth()->user()->school_id)
             ->with('gradeLevel')
@@ -110,16 +122,38 @@ class StudentController extends Controller
      */
     public function create()
     {
-        $currentAcademicYear = AcademicYear::where('school_id', auth()->user()->school_id)
-            ->latest()
-            ->first();
+        $academicYearId = request()->input('academic_year_id');
+        $gradeLevelId = request()->input('grade_level_id');
+
+        $currentAcademicYear = $academicYearId
+            ? AcademicYear::find($academicYearId)
+            : AcademicYear::where('school_id', auth()->user()->school_id)
+                ->latest()
+                ->first();
 
         $classes = ClassModel::where('school_id', auth()->user()->school_id)
-            ->where('academic_year_id', $currentAcademicYear->id ?? null)
+            ->when($currentAcademicYear, function($query) use ($currentAcademicYear) {
+                $query->where('academic_year_id', $currentAcademicYear->id ?? null);
+            })
             ->with('gradeLevel')
             ->get();
 
-        return view('students.create', compact('classes', 'currentAcademicYear'));
+        $academicYears = AcademicYear::where('school_id', auth()->user()->school_id)
+            ->orderBy('start_date', 'asc')
+            ->get();
+
+        $gradeLevels = GradeLevel::where('school_id', auth()->user()->school_id)
+            ->orderBy('grade_number', 'asc')
+            ->get();
+
+        return view('students.create', [
+            'classes' => $classes,
+            'currentAcademicYear' => $currentAcademicYear,
+            'selectedAcademicYearId' => $academicYearId,
+            'selectedGradeLevelId' => $gradeLevelId,
+            'academicYears' => $academicYears,
+            'gradeLevels' => $gradeLevels
+        ]);
     }
 
     /**
@@ -131,9 +165,23 @@ class StudentController extends Controller
             $validated = $request->validate([
                 'full_name' => 'required|string|max:255',
                 'address' => 'nullable|string',
-                'phone' => 'nullable|string|max:20',
+                'phone' => [
+                    'nullable',
+                    'string',
+                    'regex:/^0\d{9}$/', // đúng 10 số bắt đầu bằng 0
+                    function ($attribute, $value, $fail) {
+                        if ($value && User::where('phone', $value)
+                                ->where('school_id', auth()->user()->school_id)
+                                ->exists()) {
+                            $fail('Số điện thoại đã tồn tại trong trường.');
+                        }
+                    },
+                ],
+
                 'gender' => 'nullable|in:Nam,Nữ,Khác',
                 'date_of_birth' => 'nullable|date',
+                'academic_year_id' => 'required|exists:academic_years,id,school_id,'.auth()->user()->school_id,
+                'grade_level_id' => 'required|exists:grade_levels,id,school_id,'.auth()->user()->school_id,
             ]);
 
             $validated['role'] = User::ROLE_STUDENT;
@@ -182,8 +230,9 @@ class StudentController extends Controller
             // Đặt mật khẩu mặc định là 12345678
             $validated['password'] = Hash::make('12345678');
             $student = User::create($validated);
-            $student->studentAcademicYears()->attach($request->academic_year_id, [
-                'grade_level_id' => $request->grade_level_id
+            $student->studentGrades()->attach($request->academic_year_id, [
+                'grade_id' => $request->grade_level_id,
+                'school_id' => $school->id,
             ]);
 
             return redirect()->route('students.index')->with('success', 'Học sinh đã được thêm thành công.');
@@ -247,7 +296,19 @@ class StudentController extends Controller
             $validated = $request->validate([
                 'full_name' => 'required|string|max:255',
                 'address' => 'nullable|string',
-                'phone' => 'nullable|string|max:20',
+                'phone' => [
+                    'nullable',
+                    'string',
+                    'regex:/^0\d{9}$/', // đúng 10 số bắt đầu bằng 0
+                    function ($attribute, $value, $fail) {
+                        if ($value && User::where('phone', $value)
+                                ->where('school_id', auth()->user()->school_id)
+                                ->exists()) {
+                            $fail('Số điện thoại đã tồn tại trong trường.');
+                        }
+                    },
+                ],
+
                 'gender' => 'nullable|in:Nam,Nữ,Khác',
                 'date_of_birth' => 'nullable|date',
 
@@ -273,30 +334,6 @@ class StudentController extends Controller
      */
     public function destroy(User $student)
     {
-        try {
-            if ($student->school_id !== auth()->user()->school_id || !$student->isStudent()) {
-                abort(403, 'Không được phép xóa học sinh từ trường khác');
-            }
-
-
-            // Kiểm tra xem học sinh có đang trong lớp nào không
-            if ($student->studentClasses()->count() > 0) {
-                return back()->with('error', 'Không thể xóa học sinh vì đang có lớp học. Vui lòng xóa học sinh khỏi lớp trước.');
-            }
-
-            $school_id = $student->school_id;
-            $student->delete();
-
-            // Cập nhật lại STT cho các học sinh còn lại
-            $this->reorderStudentNumbers($school_id);
-
-            return redirect()->route('students.index')
-                ->with('success', 'Học sinh đã được xóa thành công.');
-
-        } catch (\Exception $e) {
-            Log::error('Error deleting student: ' . $e->getMessage());
-            return back()->with('error', 'Đã xảy ra lỗi khi xóa học sinh: ' . $e->getMessage());
-        }
     }
 
     private function reorderStudentNumbers($school_id)

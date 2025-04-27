@@ -19,8 +19,31 @@
         <!-- Bộ lọc -->
         <div class="card shadow-sm mb-4">
             <div class="card-body">
-                <form method="GET" action="{{ route('teacher_assignments.index') }}">
+                <form method="GET" action="{{ route('teacher_assignments.index') }}" id="filter-form">
                     <div class="row g-3">
+                        <div class="col-md-3">
+                            <label class="form-label">Năm học</label>
+                            <select name="academic_year_id" class="form-select" id="academic-year-filter">
+                                <option value="">-- Tất cả năm --</option>
+                                @foreach($academicYears as $year)
+                                    <option value="{{ $year->id }}" {{ request('academic_year_id') == $year->id ? 'selected' : '' }}>
+                                        {{ $year->year }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <div class="col-md-3">
+                            <label class="form-label">Lớp học</label>
+                            <select name="class_id" class="form-select" id="class-filter">
+                                <option value="">-- Tất cả lớp --</option>
+                                @foreach($classes as $class)
+                                    <option value="{{ $class->id }}" {{ request('class_id') == $class->id ? 'selected' : '' }}>
+                                        {{ $class->gradeLevel->grade_number }} - {{ $class->name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
                         <div class="col-md-3">
                             <label class="form-label">Môn học</label>
                             <select name="subject_id" class="form-select">
@@ -29,18 +52,6 @@
                                     <option
                                         value="{{ $subject->id }}" {{ request('subject_id') == $subject->id ? 'selected' : '' }}>
                                         {{ $subject->name }}
-                                    </option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div class="col-md-3">
-                            <label class="form-label">Lớp học</label>
-                            <select name="class_id" class="form-select">
-                                <option value="">-- Tất cả lớp --</option>
-                                @foreach($classes as $class)
-                                    <option
-                                        value="{{ $class->id }}" {{ request('class_id') == $class->id ? 'selected' : '' }}>
-                                        {{ $class->gradeLevel->grade_number }} - {{ $class->name }}
                                     </option>
                                 @endforeach
                             </select>
@@ -56,14 +67,6 @@
                                     môn
                                 </option>
                             </select>
-                        </div>
-                        <div class="col-md-3 d-flex align-items-end">
-                            <button type="submit" class="btn me-2" style="background-color:#013066; color:#ffffff">
-                                <i class="fas fa-filter"></i> Lọc
-                            </button>
-                            <a href="{{ route('teacher_assignments.index') }}" class="btn btn-outline-secondary">
-                                <i class="fas fa-sync"></i> Reset
-                            </a>
                         </div>
                     </div>
                 </form>
@@ -140,8 +143,39 @@
             </div>
         </div>
     </div>
+
+@endsection
+
+@push('scripts')
     <script>
+
         $(document).ready(function () {
+            // Xử lý form xóa phân công
+            $('.delete-assignment-form').on('submit', function (e) {
+                e.preventDefault();
+
+                if (confirm('Bạn chắc chắn muốn xóa phân công này?')) {
+                    $.ajax({
+                        url: $(this).attr('action'),
+                        method: 'POST',
+                        data: {
+                            _token: $(this).find('input[name="_token"]').val(),
+                            _method: 'DELETE'
+                        },
+                        success: function () {
+                            window.location.reload();
+                        },
+                        error: function () {
+                            alert('Đã xảy ra lỗi khi xóa phân công');
+                        }
+                    });
+                }
+            });
+            // Tự động submit form khi có thay đổi filter
+            $('#academic-year-filter, #class-filter, [name="subject_id"], [name="is_homeroom"]').change(function() {
+                $('#filter-form').submit();
+            });
+
             // Xử lý form xóa phân công
             $('.delete-assignment-form').on('submit', function (e) {
                 e.preventDefault();
@@ -191,5 +225,54 @@
                 });
             });
         });
+            {{--// Xử lý khi năm học thay đổi--}}
+            {{--$('#academic-year-filter').change(function() {--}}
+            {{--    const academicYearId = $(this).val();--}}
+
+            {{--    // Gọi API lấy danh sách lớp theo năm học--}}
+            {{--    if (academicYearId) {--}}
+            {{--        $.ajax({--}}
+            {{--            url: '{{ route("teacher_assignments.getClassesByAcademicYear") }}',--}}
+            {{--            method: 'GET',--}}
+            {{--            data: {--}}
+            {{--                academic_year_id: academicYearId--}}
+            {{--            },--}}
+            {{--            success: function(response) {--}}
+            {{--                // Cập nhật dropdown lớp--}}
+            {{--                const classFilter = $('#class-filter');--}}
+            {{--                classFilter.empty();--}}
+            {{--                classFilter.append('<option value="">-- Tất cả lớp --</option>');--}}
+
+            {{--                response.forEach(function(classItem) {--}}
+            {{--                    classFilter.append(--}}
+            {{--                        `<option value="${classItem.id}">--}}
+            {{--                            ${classItem.grade_level.grade_number} - ${classItem.name}--}}
+            {{--                        </option>`--}}
+            {{--                    );--}}
+            {{--                });--}}
+            {{--            },--}}
+            {{--            error: function(xhr) {--}}
+            {{--                console.error('Error fetching classes:', xhr.responseText);--}}
+            {{--            }--}}
+            {{--        });--}}
+            {{--    } else {--}}
+            {{--        // Nếu chọn "Tất cả năm" thì reset dropdown lớp--}}
+            {{--        const classFilter = $('#class-filter');--}}
+            {{--        classFilter.empty();--}}
+            {{--        classFilter.append('<option value="">-- Tất cả lớp --</option>');--}}
+
+            {{--        // Thêm tất cả lớp (nếu cần)--}}
+            {{--        @foreach($allClasses as $class)--}}
+            {{--        classFilter.append(--}}
+            {{--            `<option value="{{ $class->id }}" {{ request('class_id') == $class->id ? 'selected' : '' }}>--}}
+            {{--                    {{ $class->gradeLevel->grade_number }} - {{ $class->name }}--}}
+            {{--            </option>`--}}
+            {{--        );--}}
+            {{--        @endforeach--}}
+            {{--    }--}}
+            {{--});--}}
+
+
     </script>
-@endsection
+@endpush
+

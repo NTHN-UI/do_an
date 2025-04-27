@@ -112,6 +112,7 @@
         @push('scripts')
             <script>
                 document.addEventListener('DOMContentLoaded', function () {
+
                     const checkbox = document.getElementById('is_active');
                     const statusText = document.getElementById('statusText');
                     // Sử dụng giá trị từ database thay vì mặc định true

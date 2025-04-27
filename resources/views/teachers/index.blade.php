@@ -90,13 +90,6 @@
                                            class="btn btn-sm btn-success" title="Phân công">
                                             <i class="fas fa-tasks"></i>
                                         </a>
-                                        <form action="{{ route('teachers.destroy', $teacher) }}" method="POST">
-                                            @csrf @method('DELETE')
-                                            <button type="submit" class="btn btn-sm btn-danger"
-                                                    onclick="return confirm('Bạn chắc chắn muốn xóa giáo viên này?')">
-                                                <i class="fas fa-trash"></i>
-                                            </button>
-                                        </form>
                                     </div>
                                 </td>
                             </tr>

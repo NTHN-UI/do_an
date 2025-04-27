@@ -246,17 +246,46 @@
 
                         studentContainer.html(response.data);
                         paginationContainer.html(response.pagination);
+
+                        // Thêm sự kiện click cho phân trang AJAX
+                        $(document).off('click', '.pagination a').on('click', '.pagination a', function(e) {
+                            e.preventDefault();
+                            const url = $(this).attr('href');
+                            loadPage(url, grade_id, academic_year_id);
+                        });
                     } catch (error) {
                         console.error("Failed to fetch data: ", error);
                         alert("Có lỗi xảy ra khi tải dữ liệu, vui lòng thử lại");
                     }
                 }
 
+                const loadPage = async (url, grade_id, academic_year_id) => {
+                    try {
+                        const fullUrl = new URL(url, window.location.origin);
+                        fullUrl.searchParams.set('grade_id', grade_id);
+                        fullUrl.searchParams.set('academic_year_id', academic_year_id);
+
+                        const response = await $.ajax({
+                            url: fullUrl.href,
+                            type: 'GET',
+                            data: {
+                                _token: '{{ csrf_token() }}',
+                                grade_id: grade_id,
+                                academic_year_id: academic_year_id,
+                                ajax: true
+                            }
+                        });
+
+                        $("#students-container").html(response.data);
+                        $("#pagination-container").html(response.pagination);
+                    } catch (error) {
+                        console.error("Failed to load page: ", error);
+                    }
+                }
                 // Xử lý import file
-                inputFile.on("change", function (e) {
+                inputFile.on("change", function() {
                     if (!this.files.length) return;
 
-                    e.preventDefault();
                     const academicYearId = academicYearSelect.val();
                     const gradeLevelId = gradeLevelSelect.val();
 
@@ -277,20 +306,30 @@
                         data: formData,
                         processData: false,
                         contentType: false,
-                        success: function (response) {
+                        success: function(response) {
                             if (response.success) {
-                                alert(response.message)
                                 render(gradeLevelSelect.val(), academicYearSelect.val())
+                                /*// Thêm các tham số filter vào URL khi reload
+                                let reloadUrl = window.location.pathname;
+                                const params = new URLSearchParams();
+
+                                if (academicYearId) params.append('academic_year_id', academicYearId);
+                                if (gradeLevelId) params.append('grade_level_id', gradeLevelId);
+                                if ($searchInput.val()) params.append('search', $searchInput.val());
+
+                                if (params.toString()) {
+                                    reloadUrl += '?' + params.toString();
+                                }*/
+
                             } else {
                                 alert('Lỗi: ' + response.message);
                             }
                         },
-                        error: function (xhr) {
+                        error: function(xhr) {
                             alert('Lỗi: ' + (xhr.responseJSON?.message || 'Vui lòng thử lại'));
                         },
-                        complete: function () {
-                            btn.prop('disabled', false).html('<i class="fas fa-file-import me-1"></i> Import');
-                            inputFile.val('');
+                        complete: function() {
+                            inputFile.val(''); // Reset input file
                         }
                     });
                 });

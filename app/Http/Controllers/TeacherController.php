@@ -165,47 +165,7 @@ class TeacherController extends Controller
      */
     public function destroy($id)
     {
-        $teacher = User::where('school_id', auth()->user()->school_id)
-            ->where('role', User::ROLE_TEACHER)
-            ->findOrFail($id);
-        // Kiểm tra phân công giảng dạy
-        $assignments = TeacherAssignment::where('teacher_id', $teacher->id)
-            ->whereHas('class', function ($query) {
-                $query->where('school_id', auth()->user()->school_id);
-            })
-            ->get();
 
-
-        if ($assignments->count() > 0) {
-            $errorMessage = 'Không thể xóa giáo viên <strong>"' . $teacher->full_name . '"</strong> vì đang có <strong>' . $assignments->count() . '</strong> phân công giảng dạy:';
-
-            $errorMessage .= '<ul style="margin-top: 8px; margin-bottom: 8px; padding-left: 20px;">';
-            foreach ($assignments as $assignment) {
-                $role = $assignment->is_homeroom ? ' <span class="badge bg-primary">Chủ nhiệm</span>' : '';
-                $errorMessage .= '<li>Lớp <strong>' . $assignment->class->name . '</strong> - Môn <strong>' . $assignment->subject->name . '</strong>' . $role . '</li>';
-            }
-            $errorMessage .= '</ul>';
-            $errorMessage .= '<p style="margin-top: 10px; margin-bottom: 0;"><i class="fas fa-info-circle"></i> Vui lòng xóa hết các phân công trước khi xóa giáo viên này.</p>';
-
-            return redirect()
-                ->route('teachers.index')
-                ->with('error', $errorMessage);
-        }
-
-        try {
-            $teacherName = $teacher->full_name;
-            $school_id = $teacher->school_id;
-            $teacher->delete();
-            $this->reorderTeacherNumbers($school_id);
-
-            return redirect()
-                ->route('teachers.index')
-                ->with('success', 'Đã xóa giáo viên <strong>"' . $teacherName . '"</strong> thành công! <i class="fas fa-check-circle"></i>');
-        } catch (\Exception $e) {
-            return redirect()
-                ->route('teachers.index')
-                ->with('error', 'Xảy ra lỗi khi xóa giáo viên: ' . $e->getMessage());
-        }
     }
 
         private function reorderTeacherNumbers($school_id)

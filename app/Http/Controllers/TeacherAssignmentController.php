@@ -20,45 +20,62 @@ class TeacherAssignmentController extends Controller
         $subjectId = $request->input('subject_id');
         $classId = $request->input('class_id');
         $isHomeroom = $request->input('is_homeroom');
+        $academicYearId = $request->input('academic_year_id');
 
         $assignments = TeacherAssignment::with(['teacher', 'class', 'subject', 'academicYear'])
-            ->whereHas('teacher', function($query) {
-                $query->where('users.school_id', auth()->user()->school_id); // Thêm tên bảng 'users.'
+            ->whereHas('teacher', function ($query) {
+                $query->where('users.school_id', auth()->user()->school_id);
             })
-            ->whereHas('class', function($query) {
+            ->whereHas('class', function ($query) {
                 $query->where('school_id', auth()->user()->school_id);
             })
-            ->whereHas('subject', function($query) {
+            ->whereHas('subject', function ($query) {
                 $query->where('school_id', auth()->user()->school_id);
             })
-            ->when($subjectId, function($query, $subjectId) {
+            ->when($subjectId, function ($query, $subjectId) {
                 return $query->where('subject_id', $subjectId);
             })
-            ->when($classId, function($query, $classId) {
+            ->when($classId, function ($query, $classId) {
                 return $query->where('class_id', $classId);
             })
-            ->when($isHomeroom !== null, function($query) use ($isHomeroom) {
+            ->when($isHomeroom !== null, function ($query) use ($isHomeroom) {
                 return $query->where('is_homeroom', $isHomeroom);
             })
+            ->when($academicYearId, function($query) use ($academicYearId) {
+                return $query->where('academic_year_id', $academicYearId);
+            })
             ->orderBy('created_at', 'desc')
-            ->paginate(20);
+            ->paginate(10);
 
         $subjects = Subject::where('school_id', auth()->user()->school_id)->get();
-        $classes = ClassModel::where('school_id', auth()->user()->school_id)
+
+        $academicYears = AcademicYear::where('school_id', auth()->user()->school_id)
+            ->orderBy('year', 'asc')
+            ->get();
+
+        // Lấy tất cả lớp (dùng khi không chọn năm học)
+        $allClasses = ClassModel::where('school_id', auth()->user()->school_id)
             ->with('gradeLevel')
             ->get();
-        $currentAcademicYear = AcademicYear::where('school_id', auth()->user()->school_id)
-            ->latest()
-            ->first();
+
+        // Lấy lớp theo năm học nếu có filter
+        $classes = ClassModel::where('school_id', auth()->user()->school_id)
+            ->when($academicYearId, function($query) use ($academicYearId) {
+                return $query->where('academic_year_id', $academicYearId);
+            })
+            ->with('gradeLevel')
+            ->get();
 
         return view('teacher_assignments.index', compact(
             'assignments',
             'subjects',
             'classes',
+            'academicYears',
+            'allClasses',
             'subjectId',
             'classId',
             'isHomeroom',
-            'currentAcademicYear'
+            'academicYearId'
         ));
     }
     /**
@@ -71,13 +88,21 @@ class TeacherAssignmentController extends Controller
                 abort(403, 'Không được phép truy cập giáo viên từ trường khác');
             }
 
-            $currentAcademicYear = AcademicYear::where('school_id', auth()->user()->school_id)
-                ->latest()
-                ->firstOrFail();
-
-            $classes = ClassModel::where('school_id', auth()->user()->school_id)
-                ->where('academic_year_id', $currentAcademicYear->id)
+            $academicYears = AcademicYear::where('school_id', auth()->user()->school_id)
+                ->orderBy('year', 'desc')
                 ->get();
+
+            $currentAcademicYear = $academicYears->first();
+
+            // Khởi tạo classes là collection rỗng
+            $classes = collect();
+
+            if ($currentAcademicYear) {
+                $classes = ClassModel::where('school_id', auth()->user()->school_id)
+                    ->where('academic_year_id', $currentAcademicYear->id)
+                    ->with('gradeLevel')
+                    ->get();
+            }
 
             $subjects = Subject::where('school_id', auth()->user()->school_id)->get();
 
@@ -85,6 +110,7 @@ class TeacherAssignmentController extends Controller
                 'teacher',
                 'classes',
                 'subjects',
+                'academicYears',
                 'currentAcademicYear'
             ));
 
@@ -97,20 +123,27 @@ class TeacherAssignmentController extends Controller
     {
         try {
             if ($teacher->school_id !== auth()->user()->school_id) {
-                abort(403, 'Không được phép phân công giáo viên từ trường khác');
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Không được phép phân công giáo viên từ trường khác'
+                ], 403);
             }
+
             $validated = $request->validate([
                 'class_ids' => 'required|array',
-                'class_ids.*' => 'exists:classes,id,school_id,'.auth()->user()->school_id,
-                'subject_id' => 'required|exists:subjects,id,school_id,'.auth()->user()->school_id,
-                'academic_year_id' => 'required|exists:academic_years,id,school_id,'.auth()->user()->school_id,
+                'class_ids.*' => 'exists:classes,id,school_id,' . auth()->user()->school_id,
+                'subject_id' => 'required|exists:subjects,id,school_id,' . auth()->user()->school_id,
+                'academic_year_id' => 'required|exists:academic_years,id,school_id,' . auth()->user()->school_id,
                 'is_homeroom' => 'sometimes|boolean',
             ]);
 
             // Kiểm tra GVCN chỉ được chọn 1 lớp
             if (!empty($validated['is_homeroom'])) {
                 if (count($validated['class_ids']) > 1) {
-                    return back()->with('error', 'Giáo viên chủ nhiệm chỉ được phân công 1 lớp!');
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Giáo viên chủ nhiệm chỉ được phân công 1 lớp!'
+                    ], 422);
                 }
 
                 // Kiểm tra lớp đã có GVCN chưa
@@ -120,7 +153,10 @@ class TeacherAssignmentController extends Controller
                     ->exists();
 
                 if ($homeroomExists) {
-                    return back()->with('error', 'Một trong các lớp đã có giáo viên chủ nhiệm!');
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Một trong các lớp đã có giáo viên chủ nhiệm!'
+                    ], 422);
                 }
 
                 // Kiểm tra giáo viên đã là GVCN lớp khác chưa
@@ -130,19 +166,26 @@ class TeacherAssignmentController extends Controller
                     ->exists();
 
                 if ($teacherHomeroomExists) {
-                    return back()->with('error', 'Giáo viên này đã là chủ nhiệm lớp khác!');
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Giáo viên này đã là chủ nhiệm lớp khác!'
+                    ], 422);
                 }
             }
 
-            // Kiểm tra môn học đã có giáo viên dạy trong lớp chưa
+            // Kiểm tra mỗi lớp đã có giáo viên khác dạy môn này chưa (bỏ kiểm tra giáo viên hiện tại)
             foreach ($validated['class_ids'] as $class_id) {
                 $subjectTeacherExists = TeacherAssignment::where('class_id', $class_id)
                     ->where('subject_id', $validated['subject_id'])
                     ->where('academic_year_id', $validated['academic_year_id'])
+                    ->where('teacher_id', '!=', $teacher->id) // Thêm điều kiện này
                     ->exists();
 
                 if ($subjectTeacherExists) {
-                    return back()->with('error', 'Môn học này đã có giáo viên dạy trong lớp!');
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Môn học này đã có giáo viên khác dạy trong lớp!'
+                    ], 422);
                 }
             }
 
@@ -154,16 +197,21 @@ class TeacherAssignmentController extends Controller
                     'subject_id' => $validated['subject_id'],
                     'academic_year_id' => $validated['academic_year_id'],
                     'is_homeroom' => $validated['is_homeroom'] ?? false,
-
                 ]);
             }
 
-            return redirect()->route('teacher_assignments.index')
-                ->with('success', 'Phân công giảng dạy thành công!');
+            return response()->json([
+                'success' => true,
+                'message' => 'Phân công giảng dạy thành công!',
+                'redirect' => route('teacher_assignments.index')
+            ]);
 
         } catch (\Exception $e) {
-            Log::error('Error storing assignment: '.$e->getMessage());
-            return back()->with('error', 'Đã xảy ra lỗi: '.$e->getMessage());
+            Log::error('Error storing assignment: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Đã xảy ra lỗi: ' . $e->getMessage()
+            ], 500);
         }
     }
     /**
@@ -350,5 +398,49 @@ class TeacherAssignmentController extends Controller
 
         return response()->json(['available' => true]);
     }
+//    public function getClassesByAcademicYear(Request $request)
+//    {
+//        try {
+//            $classes = ClassModel::with('gradeLevel')
+//                ->where('academic_year_id', $request->academic_year_id)
+//                ->get()
+//                ->map(function ($class) {
+//                    return [
+//                        'id' => $class->id,
+//                        'name' => $class->name,
+//                        'grade_level' => [
+//                            'grade_number' => $class->gradeLevel->grade_number
+//                        ]
+//                    ];
+//                });
+//
+//            return response()->json($classes);
+//
+//        } catch (\Exception $e) {
+//            Log::error('Error getting classes by year: '.$e->getMessage());
+//            return response()->json(['error' => 'Lỗi hệ thống'], 500);
+//        }
+//    }
+    public function getClassesByAcademicYear(Request $request)
+    {
+        $request->validate([
+            'academic_year_id' => 'required|exists:academic_years,id',
+        ]);
 
-}
+        $classes = ClassModel::with('gradeLevel')
+            ->where('academic_year_id', $request->academic_year_id)
+            ->where('school_id', auth()->user()->school_id)
+            ->get()
+            ->map(function ($class) {
+                return [
+                    'id' => $class->id,
+                    'name' => $class->name,
+                    'grade_level' => [
+                        'grade_number' => $class->gradeLevel->grade_number
+                    ]
+                ];
+            });
+
+        return response()->json($classes);
+    }
+    }

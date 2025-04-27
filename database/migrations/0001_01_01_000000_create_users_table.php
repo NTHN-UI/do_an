@@ -130,12 +130,10 @@ return new class extends Migration
             $table->foreignId('subject_id')->nullable()->constrained('subjects')->onDelete('cascade');
             $table->foreignId('academic_year_id')->constrained('academic_years')->onDelete('cascade');
             $table->boolean('is_homeroom')->default(false);
-            $table->unique(['class_id', 'academic_year_id', 'is_homeroom'], 'unique_homeroom');
             $table->unique(['teacher_id', 'class_id', 'subject_id', 'academic_year_id'], 'unique_teaching_assignment');
             $table->foreignId('school_id')->nullable()->constrained('schools')->onDelete('cascade');
             $table->timestamps();
         });
-
 
         Schema::create('grades', function (Blueprint $table) {
             $table->id();
@@ -210,6 +208,7 @@ return new class extends Migration
             $table->foreignId('school_id')->constrained('schools')->onDelete('cascade');
             $table->foreignId('academic_year_id')->constrained('academic_years')->onDelete('cascade');
         });
+
     }
     /**
      * Reverse the migrations.

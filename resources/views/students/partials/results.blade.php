@@ -17,7 +17,7 @@
                         aria-expanded="false">
                     <i class="fas fa-ellipsis-v text-muted"></i>
                 </button>
-                <ul class="dropdown-menu dropdown-menu-end shadow-sm rounded-3 border-0 z-10"
+                <ul class="dropdown-menu dropdown-menu-end shadow-sm rounded-3 border-0"
                     data-bs-popper="static">
                     <li>
                         <a class="dropdown-item px-3 py-2"
@@ -30,17 +30,6 @@
                            href="{{ route('students.edit', $student->id) }}">
                             Sửa
                         </a>
-                    </li>
-                    <li>
-                        <form action="{{ route('students.destroy', $student->id) }}"
-                              method="POST">
-                            @csrf
-                            @method('DELETE')
-                            <button type="submit" class="dropdown-item px-3 py-2 shadow"
-                                    onclick="return confirm('Bạn có chắc chắn muốn xóa học sinh này?')">
-                                Xóa
-                            </button>
-                        </form>
                     </li>
                 </ul>
             </div>

@@ -41,8 +41,7 @@
                 <div class="row">
                     <div class="col-md-6">
                         <div class="mb-3">
-                            <label for="full_name" class="form-label">Họ và tên <span
-                                    class="text-danger">*</span></label>
+                            <label for="full_name" class="form-label">Họ và tên <span class="text-danger">*</span></label>
                             <input type="text" class="form-control @error('full_name') is-invalid @enderror"
                                    id="full_name" name="full_name" value="{{ old('full_name') }}" required>
                             @error('full_name')
@@ -70,14 +69,6 @@
                             <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
-                        <div class="mb-3">
-                            <label for="address" class="form-label">Địa chỉ</label>
-                            <textarea class="form-control @error('address') is-invalid @enderror" id="address"
-                                      name="address" rows="3">{{ old('address') }}</textarea>
-                            @error('address')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
                     </div>
 
                     <div class="col-md-6">
@@ -102,12 +93,54 @@
                             </div>
                         </div>
 
+                        <!-- Thêm trường chọn năm học -->
+                        <div class="mb-3">
+                            <label for="academic_year_id" class="form-label">Năm học <span class="text-danger">*</span></label>
+                            <select class="form-select @error('academic_year_id') is-invalid @enderror" id="academic_year_id" name="academic_year_id" required>
+                                <option value="">-- Chọn năm học --</option>
+                                @foreach($academicYears as $year)
+                                    <option value="{{ $year->id }}"
+                                        {{ old('academic_year_id', $selectedAcademicYearId ?? null) == $year->id ? 'selected' : '' }}>
+                                        {{ $year->year }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            @error('academic_year_id')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+
+                        <!-- Thêm trường chọn khối học -->
+                        <div class="mb-3">
+                            <label for="grade_level_id" class="form-label">Khối học <span class="text-danger">*</span></label>
+                            <select class="form-select @error('grade_level_id') is-invalid @enderror" id="grade_level_id" name="grade_level_id" required>
+                                <option value="">-- Chọn khối --</option>
+                                @foreach($gradeLevels as $grade)
+                                    <option value="{{ $grade->id }}"
+                                        {{ old('grade_level_id', $selectedGradeLevelId ?? null) == $grade->id ? 'selected' : '' }}>
+                                        Khối {{ $grade->grade_number }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            @error('grade_level_id')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+
                         <!-- Đã ẩn trường password và set giá trị mặc định -->
                         <input type="hidden" name="password" value="12345678">
-
-
                     </div>
                 </div>
+
+                <div class="mb-3">
+                    <label for="address" class="form-label">Địa chỉ</label>
+                    <textarea class="form-control @error('address') is-invalid @enderror" id="address"
+                              name="address" rows="3">{{ old('address') }}</textarea>
+                    @error('address')
+                    <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                </div>
+
                 <div class="d-flex justify-content-end">
                     <a href="{{ route('students.index') }}" class="btn btn-secondary me-2"
                        style="background-color: #ffffff; border-color: #E15336; color: #E15336 ;">Đóng</a>

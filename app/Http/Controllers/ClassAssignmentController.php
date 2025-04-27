@@ -29,10 +29,10 @@ class ClassAssignmentController extends Controller
 
         $selectedAcademicYear = $request->input('academic_year_id', $currentAcademicYear?->id);
 
-        $classes = ClassModel::withCount(['students' => function($query) use ($selectedAcademicYear) {
+        $classes = ClassModel::withCount(['students' => function ($query) use ($selectedAcademicYear) {
             $query->where('student_classes.academic_year_id', $selectedAcademicYear);
         }])
-            ->when($selectedAcademicYear, function($query) use ($selectedAcademicYear) {
+            ->when($selectedAcademicYear, function ($query) use ($selectedAcademicYear) {
                 return $query->where('academic_year_id', $selectedAcademicYear);
             })
             ->with(['gradeLevel', 'homeroomTeacher'])
@@ -41,6 +41,7 @@ class ClassAssignmentController extends Controller
 
         return view('class_assignments.index', compact('classes', 'academicYears', 'selectedAcademicYear'));
     }
+
     /**
      * Show the form for creating a new resource.
      */
@@ -109,9 +110,8 @@ class ClassAssignmentController extends Controller
     public function autoAssign(Request $request)
     {
         $request->validate([
-            'grade_level_id' => 'required|exists:grade_levels,id,school_id,'.auth()->user()->school_id,
-            'academic_year_id' => 'required|exists:academic_years,id,school_id,'.auth()->user()->school_id,
-            'max_students_per_class' => 'required|integer|min:1',
+            'grade_level_id' => 'required|exists:grade_levels,id,school_id,' . auth()->user()->school_id,
+            'academic_year_id' => 'required|exists:academic_years,id,school_id,' . auth()->user()->school_id,
         ]);
 
         try {
@@ -119,86 +119,96 @@ class ClassAssignmentController extends Controller
 
             $gradeLevelId = $request->grade_level_id;
             $academicYearId = $request->academic_year_id;
-            $maxStudents = $request->max_students_per_class;
 
-            // Debug: Log thông tin đầu vào
-            Log::info("Starting auto assignment for grade $gradeLevelId, year $academicYearId, max $maxStudents");
+            Log::info("Bắt đầu phân lớp tự động cho khối $gradeLevelId, năm học $academicYearId");
 
-            // Lấy tất cả học sinh chưa phân lớp trong năm học này
+            // Lấy tất cả học sinh chưa phân lớp trong khối và năm học này
             $unassignedStudents = User::where('role', User::ROLE_STUDENT)
                 ->where('school_id', auth()->user()->school_id)
-                ->whereDoesntHave('studentClasses', function($query) use ($academicYearId) {
+                ->whereHas('studentGrades', function ($query) use ($gradeLevelId, $academicYearId) {
+                    $query->where('grade_id', $gradeLevelId)
+                        ->where('academic_year_id', $academicYearId);
+                })
+                ->whereDoesntHave('studentClasses', function ($query) use ($academicYearId) {
                     $query->where('student_classes.academic_year_id', $academicYearId);
                 })
                 ->orderBy('full_name')
                 ->get();
 
-            Log::info("Found ".count($unassignedStudents)." unassigned students");
-
-            // Lấy tất cả lớp trong khối và năm học, sắp xếp theo số học sinh ít nhất
+            // Lấy tất cả lớp trong khối và năm học
             $classes = ClassModel::where('grade_level_id', $gradeLevelId)
                 ->where('academic_year_id', $academicYearId)
                 ->where('school_id', auth()->user()->school_id)
-                ->withCount(['students' => function($query) use ($academicYearId) {
+                ->withCount(['students' => function ($query) use ($academicYearId) {
                     $query->where('student_classes.academic_year_id', $academicYearId);
                 }])
-                ->orderBy('students_count') // Ưu tiên lớp có ít học sinh trước
+                ->orderBy('students_count') // Ưu tiên lớp có ít học sinh hơn trước
                 ->get();
 
-            Log::info("Found ".count($classes)." classes");
+            Log::info("Tìm thấy " . $classes->count() . " lớp trong khối");
 
             if ($classes->isEmpty()) {
-                Log::error("No classes found for grade $gradeLevelId and year $academicYearId");
+                Log::error("Không tìm thấy lớp nào trong khối $gradeLevelId năm học $academicYearId");
                 return back()->with('error', 'Không có lớp nào trong khối và năm học được chọn.');
             }
 
+            if ($unassignedStudents->isEmpty()) {
+                Log::info("Không có học sinh nào cần phân lớp");
+                return back()->with('info', 'Không có học sinh nào cần phân lớp trong khối và năm học được chọn.');
+            }
+
             $assignedCount = 0;
+            $classIndex = 0;
+            $totalClasses = $classes->count();
+            $assignmentDetails = [];
+
+            // Chuẩn bị dữ liệu để insert hàng loạt
+            $assignments = [];
+            $now = now();
 
             foreach ($unassignedStudents as $student) {
-                // Tìm lớp có ít học sinh nhất chưa đạt tối đa
-                $selectedClass = null;
+                $selectedClass = $classes[$classIndex];
 
-                foreach ($classes as $class) {
-                    if ($class->students_count < $maxStudents) {
-                        $selectedClass = $class;
-                        break;
-                    }
-                }
+                $assignments[] = [
+                    'user_id' => $student->id,
+                    'class_id' => $selectedClass->id,
+                    'academic_year_id' => $academicYearId,
+                    'created_at' => $now,
+                    'updated_at' => $now
+                ];
 
-                if ($selectedClass) {
-                    // Phân công học sinh vào lớp
-                    StudentClass::updateOrCreate(
-                        [
-                            'user_id' => $student->id,
-                            'academic_year_id' => $academicYearId
-                        ],
-                        [
-                            'class_id' => $selectedClass->id
-                        ]
-                    );
+                // Ghi nhận thông tin phân lớp
+                $assignmentDetails[$selectedClass->id][] = $student->full_name;
 
-                    $assignedCount++;
-                    $selectedClass->students_count++; // Tăng số lượng học sinh của lớp
-
-                    Log::info("Assigned student {$student->id} to class {$selectedClass->id}");
-                } else {
-                    Log::warning("No available class for student {$student->id}");
-                }
+                $assignedCount++;
+                $classIndex = ($classIndex + 1) % $totalClasses;
             }
+
+            // Thực hiện insert hàng loạt
+            StudentClass::insert($assignments);
 
             DB::commit();
 
-            Log::info("Successfully assigned $assignedCount students");
-            return redirect()->route('class_assignments.index', [
-                'academic_year_id' => $academicYearId
-            ])->with('success', "Đã phân công tự động $assignedCount học sinh vào các lớp.");
+            Log::info("Đã phân công thành công $assignedCount học sinh");
+
+            // Tạo thông báo chi tiết
+            $message = "Đã phân công tự động $assignedCount học sinh vào các lớp:<br>";
+            foreach ($assignmentDetails as $classId => $students) {
+                $className = $classes->firstWhere('id', $classId)->name;
+                $message .= "<br>- Lớp $className: " . count($students) . " học sinh";
+            }
+
+            return redirect()
+                ->route('class_assignments.index', ['academic_year_id' => $academicYearId])
+                ->with('success', $message);
 
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error('Auto assign error: '.$e->getMessage());
-            return back()->with('error', 'Lỗi phân công tự động: '.$e->getMessage());
+            Log::error('Lỗi phân công tự động: ' . $e->getMessage());
+            return back()->with('error', 'Đã xảy ra lỗi khi phân công tự động');
         }
     }
+
     // Hiển thị danh sách học sinh trong lớp
     public function showClassStudents(ClassModel $class)
     {
@@ -217,16 +227,17 @@ class ClassAssignmentController extends Controller
     }
 
     // Chuyển học sinh sang lớp khác
-    public function moveStudent(Request $request, User $student)
+    public function moveStudent(Request $request, string $id)
     {
-        if ($student->school_id !== auth()->user()->school_id) {
+        $student = User::find($id);
+        if (auth()->user()->role !== 'school_admin' && $student->school_id !== auth()->user()->school_id) {
             abort(403, 'Không được phép thao tác với học sinh từ trường khác');
         }
 
         $request->validate([
-            'current_class_id' => 'required|exists:classes,id,school_id,'.auth()->user()->school_id,
-            'new_class_id' => 'required|exists:classes,id,school_id,'.auth()->user()->school_id,
-            'academic_year_id' => 'required|exists:academic_years,id,school_id,'.auth()->user()->school_id,
+            'current_class_id' => 'required|exists:classes,id,school_id,' . auth()->user()->school_id,
+            'new_class_id' => 'required|exists:classes,id,school_id,' . auth()->user()->school_id,
+            'academic_year_id' => 'required|exists:academic_years,id,school_id,' . auth()->user()->school_id,
         ]);
 
         try {
@@ -251,8 +262,8 @@ class ClassAssignmentController extends Controller
 
         } catch (\Exception $e) {
             DB::rollBack();
-             Log::error('Move student error: '.$e->getMessage());
-            return back()->with('error', 'Đã xảy ra lỗi khi chuyển lớp: '.$e->getMessage());
+            Log::error('Move student error: ' . $e->getMessage());
+            return back()->with('error', 'Đã xảy ra lỗi khi chuyển lớp: ' . $e->getMessage());
         }
     }
 }

@@ -13,7 +13,18 @@
                 <form action="{{ route('teachers.update', $teacher->id) }}" method="POST" id="edit-teacher-form">
                     @csrf
                     @method('PUT')
-
+                    <div class="mb-3 d-flex align-items-center">
+                        <span class="me-2">Trạng thái</span>
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="is_active" name="is_active"
+                                   {{ old('is_active', $teacher->is_active) ? 'checked' : '' }}
+                                   onchange="toggleStatusText(this)">
+                            <label class="form-check-label ms-1" for="is_active">
+                            <span
+                                id="statusText">{{ old('is_active', $teacher->is_active) ? 'Hoạt động' : 'Ngừng' }}</span>
+                            </label>
+                        </div>
+                    </div>
                     <!-- Thông tin cơ bản -->
                     <div class="row mb-4">
                         <div class="col-md-6 mb-3">
@@ -27,13 +38,11 @@
                         </div>
 
                         <div class="col-md-6 mb-3">
-                            <label for="email" class="form-label">Email <span class="text-danger">*</span></label>
-                            <input type="email" name="email" id="email"
-                                   class="form-control @error('email') is-invalid @enderror"
-                                   value="{{ old('email', $teacher->email) }}" required>
-                            @error('email')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
+                            <label for="email" class="form-label">Email </label>
+                            <input type="hidden" name="email" value="{{ $teacher->email }}">
+                            <div class="form-control bg-light">
+                                {{ $teacher->email }}
+                            </div>
                         </div>
                     </div>
 
@@ -95,42 +104,6 @@
                         </div>
                     </div>
 
-                    <!-- Mật khẩu -->
-                    <div class="row mb-4">
-                        <div class="col-md-6 mb-3">
-                            <label for="password" class="form-label">Mật khẩu mới</label>
-                            <input type="password" name="password" id="password"
-                                   class="form-control @error('password') is-invalid @enderror"
-                                   placeholder="Để trống nếu không đổi">
-                            @error('password')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                            <small class="text-muted">Chỉ điền khi muốn thay đổi mật khẩu</small>
-                        </div>
-
-                        <div class="col-md-6 mb-3">
-                            <label for="password_confirmation" class="form-label">Xác nhận mật khẩu</label>
-                            <input type="password" name="password_confirmation" id="password_confirmation"
-                                   class="form-control"
-                                   placeholder="Xác nhận mật khẩu mới">
-                        </div>
-                    </div>
-
-                    <!-- Trạng thái hoạt động -->
-                    <div class="row mb-4">
-                        <div class="col-md-6 mb-3">
-                            <label for="is_active" class="form-label">Trạng thái <span class="text-danger">*</span></label>
-                            <select name="is_active" id="is_active"
-                                    class="form-select @error('is_active') is-invalid @enderror" required>
-                                <option value="1" {{ old('is_active', $teacher->is_active) == 1 ? 'selected' : '' }}>Hoạt động</option>
-                                <option value="0" {{ old('is_active', $teacher->is_active) == 0 ? 'selected' : '' }}>Không hoạt động</option>
-                            </select>
-                            @error('is_active')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-                    </div>
-
                     <!-- Nút submit -->
                     <div class="d-flex justify-content-end gap-2">
                         <a href="{{ route('teachers.index') }}" class="btn btn-secondary">
@@ -166,5 +139,17 @@
                     this.value = this.value.replace(/[^0-9]/g, '');
                 });
             });
+            document.addEventListener('DOMContentLoaded', function () {
+                const checkbox = document.getElementById('is_active');
+                const statusText = document.getElementById('statusText');
+                // Sử dụng giá trị từ database thay vì mặc định true
+                statusText.textContent = checkbox.checked ? 'Hoạt động' : 'Ngừng';
+            });
+
+            function toggleStatusText(checkbox) {
+                document.getElementById('statusText').textContent = checkbox.checked ? 'Hoạt động' : 'Ngừng';
+            }
+
+      
         </script>
     @endpush
