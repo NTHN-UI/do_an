@@ -54,19 +54,13 @@
     <div class="container">
         <h3 class="mb-3" style = "color:#013066">Danh sách trường học</h3>
         <div class="d-flex justify-content-end align-items-center mb-3">
-            <form method="GET" action="{{ route('schools.index') }}" class="d-flex me-2">
+            <form method="GET" action="{{ route('schools.index') }}" class="d-flex me-2" id="search-form">
                 <div class="input-group">
-                    <input type="text" name="search" class="form-control" style="min-width: 300px"
+                    <input type="text" name="search" id="search-input" class="form-control" style="min-width: 300px"
                            placeholder="Tìm kiếm trường học..." value="{{ request('search') }}">
                     <button type="submit" class="btn me-0" style="background-color: #013066;">
                         <i class="fas fa-search" style="color: white"></i>
                     </button>
-                    @if(request('search'))
-                        <a href="{{ route('schools.index') }}" class="btn"
-                           style="background-color: #013066;color: white">
-                            <i class="fas fa-times"></i> Xóa
-                        </a>
-                    @endif
                 </div>
             </form>
             <a href="{{ route('schools.create') }}" class="btn shadow"
@@ -115,16 +109,6 @@
                                                    href="{{ route('schools.show', $school->id) }}">Xem</a></li>
                                             <li><a class="dropdown-item px-3 py-2"
                                                    href="{{ route('schools.edit', $school->id) }}">Sửa</a></li>
-                                            <li>
-                                                <form action="{{ route('schools.destroy', $school->id) }}"
-                                                      method="POST">
-                                                    @csrf
-                                                    @method('DELETE')
-                                                    <button type="submit" class="dropdown-item px-3 py-2"
-                                                            onclick="return confirm('Bạn có chắc chắn muốn xóa?')">Xóa
-                                                    </button>
-                                                </form>
-                                            </li>
                                         </ul>
                                     </div>
                                 </td>
@@ -163,13 +147,30 @@
 @push('scripts')
     <script>
         $(document).ready(function () {
-            // Tìm kiếm khi nhập (debounce 300ms)
-            $('#search-input').on('keyup', _.debounce(function () {
-                if ($(this).val().length === 0 || $(this).val().length > 2) {
-                    $(this).closest('form').submit();
-                }
-            }, 300));
-        });
+            let timeout = null;
 
+            $('#search-input').on('input', function() {
+                clearTimeout(timeout);
+                let $this = $(this);
+                timeout = setTimeout(function () {
+                    if ($this.val().trim() === '') {
+                        $('#search-form').submit();
+                    }
+                }, 300);
+            });
+
+            $('#search-input').on('keypress', function(e) {
+                if (e.which === 13) {
+                    e.preventDefault();
+                    $('#search-form').submit();
+                }
+            });
+
+            $('#search-form button[type="submit"]').on('click', function(e) {
+                e.preventDefault();
+                $('#search-form').submit();
+            });
+        });
     </script>
+
 @endpush

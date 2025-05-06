@@ -30,6 +30,9 @@
         .toggle-password {
             cursor: pointer;
         }
+        .invalid-feedback {
+            display: block;
+        }
     </style>
 </head>
 <body class="d-flex align-items-center">
@@ -54,13 +57,14 @@
                                         <i class="fas fa-user-circle"></i>
                                     </span>
                                 <input id="login" type="text"
-                                       class="form-control form-control-lg"
-                                       name="login" required value="{{ old('login') }}"
+                                       class="form-control @error('login') is-invalid @enderror"
+                                       name="login" value="{{ old('login') }}"
                                        placeholder="Email hoặc số điện thoại">
-                                <div class="invalid-feedback">
-                                    Vui lòng nhập email hoặc số điện thoại
-                                </div>
                             </div>
+                            @error('login')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+
                         </div>
 
                         <div class="mb-4">
@@ -69,16 +73,17 @@
                                         <i class="fas fa-lock"></i>
                                     </span>
                                 <input id="password" type="password"
-                                       class="form-control form-control-lg"
-                                       name="password" required
+                                       class="form-control @error('password') is-invalid @enderror"
+                                       name="password"
                                        placeholder="Mật khẩu">
                                 <span class="input-group-text bg-transparent toggle-password">
                                         <i class="fas fa-eye"></i>
                                     </span>
-                                <div class="invalid-feedback">
-                                    Vui lòng nhập mật khẩu
-                                </div>
                             </div>
+                            @error('password')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+
                         </div>
 
                         <div class="d-flex justify-content-between align-items-center mb-4">

@@ -26,7 +26,7 @@
                 <div class="form-group">
                     <label for="name">Tên trường *</label>
                     <input type="text" class="form-control @error('name') is-invalid @enderror"
-                           id="name" name="name" value="{{ old('name', $school->name) }}" required>
+                           id="name" name="name" value="{{ old('name', $school->name) }}" >
                     @error('name')
                     <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
@@ -35,7 +35,7 @@
                 <div class="form-group">
                     <label for="district">Quận/Huyện *</label>
                     <input type="text" class="form-control @error('district') is-invalid @enderror"
-                           id="district" name="district" value="{{ old('district', $school->district) }}" required>
+                           id="district" name="district" value="{{ old('district', $school->district) }}" >
                     @error('district')
                     <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
@@ -44,7 +44,7 @@
                 <div class="form-group">
                     <label for="province">Tỉnh/Thành *</label>
                     <input type="text" class="form-control @error('province') is-invalid @enderror"
-                           id="province" name="province" value="{{ old('province', $school->province) }}" required>
+                           id="province" name="province" value="{{ old('province', $school->province) }}" >
                     @error('province')
                     <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
@@ -53,11 +53,7 @@
                 <div class="form-group">
                     <label for="education_level">Cấp học *</label>
                     <select class="form-control @error('education_level') is-invalid @enderror"
-                            id="education_level" name="education_level" required>
-                        <option
-                            value="primary" {{ old('education_level', $school->education_level) == 'primary' ? 'selected' : '' }}>
-                            Tiểu học
-                        </option>
+                            id="education_level" name="education_level" >
                         <option
                             value="secondary" {{ old('education_level', $school->education_level) == 'secondary' ? 'selected' : '' }}>
                             THCS

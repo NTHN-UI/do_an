@@ -69,6 +69,45 @@
             right: 0.5rem;
         }
     }
+    /* Logout Modal Styles */
+    #logoutModal .modal-content {
+        border-radius: 10px;
+        border: none;
+    }
+
+    #logoutModal .modal-header {
+        background-color: #013066;
+        color: white;
+        border-radius: 10px 10px 0 0;
+        padding: 1rem;
+    }
+
+    #logoutModal .modal-header .close {
+        color: white;
+        opacity: 1;
+    }
+
+    #logoutModal .modal-body {
+        padding: 2rem;
+        text-align: center;
+    }
+
+    #logoutModal .modal-footer {
+        border-top: none;
+        justify-content: center;
+        padding-bottom: 2rem;
+    }
+
+    #logoutModal .btn-primary {
+        background-color: #013066;
+        border-color: #013066;
+        padding: 0.5rem 1.5rem;
+    }
+
+    #logoutModal .btn-secondary {
+        padding: 0.5rem 1.5rem;
+        margin-right: 1rem;
+    }
 </style>
 <nav class="navbar navbar-expand-lg navbar-custom">
     <a class="navbar-brand text-white d-flex align-items-center gap-2" href="#">
@@ -182,10 +221,10 @@
                         <ul class="dropdown-menu dropdown-menu-end">
                             <li><a class="dropdown-item" href="{{ route('schools.index') }}"><i
                                         class="fas fa-school me-2"></i>
-                                    Trường học</a></li>
+                                    Quản lý trường học</a></li>
 
                             <li><a class="dropdown-item" href="{{ route('school_admins.index') }}"><i
-                                        class="fas fa-sliders-h me-2"></i> Admin</a></li>
+                                        class="fas fa-sliders-h me-2"></i> Quản lý tài khoản Admin</a></li>
                         </ul>
                     </li>
                 </ul>
@@ -212,18 +251,11 @@
                                 <i class="fas fa-user me-2"></i> Hồ sơ cá nhân
                             </a>
                         </li>
-
+                        <li><hr class="dropdown-divider"></li>
                         <li>
-                            <hr class="dropdown-divider">
-                        </li>
-
-                        <li>
-                            <form method="POST" action="{{ route('logout') }}">
-                                @csrf
-                                <button type="submit" class="dropdown-item">
-                                    <i class="fas fa-sign-out-alt me-2"></i> Đăng xuất
-                                </button>
-                            </form>
+                            <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#logoutModal">
+                                <i class="fas fa-sign-out-alt me-2"></i> Đăng xuất
+                            </a>
                         </li>
                     </ul>
                 </li>

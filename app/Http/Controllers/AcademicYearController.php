@@ -36,7 +36,7 @@ class AcademicYearController extends Controller
      */
     public function store(Request $request)
     {
-        $school = auth()->user()->school; // Sửa thành school thay vì school_id
+        $school = auth()->user()->school;
 
         $messages = [
             'year.unique' => 'Năm học đã tồn tại',

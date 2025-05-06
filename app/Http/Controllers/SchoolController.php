@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\School;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 
 class SchoolController extends Controller
 {
@@ -37,12 +38,27 @@ class SchoolController extends Controller
      */
     public function store(Request $request)
     {
-        $request->validate([
-            'name' => 'required|max:255',
-            'district' => 'required|max:255',
-            'province' => 'required|max:255',
+        $messages = [
+            'name.required' => 'Tên trường không được để trống',
+            'name.max' => 'Tên trường không được vượt quá 50 ký tự',
+            'district.required' => 'Quận/Huyện không được để trống',
+            'district.max' => 'Quận/Huyện không được vượt quá 50 ký tự',
+            'province.required' => 'Tỉnh/Thành không được để trống',
+            'province.max' => 'Tỉnh/Thành không được vượt quá 50 ký tự',
+            'education_level.required' => 'Cấp học không được để trống',
+            'education_level.in' => 'Cấp học không hợp lệ',
+        ];
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|max:50',
+            'district' => 'required|max:50',
+            'province' => 'required|max:50',
             'education_level' => 'required|in:primary,secondary,high',
-        ]);
+        ], $messages);
+        if ($validator->fails()) {
+            return redirect()->back()
+                ->withErrors($validator)
+                ->withInput();
+        }
 
         School::create($request->all());
 
@@ -73,13 +89,29 @@ class SchoolController extends Controller
      */
     public function update(Request $request, School $school)
     {
-        $request->validate([
-            'name' => 'required|max:255',
-            'district' => 'required|max:255',
-            'province' => 'required|max:255',
-            'education_level' => 'required|in:primary,secondary,high',
-        ]);
+        $messages = [
+            'name.required' => 'Tên trường không được để trống',
+            'name.max' => 'Tên trường không được vượt quá 50 ký tự',
+            'district.required' => 'Quận/Huyện không được để trống',
+            'district.max' => 'Quận/Huyện không được vượt quá 50 ký tự',
+            'province.required' => 'Tỉnh/Thành không được để trống',
+            'province.max' => 'Tỉnh/Thành không được vượt quá 50 ký tự',
+            'education_level.required' => 'Cấp học không được để trống',
+            'education_level.in' => 'Cấp học không hợp lệ',
+        ];
 
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|max:50',
+            'district' => 'required|max:50',
+            'province' => 'required|max:50',
+            'education_level' => 'required|in:primary,secondary,high',
+        ], $messages);
+
+        if ($validator->fails()) {
+            return redirect()->back()
+                ->withErrors($validator)
+                ->withInput();
+        }
         $school->update($request->all());
 
         return redirect()->route('schools.index')
@@ -91,20 +123,6 @@ class SchoolController extends Controller
      */
     public function destroy(School $school)
     {
-        try {
-            // Kiểm tra xem trường có giáo viên/học sinh không
-            if ($school->users()->exists()) {
-                return redirect()->back()
-                    ->with('error', 'Không thể xóa trường vì còn giáo viên/học sinh');
-            }
 
-            $school->delete();
-
-            return redirect()->route('schools.index')
-                ->with('success', 'Xóa trường học thành công!');
-        } catch (\Exception $e) {
-            return redirect()->back()
-                ->with('error', 'Xóa trường học thất bại: ' . $e->getMessage());
-        }
     }
 }

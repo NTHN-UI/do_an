@@ -1,60 +1,78 @@
 @extends('layouts.app')
 
 @section('content')
+    <style>
+        .container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            overflow-x: auto;
+        }
+
+        .btn-back {
+            background: none;
+            border: none;
+            font-size: 1.2rem;
+        }
+
+        .btn-back:hover {
+            color: #011a4d !important;
+        }
+
+        dl.row dt {
+            font-weight: 500;
+            color: #495057;
+        }
+
+        dl.row dd {
+            color: #212529;
+        }
+    </style>
+
     <div class="container">
-        <div class="row justify-content-center">
-            <div class="col-md-8">
-                <div class="card">
-                    <div class="card-header">Thông tin Admin Trường</div>
+        <div class="d-flex align-items-center mb-4">
+            <a href="{{ route('school_admins.index') }}" class="btn btn-back me-3" style="color: #013066;" title="Quay lại">
+                <i class="fas fa-arrow-left"></i>
+            </a>
+            <h4 class="mb-0" style="color: #013066;">Thông tin Admin Trường</h4>
+        </div>
 
-                    <div class="card-body">
-                        <div class="row mb-3">
-                            <label class="col-md-4 text-end fw-bold">Tên đầy đủ:</label>
-                            <div class="col-md-8">
-                                {{ $admin->full_name }}
-                            </div>
-                        </div>
+        <div class="card-body">
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <dl class="row">
+                        <dt class="col-sm-4">Tên đầy đủ:</dt>
+                        <dd class="col-sm-8">{{ $admin->full_name }}</dd>
 
-                        <div class="row mb-3">
-                            <label class="col-md-4 text-end fw-bold">Email:</label>
-                            <div class="col-md-8">
-                                {{ $admin->email }}
-                            </div>
-                        </div>
-
-                        <div class="row mb-3">
-                            <label class="col-md-4 text-end fw-bold">Trường:</label>
-                            <div class="col-md-8">
-                                {{ $admin->school->name ?? 'N/A' }}
-                            </div>
-                        </div>
-
-                        <div class="row mb-3">
-                            <label class="col-md-4 text-end fw-bold">Cấp học:</label>
-                            <div class="col-md-8">
-                                {{ $admin->school->education_level_name ?? 'N/A' }}
-                            </div>
-                        </div>
-
-                        <div class="row mb-3">
-                            <label class="col-md-4 text-end fw-bold">Địa chỉ trường:</label>
-                            <div class="col-md-8">
-                                {{ $admin->school->district ?? '' }}, {{ $admin->school->province ?? '' }}
-                            </div>
-                        </div>
-
-                        <div class="row mb-0">
-                            <div class="col-md-8 offset-md-4">
-                                <a href="{{ route('school_admins.edit', $admin->id) }}" class="btn btn-primary">
-                                    <i class="fas fa-edit"></i> Sửa
-                                </a>
-                                <a href="{{ route('school_admins.index') }}" class="btn btn-secondary">
-                                    <i class="fas fa-arrow-left"></i> Quay lại
-                                </a>
-                            </div>
-                        </div>
-                    </div>
+                        <dt class="col-sm-4">Email:</dt>
+                        <dd class="col-sm-8">{{ $admin->email }}</dd>
+                    </dl>
                 </div>
+                <div class="col-md-6">
+                    <dl class="row">
+                        <dt class="col-sm-4">Trường:</dt>
+                        <dd class="col-sm-8">{{ $admin->school->name ?? 'N/A' }}</dd>
+
+                        <dt class="col-sm-4">Cấp học:</dt>
+                        <dd class="col-sm-8">{{ $admin->school->education_level_name ?? 'N/A' }}</dd>
+                    </dl>
+                </div>
+            </div>
+
+            <div class="row mb-4">
+                <div class="col-12">
+                    <dl class="row">
+                        <dt class="col-sm-2">Địa chỉ trường:</dt>
+                        <dd class="col-sm-10">{{ $admin->school->district ?? '' }}, {{ $admin->school->province ?? '' }}</dd>
+                    </dl>
+                </div>
+            </div>
+
+            <div class="mt-3 d-flex justify-content-end">
+                <a href="{{ route('school_admins.index') }}" class="btn fw-bold"
+                   style="background-color: #ffffff; border-color: #013066; color: #013066; width: 90px">Đóng
+                </a>
             </div>
         </div>
     </div>

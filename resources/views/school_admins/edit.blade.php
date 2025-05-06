@@ -17,12 +17,10 @@
 
                                 <div class="col-md-6">
                                     <input id="full_name" type="text" class="form-control @error('full_name') is-invalid @enderror"
-                                           name="full_name" value="{{ old('full_name', $admin->full_name) }}" required>
+                                           name="full_name" value="{{ old('full_name', $admin->full_name) }}" >
 
                                     @error('full_name')
-                                    <span class="invalid-feedback" role="alert">
-                                        <strong>{{ $message }}</strong>
-                                    </span>
+                                    <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
                                 </div>
                             </div>
@@ -32,12 +30,10 @@
 
                                 <div class="col-md-6">
                                     <input id="email" type="email" class="form-control @error('email') is-invalid @enderror"
-                                           name="email" value="{{ old('email', $admin->email) }}" required>
+                                           name="email" value="{{ old('email', $admin->email) }}" >
 
                                     @error('email')
-                                    <span class="invalid-feedback" role="alert">
-                                        <strong>{{ $message }}</strong>
-                                    </span>
+                                    <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
                                 </div>
                             </div>
@@ -47,7 +43,7 @@
 
                                 <div class="col-md-6">
                                     <select id="school_id" class="form-control @error('school_id') is-invalid @enderror"
-                                            name="school_id" required>
+                                            name="school_id" >
                                         <option value="">-- Chọn trường --</option>
                                         @foreach($schools as $school)
                                             <option value="{{ $school->id }}"
@@ -58,9 +54,7 @@
                                     </select>
 
                                     @error('school_id')
-                                    <span class="invalid-feedback" role="alert">
-                                        <strong>{{ $message }}</strong>
-                                    </span>
+                                    <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
                                 </div>
                             </div>
@@ -74,9 +68,7 @@
                                     <small class="text-muted">Để trống nếu không đổi mật khẩu</small>
 
                                     @error('password')
-                                    <span class="invalid-feedback" role="alert">
-                                        <strong>{{ $message }}</strong>
-                                    </span>
+                                    <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
                                 </div>
                             </div>

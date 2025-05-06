@@ -6,6 +6,7 @@ use App\Models\School;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Validator;
 
 class SchoolAdminController extends Controller
 {
@@ -50,12 +51,31 @@ class SchoolAdminController extends Controller
      */
     public function store(Request $request)
     {
-        $request->validate([
-            'full_name' => 'required|string|max:255',
+        $messages = [
+            'full_name.required' => 'Họ tên không được để trống',
+            'full_name.max' => 'Họ tên không được vượt quá 50 ký tự',
+            'email.required' => 'Email không được để trống',
+            'email.email' => 'Email không hợp lệ',
+            'email.unique' => 'Email đã tồn tại',
+            'school_id.required' => 'Trường học không được để trống',
+            'school_id.unique' => 'Trường học đã tồn tại',
+            'password.required' => 'Mật khẩu không được để trống',
+            'password.min' => 'Mật khẩu phải có ít nhất 8 ký tự',
+            'password.confirmed' => 'Xác nhận mật khẩu không khớp',
+        ];
+
+        $validator = Validator::make($request->all(), [
+            'full_name' => 'required|string|max:50',
             'email' => 'required|email|unique:users',
             'school_id' => 'required|exists:schools,id',
             'password' => 'required|min:8|confirmed'
-        ]);
+        ], $messages);
+
+        if ($validator->fails()) {
+            return redirect()->back()
+                ->withErrors($validator)
+                ->withInput();
+        }
 
         User::create([
             'full_name' => $request->full_name,
@@ -94,12 +114,30 @@ class SchoolAdminController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        $request->validate([
-            'full_name' => 'required|string|max:255',
+        $messages = [
+            'full_name.required' => 'Họ tên không được để trống',
+            'full_name.max' => 'Họ tên không được vượt quá 50 ký tự',
+            'email.required' => 'Email không được để trống',
+            'email.email' => 'Email không hợp lệ',
+            'email.unique' => 'Email đã tồn tại',
+            'school_id.required' => 'Trường học không được để trống',
+            'school_id.exists' => 'Trường học không tồn tại',
+            'password.min' => 'Mật khẩu phải có ít nhất 8 ký tự',
+            'password.confirmed' => 'Xác nhận mật khẩu không khớp',
+        ];
+
+        $validator = Validator::make($request->all(), [
+            'full_name' => 'required|string|max:50',
             'email' => 'required|email|unique:users,email,'.$id,
             'school_id' => 'required|exists:schools,id',
             'password' => 'nullable|min:8|confirmed'
-        ]);
+        ], $messages);
+
+        if ($validator->fails()) {
+            return redirect()->back()
+                ->withErrors($validator)
+                ->withInput();
+        }
 
         $data = [
             'full_name' => $request->full_name,

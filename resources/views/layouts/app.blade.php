@@ -84,6 +84,33 @@
 
     </style>
 </head>
+<!-- Logout Confirmation Modal -->
+<div class="modal fade" id="logoutModal" tabindex="-1" aria-labelledby="logoutModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header" style="background-color: #013066; color: white;">
+                <h5 class="modal-title" id="logoutModalLabel"><i class="fas fa-sign-out-alt me-2"></i> Xác nhận đăng xuất</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center py-4">
+                <i class="fas fa-question-circle fa-4x mb-3" style="color: #013066;"></i>
+                <h5>Bạn có chắc chắn muốn đăng xuất?</h5>
+                <p class="text-muted">Bạn sẽ cần đăng nhập lại để tiếp tục sử dụng hệ thống</p>
+            </div>
+            <div class="modal-footer justify-content-center">
+                <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-2"></i> Hủy bỏ
+                </button>
+                <form id="logoutForm" action="{{ route('logout') }}" method="POST">
+                    @csrf
+                    <button type="submit" class="btn btn-primary px-4" style="background-color: #013066; border-color: #013066">
+                        <i class="fas fa-sign-out-alt me-2"></i> Đăng xuất
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
 <body>
 @include('partials.navbar')
 
@@ -91,8 +118,8 @@
     <main>
     </main>@yield('content')
     @if(session('success'))
-        <div class="toast text-white bg-success border-0 position-fixed"
-             style="top: 5rem; right: 1rem; max-width: 235px; z-index: 9999;"
+        <div class="toast text-white border-0 position-fixed"
+             style="background-color:#013066;top: 5rem; right: 1rem; max-width: 235px; z-index: 9999;"
              role="alert" aria-live="assertive" aria-atomic="true" data-bs-delay="5000" data-bs-autohide="true">
             <div class="d-flex">
                 <div class="toast-body small">
@@ -125,7 +152,6 @@
             toast.show();
         });
         @endif
-
     </script>
 
     @stack('scripts')
