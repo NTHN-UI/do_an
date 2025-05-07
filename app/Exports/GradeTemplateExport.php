@@ -35,6 +35,8 @@ class GradeTemplateExport implements WithMultipleSheets
 
         // Sheet nhập điểm cho từng môn
         foreach ($this->subjects as $subject) {
+            if (!$subject) continue; // Bỏ qua nếu null
+
             $sheets[] = new GradeTemplateSubjectSheet(
                 $this->students,
                 $subject,
@@ -100,7 +102,6 @@ class GradeTemplateSubjectSheet implements FromCollection, WithHeadings, WithTit
         $this->class = $class;
         $this->academicYearId = $academicYearId;
     }
-
     public function collection()
     {
         $data = [];
@@ -235,11 +236,9 @@ class GradeTemplateSubjectSheet implements FromCollection, WithHeadings, WithTit
             5 => ['font' => ['bold' => true]],
         ];
     }
-
     protected function getEducationLevelName()
     {
         $levels = [
-            'primary' => 'Tiểu học',
             'secondary' => 'THCS',
             'high' => 'THPT'
         ];

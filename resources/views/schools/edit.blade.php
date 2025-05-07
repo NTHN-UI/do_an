@@ -16,7 +16,7 @@
             <a href="{{ route('schools.index') }}" class="btn btn-back me-3" title="Quay lại">
                 <i class="fas fa-arrow-left"></i>
             </a>
-            <h4 class="mb-0"> Sửa thông tin trường học </h4>
+            <h4 class="mb-0" style = "color:#013066"> Sửa thông tin trường học </h4>
         </div>
         <div class="card-body">
             <form action="{{ route('schools.update', $school->id) }}" method="POST">

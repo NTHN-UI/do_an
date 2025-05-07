@@ -141,14 +141,25 @@
                                         class="fas fa-users-class me-2"></i> Lớp học</a></li>
                             <li><a class="dropdown-item" href="{{ route('grade_levels.index') }}"><i
                                         class="fas fa-layer-group me-2"></i> Khối lớp</a></li>
-                            {{--                        <li><a class="dropdown-item" href="{{ route('subjects.index') }}"><i class="fas fa-book me-2"></i> Môn học</a></li>--}}
-                            <li><a class="dropdown-item" href="{{ route('teacher_assignments.index') }}"><i
-                                        class="fas fa-tasks me-2"></i> Phân công giảng dạy</a></li>
 
 
                         </ul>
                     </li>
 
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="usersDropdown" role="button"
+                           data-bs-toggle="dropdown">
+                            <i class="fas fa-user-shield me-1"></i> Phân công
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="{{ route('teacher_assignments.index') }}">
+                                    <i class="fas fa-chalkboard-teacher me-2"></i> Phân công giảng dạy
+                                </a></li>
+                            <li><a class="dropdown-item" href="{{ route('class_assignments.index') }}">
+                                    <i class="fas fa-door-open me-2"></i> Phân công lớp học
+                                </a></li>
+                        </ul>
+                    </li>
                     <!-- Quản lý người dùng -->
 
                     <li class="nav-item dropdown">
@@ -158,9 +169,9 @@
                         </a>
                         <ul class="dropdown-menu">
                             <li><a class="dropdown-item" href="{{ route('teachers.index') }}"><i
-                                        class="fas fa-chalkboard-teacher me-2"></i> Giáo viên</a></li>
+                                        class="fas fa-chalkboard-teacher me-2"></i> Quản lý giáo viên</a></li>
                             <li><a class="dropdown-item" href="{{ route('students.index') }}"><i
-                                        class="fas fa-user-graduate me-2"></i> Học sinh</a></li>
+                                        class="fas fa-user-graduate me-2"></i> QUản lý học sinh</a></li>
                         </ul>
                     </li>
 
@@ -172,9 +183,9 @@
                         </a>
                         <ul class="dropdown-menu">
                             <li><a class="dropdown-item" href="{{ route('academic_years.index') }}"><i
-                                        class="fas fa-calendar me-2"></i> Năm học</a></li>
+                                        class="fas fa-calendar me-2"></i> Quản lý năm học</a></li>
                             <li><a class="dropdown-item" href="{{ route('semesters.index') }}"><i
-                                        class="fas fa-calendar-week me-2"></i> Học kỳ</a></li>
+                                        class="fas fa-calendar-week me-2"></i> Quản lý học kỳ</a></li>
                         </ul>
                     </li>
                 @endif

@@ -100,13 +100,13 @@ Route::middleware(['auth'])->group(function () {
 // Nhóm route riêng cho điểm số (grades)
         Route::prefix('grades')->middleware([TeacherMiddleware::class])->group(function () {
             Route::get('/', [GradeController::class, 'index'])->name('grades.index');
-            Route::get('/export', [GradeController::class, 'exportTemplate'])->name('grades.export');
+            Route::get('/grades/export-template', [GradeController::class, 'exportTemplate'])->name('grades.exportTemplate');
             Route::post('/import', [GradeController::class, 'import'])->name('grades.import');
             Route::get('/student/{student}', [GradeController::class, 'viewAllGrades'])->name('grades.student_grades');
 
             // API hỗ trợ
-            Route::get('/api/get-semesters-by-year', [GradeController::class, 'getSemestersByYear'])->name('get_semesters_by_year');
-            Route::get('/api/get-classes-by-year', [GradeController::class, 'getClassesByYear'])->name('get_classes_by_year');
+            Route::get('/get-semesters-by-year', [GradeController::class, 'getSemestersByYear'])->name('get_semesters_by_year');
+            Route::get('/get-classes-by-year', [GradeController::class, 'getClassesByYear'])->name('get_classes_by_year');
         });
     });
 

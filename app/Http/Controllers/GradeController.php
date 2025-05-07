@@ -159,32 +159,117 @@ class GradeController extends Controller
             'class_id' => 'required|exists:classes,id,school_id,'.auth()->user()->school_id,
             'semester_id' => 'required|exists:semesters,id,school_id,'.auth()->user()->school_id,
             'academic_year_id' => 'required|exists:academic_years,id,school_id,'.auth()->user()->school_id,
-            'file' => 'required|file|mimes:xlsx,xls',
+            'grades_file' => 'required|file|mimes:xlsx,xls,csv',
+            'subject_name' => 'required|string',
+            'class_name' => 'required|string' // Thêm validation cho tên lớp
         ]);
 
         $teacherId = Auth::id();
         $schoolId = Auth::user()->school_id;
 
-        // Kiểm tra giáo viên có được phân công lớp này không
-        $assignment = TeacherAssignment::where('teacher_id', $teacherId)
-            ->where('class_id', $request->class_id)
-            ->where('academic_year_id', $request->academic_year_id)
-            ->where('school_id', $schoolId)
-            ->firstOrFail();
-
         try {
-            Excel::import(new GradesImport(
+            // Kiểm tra giáo viên có được phân công lớp này không
+            $assignment = TeacherAssignment::where('teacher_id', $teacherId)
+                ->where('class_id', $request->class_id)
+                ->where('academic_year_id', $request->academic_year_id)
+                ->where('school_id', $schoolId)
+                ->firstOrFail();
+
+            // Tìm môn học theo tên
+            $subject = Subject::where('name', $request->subject_name)
+                ->where('school_id', $schoolId)
+                ->firstOrFail();
+
+            $import = new GradesImport(
                 $request->class_id,
                 $request->semester_id,
                 $request->academic_year_id,
                 $teacherId,
-                $schoolId
-            ), $request->file('file'));
+                $schoolId,
+                $subject,
+                $request->class_name // Truyền tên lớp để kiểm tra
+            );
 
-            return back()->with('success', 'Nhập điểm thành công!');
+            Excel::import($import, $request->file('grades_file'));
+
+            $this->calculateAverages($import->getImportedStudentIds(),
+                $request->class_id,
+                $request->semester_id,
+                $request->academic_year_id);
+
+            return response()->json(['success' => true, 'message' => 'Nhập điểm thành công!']);
         } catch (\Exception $e) {
-            return back()->with('error', 'Lỗi khi nhập điểm: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Lỗi khi nhập điểm: ' . $e->getMessage()
+            ], 500);
         }
+    }
+    protected function calculateAverages($studentIds, $classId, $semesterId, $academicYearId)
+    {
+        foreach ($studentIds as $studentId) {
+            // Lấy tất cả điểm của học sinh
+            $grades = Grade::where('student_id', $studentId)
+                ->where('class_id', $classId)
+                ->where('semester_id', $semesterId)
+                ->where('academic_year_id', $academicYearId)
+                ->get()
+                ->groupBy('subject_id');
+
+            foreach ($grades as $subjectId => $subjectGrades) {
+                // Tính điểm trung bình môn
+                $average = $this->calculateSubjectAverage($subjectGrades);
+
+                // Lưu điểm trung bình môn
+                Grade::updateOrCreate(
+                    [
+                        'student_id' => $studentId,
+                        'class_id' => $classId,
+                        'subject_id' => $subjectId,
+                        'semester_id' => $semesterId,
+                        'academic_year_id' => $academicYearId,
+                        'test_type' => 'average',
+                        'school_id' => Auth::user()->school_id
+                    ],
+                    ['score' => $average, 'teacher_id' => Auth::id()]
+                );
+            }
+
+            // Tính điểm trung bình học kỳ (trung bình các môn)
+            $semesterAverage = Grade::where('student_id', $studentId)
+                ->where('class_id', $classId)
+                ->where('semester_id', $semesterId)
+                ->where('academic_year_id', $academicYearId)
+                ->where('test_type', 'average')
+                ->avg('score');
+
+            if ($semesterAverage) {
+                Grade::updateOrCreate(
+                    [
+                        'student_id' => $studentId,
+                        'class_id' => $classId,
+                        'subject_id' => null, // Không thuộc môn nào cụ thể
+                        'semester_id' => $semesterId,
+                        'academic_year_id' => $academicYearId,
+                        'test_type' => 'semester_average',
+                        'school_id' => Auth::user()->school_id
+                    ],
+                    ['score' => $semesterAverage, 'teacher_id' => Auth::id()]
+                );
+            }
+        }
+    }
+
+    protected function calculateSubjectAverage($grades)
+    {
+        $grouped = $grades->groupBy('test_type');
+
+        $fifteenMinAvg = $grouped->get('fifteen_minutes')?->avg('score') ?? 0;
+        $onePeriodAvg = $grouped->get('one_period')?->avg('score') ?? 0;
+        $semesterScore = $grouped->get('semester')?->first()->score ?? 0;
+
+        // Tính theo trọng số: 15p (20%), 1 tiết (30%), thi HK (50%)
+        return ($fifteenMinAvg * 0.2) + ($onePeriodAvg * 0.3) + ($semesterScore * 0.5);
     }
 
     public function viewAllGrades(Request $request, $studentId)
@@ -244,29 +329,9 @@ class GradeController extends Controller
         ));
     }
 
-    private function calculateSubjectAverage($subjectGrades)
-    {
-        $weights = [
-            'fifteen_minutes' => 0.2,
-            'one_period' => 0.3,
-            'semester' => 0.5
-        ];
 
-        $total = 0;
-        $count = 0;
 
-        foreach ($subjectGrades as $testType => $grades) {
-            if (isset($weights[$testType])) {
-                $average = $grades->avg('score');
-                $total += $average * $weights[$testType];
-                $count += $weights[$testType];
-            }
-        }
-
-        return $count > 0 ? round($total / $count, 2) : null;
-    }
-
-    public function getSemestersByYear(Request $request)
+    public function getmestersByYear(Request $request)
     {
         $academicYearId = $request->input('academic_year_id');
         $schoolId = Auth::user()->school_id;
@@ -284,17 +349,28 @@ class GradeController extends Controller
         $teacherId = Auth::id();
         $schoolId = Auth::user()->school_id;
 
-        $classes = TeacherAssignment::where('teacher_id', $teacherId)
+        if (!$academicYearId) {
+            return response()->json([]);
+        }
+
+        $assignments = TeacherAssignment::where('teacher_id', $teacherId)
             ->where('academic_year_id', $academicYearId)
             ->where('school_id', $schoolId)
             ->with(['class' => function($query) {
                 $query->with('gradeLevel');
             }])
-            ->get()
-            ->pluck('class')
-            ->unique()
-            ->values();
+            ->get();
+
+        // Sửa lại cách trả về dữ liệu
+        $classes = $assignments->map(function($assignment) {
+            return [
+                'id' => $assignment->class->id,
+                'name' => $assignment->class->name,
+                'grade_level' => $assignment->class->gradeLevel
+            ];// Giữ nguyên object
+       })->unique('id')->values();
 
         return response()->json($classes);
     }
+
 }

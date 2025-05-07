@@ -43,7 +43,6 @@ return new class extends Migration
             $table->boolean('is_active')->default(true);
             $table->foreignId('school_id')->nullable()->constrained('schools')->onDelete('cascade');
             $table->unique(['school_id', 'role', 'school_auto_id']);
-//            $table->rememberToken();
             $table->timestamps();
         });
 

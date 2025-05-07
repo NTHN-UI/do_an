@@ -28,9 +28,10 @@ class TeacherAssignment extends Model
         return $this->belongsTo(ClassModel::class, 'class_id');
     }
 
+    // Trong TeacherAssignment.php
     public function subject()
     {
-        return $this->belongsTo(Subject::class, 'subject_id');
+        return $this->belongsTo(Subject::class);
     }
 
     public function academicYear()

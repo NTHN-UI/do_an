@@ -135,6 +135,7 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
         $(document).ready(function () {
+            window.csrfToken = "{{ csrf_token() }}"
             // Thêm hiệu ứng active khi click vào menu
             $('.nav-link').click(function () {
                 $('.nav-link').removeClass('active');
