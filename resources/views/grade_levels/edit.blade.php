@@ -25,7 +25,6 @@
                                 <div class="col-md-6">
                                     <div class="form-control bg-light">
                                         {{ Auth::user()->school->name }}
-                                        ({{Auth::user()->school->education_level == 'secondary' ? 'THCS' : 'THPT' }})
                                     </div>
                                 </div>
                             </div>

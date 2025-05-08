@@ -102,10 +102,12 @@ class GradeTemplateSubjectSheet implements FromCollection, WithHeadings, WithTit
         $this->class = $class;
         $this->academicYearId = $academicYearId;
     }
+
     public function collection()
     {
         $data = [];
-        $isTextSubject = $this->subject->education_level === 'primary';
+        $isTextSubject = $this->subject->is_text_based;
+
 
         foreach ($this->students as $student) {
             $row = [
@@ -126,13 +128,14 @@ class GradeTemplateSubjectSheet implements FromCollection, WithHeadings, WithTit
 
     public function headings(): array
     {
-        $isTextSubject = $this->subject->education_level === 'primary';
+        $isTextSubject = $this->subject->is_text_based;
+
 
         return [
             ['THÔNG TIN LỚP: ' . $this->class->name . ' (Mã: ' . $this->class->school_auto_id . ')'],
             ['NĂM HỌC: ' . $this->academicYearId],
             ['HỌC KỲ: ' . $this->semesterId],
-            ['MÔN HỌC: ' . $this->subject->name . ' - Cấp: ' . $this->getEducationLevelName()],
+            ['MÔN HỌC: ' . $this->subject->name],
             [''],
             $isTextSubject
                 ? [
@@ -186,7 +189,7 @@ class GradeTemplateSubjectSheet implements FromCollection, WithHeadings, WithTit
         $sheet->getColumnDimension('G')->setWidth(15);
 
         // Đặt kiểu dữ liệu cho các cột điểm
-        $isTextSubject = $this->subject->education_level === 'primary';
+        $isTextSubject = $this->subject->is_text_based;
 
         if ($isTextSubject) {
             // Thiết lập data validation cho môn đạt/chưa đạt
@@ -210,7 +213,7 @@ class GradeTemplateSubjectSheet implements FromCollection, WithHeadings, WithTit
             }
         } else {
             // Thiết lập data validation cho môn nhập điểm (0-10)
-            for ($i = 6; $i <= count($this->students) + 5; $i++) {
+            for ($i = 7; $i <= count($this->students) + 5; $i++) {
                 for ($col = 'C'; $col <= 'G'; $col++) {
                     $sheet->getCell("{$col}{$i}")->getDataValidation()
                         ->setType(\PhpOffice\PhpSpreadsheet\Cell\DataValidation::TYPE_DECIMAL)
@@ -235,14 +238,5 @@ class GradeTemplateSubjectSheet implements FromCollection, WithHeadings, WithTit
             4 => ['font' => ['bold' => true]],
             5 => ['font' => ['bold' => true]],
         ];
-    }
-    protected function getEducationLevelName()
-    {
-        $levels = [
-            'secondary' => 'THCS',
-            'high' => 'THPT'
-        ];
-
-        return $levels[$this->subject->education_level] ?? $this->subject->education_level;
     }
 }

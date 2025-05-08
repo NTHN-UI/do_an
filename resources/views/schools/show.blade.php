@@ -24,14 +24,15 @@
                         <dt class="col-sm-4">Tên trường:</dt>
                         <dd class="col-sm-8">{{ $school->name }}</dd>
 
+                        <dt class="col-sm-4">Địa chỉ:</dt>
+                        <dd class="col-sm-8">{{ $school->address }}</dd>
+
                         <dt class="col-sm-4">Quận/Huyện:</dt>
                         <dd class="col-sm-8">{{ $school->district }}</dd>
 
                         <dt class="col-sm-4">Tỉnh/Thành:</dt>
                         <dd class="col-sm-8">{{ $school->province }}</dd>
 
-                        <dt class="col-sm-4">Cấp học:</dt>
-                        <dd class="col-sm-8">{{ $school->education_level_name }}</dd>
                     </dl>
                 </div>
                 <div class="col-md-6">

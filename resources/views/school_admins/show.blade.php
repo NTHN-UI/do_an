@@ -49,22 +49,16 @@
                         <dd class="col-sm-8">{{ $admin->email }}</dd>
                     </dl>
                 </div>
-                <div class="col-md-6">
-                    <dl class="row">
-                        <dt class="col-sm-4">Trường:</dt>
-                        <dd class="col-sm-8">{{ $admin->school->name ?? 'N/A' }}</dd>
-
-                        <dt class="col-sm-4">Cấp học:</dt>
-                        <dd class="col-sm-8">{{ $admin->school->education_level_name ?? 'N/A' }}</dd>
-                    </dl>
-                </div>
             </div>
 
             <div class="row mb-4">
                 <div class="col-12">
                     <dl class="row">
+                        <dt class="col-sm-2">Trường:</dt>
+                        <dd class="col-sm-10">{{ $admin->school->name ?? 'N/A' }}</dd>
+
                         <dt class="col-sm-2">Địa chỉ trường:</dt>
-                        <dd class="col-sm-10">{{ $admin->school->district ?? '' }}, {{ $admin->school->province ?? '' }}</dd>
+                        <dd class="col-sm-10">{{ $admin->school->address ?? '' }},{{ $admin->school->district ?? '' }}, {{ $admin->school->province ?? '' }}</dd>
                     </dl>
                 </div>
             </div>

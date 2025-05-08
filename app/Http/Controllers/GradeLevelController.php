@@ -27,24 +27,14 @@ class GradeLevelController extends Controller
      */
     public function create()
     {
-        $school = auth()->user()->school;
-        $educationLevel = $school->education_level;
 
-        return view('grade_levels.create', compact('educationLevel'));
+        return view('grade_levels.create');
     }
-    private function validateGradeNumber($school_id, $grade_number)
+    private function validateGradeNumber($grade_number)
     {
-        $school = auth()->user()->school;
-
-        switch ($school->education_level) {
-            case 'secondary':
-                return $grade_number >= 6 && $grade_number <= 9;
-            case 'high':
-                return $grade_number >= 10 && $grade_number <= 12;
-            default:
-                return false;
-        }
+        return $grade_number >= 10 && $grade_number <= 12;
     }
+
 
     /**
      * Store a newly created resource in storage.
@@ -65,24 +55,16 @@ class GradeLevelController extends Controller
                 Rule::unique('grade_levels')->where(function ($query) use ($school) {
                     return $query->where('school_id', $school->id);
                 }),
-                function ($attribute, $value, $fail) use ($school) {
-                    if (!$this->validateGradeNumber($school->id, $value)) {
-                        $fail('Số khối không hợp lệ với cấp học của trường');
+                function ($attribute, $value, $fail) {
+                    if (!$this->validateGradeNumber($value)) {
+                        $fail('Số khối không hợp lệ với trường');
                     }
                 }
+
             ],
         ], $messages);
 
-        // Thêm rules tùy theo cấp học
-        if ($school->education_level === 'secondary') {
-            $validator->sometimes('grade_number', 'min:6|max:9', function () {
-                return true;
-            });
-        } elseif ($school->education_level === 'high') {
-            $validator->sometimes('grade_number', 'min:10|max:12', function () {
-                return true;
-            });
-        }
+
 
         if ($validator->fails()) {
             return redirect()->back()
@@ -131,10 +113,8 @@ class GradeLevelController extends Controller
         $gradeLevel = GradeLevel::where('school_id', auth()->user()->school_id)
             ->findOrFail($id);
 
-        $school = auth()->user()->school;
-        $educationLevel = $school->education_level;
 
-        return view('grade_levels.edit', compact('gradeLevel', 'educationLevel'));
+        return view('grade_levels.edit', compact('gradeLevel'));
     }
 
     /**
@@ -158,24 +138,13 @@ class GradeLevelController extends Controller
                 Rule::unique('grade_levels')->where(function ($query) use ($school) {
                     return $query->where('school_id', $school->id);
                 })->ignore($gradeLevel->id),
-                function ($attribute, $value, $fail) use ($school) {
-                    if (!$this->validateGradeNumber($school->id, $value)) {
-                        $fail('Số khối không hợp lệ với cấp học của trường');
+                function ($attribute, $value, $fail) {
+                    if (!$this->validateGradeNumber($value)) {
+                        $fail('Số khối không hợp lệ với trường');
                     }
                 }
             ],
         ], $messages);
-
-        // Thêm rules tùy theo cấp học
-        if ($school->education_level === 'secondary') {
-            $validator->sometimes('grade_number', 'min:6|max:9', function () {
-                return true;
-            });
-        } elseif ($school->education_level === 'high') {
-            $validator->sometimes('grade_number', 'min:10|max:12', function () {
-                return true;
-            });
-        }
 
         if ($validator->fails()) {
             return redirect()->back()

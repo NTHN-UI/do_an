@@ -46,13 +46,7 @@ class AcademicYearController extends Controller
             'end_date.required' => 'Ngày kết thúc không được để trống',
             'end_date.after' => 'Ngày kết thúc phải sau ngày bắt đầu',
             'start_date.custom_start' => 'Năm học phải bắt đầu từ tháng 9',
-            'end_date.custom_end' => function ($attribute, $value, $parameters) use($school) {
-                return match($school->education_level){
-                    School::LEVEL_SECONDARY => 'Năm học THCS phải kết thúc trước ngày 15/06',
-                    School::LEVEL_HIGH => 'Năm học THPT phải kết thúc trước ngày 30/6',
-                    default => 'Năm học phải kết thúc trong tháng 5 hoặc 6'
-                };
-            }
+            'end_date.custom_end' =>'Năm học THPT phải kết thúc trước ngày 30/6'
         ];
 
         $validator = Validator::make($request->all(), [
@@ -98,25 +92,11 @@ class AcademicYearController extends Controller
                             return;
                         }
 
-                        // Kiểm tra theo cấp học
-                        $isValid = match($school->education_level){
-                            School::LEVEL_SECONDARY =>
-                                ($inputDate->format('m') == '05' && $inputDate->format('d') <= 31) ||
-                                ($inputDate->format('m') == '06' && $inputDate->format('d') <= 15),
-
-                            School::LEVEL_HIGH =>
-                                ($inputDate->format('m') == '05' && $inputDate->format('d') <= 31) ||
-                                ($inputDate->format('m') == '06' && $inputDate->format('d') <= 30),
-
-                            default => false
-                        };
+                        $isValid = ($inputDate->format('m') == '05' && $inputDate->format('d') <= 31)
+                            || ($inputDate->format('m') == '06' && $inputDate->format('d') <= 30);
 
                         if (!$isValid) {
-                            $fail(match($school->education_level){
-                                School::LEVEL_SECONDARY => 'Năm học THCS phải kết thúc trước ngày 15/06',
-                                School::LEVEL_HIGH => 'Năm học THPT phải kết thúc trước ngày 30/06',
-                                default => 'Ngày kết thúc không hợp lệ'
-                            });
+                            $fail('Năm học phải kết thúc trước ngày 30/06');
                         }
 
                         // Kiểm tra thời lượng tối thiểu 8 tháng
@@ -186,13 +166,7 @@ class AcademicYearController extends Controller
             'end_date.required' => 'Ngày kết thúc không được để trống',
             'end_date.after' => 'Ngày kết thúc phải sau ngày bắt đầu',
             'start_date.custom_start' => 'Năm học phải bắt đầu từ tháng 9',
-            'end_date.custom_end' => function ($attribute, $value, $parameters) use($school) {
-                return match($school->education_level){
-                    School::LEVEL_SECONDARY => 'Năm học THCS phải kết thúc trước ngày 15/06',
-                    School::LEVEL_HIGH => 'Năm học THPT phải kết thúc trước ngày 30/6',
-                    default => 'Năm học phải kết thúc trong tháng 5 hoặc 6'
-                };
-            }
+            'end_date.custom_end' => 'Năm học THPT phải kết thúc trước ngày 30/6'
         ];
 
         $validator = Validator::make($request->all(), [
@@ -239,25 +213,13 @@ class AcademicYearController extends Controller
                         }
 
                         // Kiểm tra theo cấp học
-                        $isValid = match($school->education_level){
-                            School::LEVEL_SECONDARY =>
-                                ($inputDate->format('m') == '05' && $inputDate->format('d') <= 31) ||
-                                ($inputDate->format('m') == '06' && $inputDate->format('d') <= 15),
-
-                            School::LEVEL_HIGH =>
-                                ($inputDate->format('m') == '05' && $inputDate->format('d') <= 31) ||
-                                ($inputDate->format('m') == '06' && $inputDate->format('d') <= 30),
-
-                            default => false
-                        };
+                        $isValid = ($inputDate->format('m') == '05' && $inputDate->format('d') <= 31)
+                            || ($inputDate->format('m') == '06' && $inputDate->format('d') <= 30);
 
                         if (!$isValid) {
-                            $fail(match($school->education_level){
-                                School::LEVEL_SECONDARY => 'Năm học THCS phải kết thúc trước ngày 15/06',
-                                School::LEVEL_HIGH => 'Năm học THPT phải kết thúc trước ngày 30/06',
-                                default => 'Ngày kết thúc không hợp lệ'
-                            });
+                            $fail('Năm học phải kết thúc trước ngày 30/06');
                         }
+
 
                         // Kiểm tra thời lượng tối thiểu 8 tháng
                         $interval = $startDate->diff($inputDate);

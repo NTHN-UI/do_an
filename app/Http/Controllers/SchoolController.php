@@ -41,18 +41,20 @@ class SchoolController extends Controller
         $messages = [
             'name.required' => 'Tên trường không được để trống',
             'name.max' => 'Tên trường không được vượt quá 50 ký tự',
+            'address.required' => 'Địa chỉ không được để trống',
+            'address.max' => 'Địa chỉ không được vượt quá 50 ký tự',
             'district.required' => 'Quận/Huyện không được để trống',
             'district.max' => 'Quận/Huyện không được vượt quá 50 ký tự',
             'province.required' => 'Tỉnh/Thành không được để trống',
             'province.max' => 'Tỉnh/Thành không được vượt quá 50 ký tự',
-            'education_level.required' => 'Cấp học không được để trống',
-            'education_level.in' => 'Cấp học không hợp lệ',
+
+
         ];
         $validator = Validator::make($request->all(), [
             'name' => 'required|max:50',
+            'address' => 'required|string|max:50',
             'district' => 'required|max:50',
             'province' => 'required|max:50',
-            'education_level' => 'required|in:primary,secondary,high',
         ], $messages);
         if ($validator->fails()) {
             return redirect()->back()
@@ -92,19 +94,20 @@ class SchoolController extends Controller
         $messages = [
             'name.required' => 'Tên trường không được để trống',
             'name.max' => 'Tên trường không được vượt quá 50 ký tự',
+            'address.required' => 'Địa chỉ không được để trống',
+            'address.max' => 'Địa chỉ không được vượt quá 50 ký tự',
             'district.required' => 'Quận/Huyện không được để trống',
             'district.max' => 'Quận/Huyện không được vượt quá 50 ký tự',
             'province.required' => 'Tỉnh/Thành không được để trống',
             'province.max' => 'Tỉnh/Thành không được vượt quá 50 ký tự',
-            'education_level.required' => 'Cấp học không được để trống',
-            'education_level.in' => 'Cấp học không hợp lệ',
-        ];
 
+
+        ];
         $validator = Validator::make($request->all(), [
             'name' => 'required|max:50',
+            'address' => 'required|string|max:50',
             'district' => 'required|max:50',
-            'province' => 'required|max:50',
-            'education_level' => 'required|in:primary,secondary,high',
+            'province' => 'required|max:50'
         ], $messages);
 
         if ($validator->fails()) {

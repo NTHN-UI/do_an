@@ -7,11 +7,12 @@
             <div class="col-md-8">
                 <div class="card">
                     <div class="card-header">
-                        <h3 class="card-title">Thêm Khối Học Mới</h3>
                         <div class="card-tools">
-                            <a href="{{ route('grade_levels.index') }}" class="btn btn-sm btn-secondary">
-                                <i class="fas fa-arrow-left"></i> Quay lại
+                            <a href="{{ route('grade_levels.index') }}" class="btn btn-sm ">
+                                <i class="fas fa-arrow-left"></i>
                             </a>
+                            <h3 class="card-title">Thêm Khối Học Mới</h3>
+
                         </div>
                     </div>
 
@@ -24,7 +25,6 @@
                                 <div class="col-md-6">
                                     <div class="form-control bg-light">
                                         {{ Auth::user()->school->name }}
-                                        ({{Auth::user()->school->education_level == 'secondary' ? 'THCS' : 'THPT' }})
                                     </div>
                                 </div>
                             </div>
@@ -44,9 +44,7 @@
                                     <button type="submit" class="btn btn-primary">
                                         <i class="fas fa-save"></i> Lưu Khối Học
                                     </button>
-                                    <button type="reset" class="btn btn-outline-secondary">
-                                        <i class="fas fa-undo"></i> Nhập Lại
-                                    </button>
+
                                 </div>
                             </div>
                         </form>

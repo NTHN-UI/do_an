@@ -20,9 +20,9 @@ return new class extends Migration
         Schema::create('schools', function (Blueprint $table) {
             $table->id();
             $table->string('name');
+            $table->string('address');
             $table->string('district');
             $table->string('province');
-            $table->enum('education_level', ['secondary', 'high']);
             $table->timestamps();
         });
 
@@ -110,7 +110,7 @@ return new class extends Migration
         Schema::create('subjects', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->enum('education_level', ['secondary', 'high']);
+            $table->boolean('is_text_based')->default(false);
             $table->foreignId('school_id')->constrained('schools')->onDelete('cascade');
             $table->timestamps();
         });

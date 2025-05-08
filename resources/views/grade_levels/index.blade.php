@@ -15,23 +15,6 @@
                     </div>
 
                     <div class="card-body">
-                        @if (session('success'))
-                            <div class="alert alert-success alert-dismissible fade show" role="alert">
-                                {{ session('success') }}
-                                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                                    <span aria-hidden="true">&times;</span>
-                                </button>
-                            </div>
-                        @endif
-
-                        @if (session('error'))
-                            <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                                {{ session('error') }}
-                                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                                    <span aria-hidden="true">&times;</span>
-                                </button>
-                            </div>
-                        @endif
 
                         <div class="table-responsive">
                             <table class="table table-bordered table-striped table-hover">
@@ -40,7 +23,6 @@
                                     <th >ID</th>
                                     <th >Khối</th>
                                     <th>Trường</th>
-                                    <th >Cấp học</th>
                                     <th >Địa chỉ</th>
                                     <th >Số lớp</th>
                                     <th >Thao tác</th>
@@ -56,19 +38,6 @@
                                         </span>
                                         </td>
                                         <td>{{ $gradeLevel->school->name }}</td>
-                                        <td>
-                                            @switch($gradeLevel->school->education_level)
-                                                @case('primary')
-                                                    <span class="badge text-dark">Tiểu học</span>
-                                                    @break
-                                                @case('secondary')
-                                                    <span class="badge text-dark">THCS</span>
-                                                    @break
-                                                @case('high')
-                                                    <span class="badge text-dark">THPT</span>
-                                                    @break
-                                            @endswitch
-                                        </td>
                                         <td>{{ $gradeLevel->school->district }}, {{ $gradeLevel->school->province }}</td>
                                         <td class="text-center">
                                         <span class="badge badge-pill text-dark">

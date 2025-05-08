@@ -11,6 +11,7 @@ use App\Models\TeacherAssignment;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\GradeTemplateExport;
 use App\Imports\GradesImport;
@@ -45,7 +46,7 @@ class GradeController extends Controller
         $assignedClasses = TeacherAssignment::where('teacher_id', $teacherId)
             ->where('academic_year_id', $selectedAcademicYearId)
             ->where('school_id', $schoolId)
-            ->with(['class' => function($query) {
+            ->with(['class' => function ($query) {
                 $query->with(['gradeLevel', 'academicYear']);
             }, 'subject'])
             ->get()
@@ -108,9 +109,9 @@ class GradeController extends Controller
     public function exportTemplate(Request $request)
     {
         $request->validate([
-            'class_id' => 'required|exists:classes,id,school_id,'.auth()->user()->school_id,
-            'semester_id' => 'required|exists:semesters,id,school_id,'.auth()->user()->school_id,
-            'academic_year_id' => 'required|exists:academic_years,id,school_id,'.auth()->user()->school_id,
+            'class_id' => 'required|exists:classes,id,school_id,' . auth()->user()->school_id,
+            'semester_id' => 'required|exists:semesters,id,school_id,' . auth()->user()->school_id,
+            'academic_year_id' => 'required|exists:academic_years,id,school_id,' . auth()->user()->school_id,
         ]);
 
         $teacherId = Auth::id();
@@ -156,9 +157,9 @@ class GradeController extends Controller
     public function import(Request $request)
     {
         $request->validate([
-            'class_id' => 'required|exists:classes,id,school_id,'.auth()->user()->school_id,
-            'semester_id' => 'required|exists:semesters,id,school_id,'.auth()->user()->school_id,
-            'academic_year_id' => 'required|exists:academic_years,id,school_id,'.auth()->user()->school_id,
+            'class_id' => 'required|exists:classes,id,school_id,' . auth()->user()->school_id,
+            'semester_id' => 'required|exists:semesters,id,school_id,' . auth()->user()->school_id,
+            'academic_year_id' => 'required|exists:academic_years,id,school_id,' . auth()->user()->school_id,
             'grades_file' => 'required|file|mimes:xlsx,xls,csv',
             'subject_name' => 'required|string',
             'class_name' => 'required|string' // Thêm validation cho tên lớp
@@ -187,15 +188,10 @@ class GradeController extends Controller
                 $teacherId,
                 $schoolId,
                 $subject,
-                $request->class_name // Truyền tên lớp để kiểm tra
+                $request->class_name
             );
 
             Excel::import($import, $request->file('grades_file'));
-
-            $this->calculateAverages($import->getImportedStudentIds(),
-                $request->class_id,
-                $request->semester_id,
-                $request->academic_year_id);
 
             return response()->json(['success' => true, 'message' => 'Nhập điểm thành công!']);
         } catch (\Exception $e) {
@@ -205,10 +201,10 @@ class GradeController extends Controller
             ], 500);
         }
     }
+
     protected function calculateAverages($studentIds, $classId, $semesterId, $academicYearId)
     {
         foreach ($studentIds as $studentId) {
-            // Lấy tất cả điểm của học sinh
             $grades = Grade::where('student_id', $studentId)
                 ->where('class_id', $classId)
                 ->where('semester_id', $semesterId)
@@ -229,6 +225,7 @@ class GradeController extends Controller
                         'semester_id' => $semesterId,
                         'academic_year_id' => $academicYearId,
                         'test_type' => 'average',
+                        // Ở csdl đang đê
                         'school_id' => Auth::user()->school_id
                     ],
                     ['score' => $average, 'teacher_id' => Auth::id()]
@@ -281,7 +278,7 @@ class GradeController extends Controller
         $isHomeroomTeacher = TeacherAssignment::where('teacher_id', $teacherId)
             ->where('is_homeroom', true)
             ->where('school_id', $schoolId)
-            ->whereHas('class.students', function($query) use ($studentId) {
+            ->whereHas('class.students', function ($query) use ($studentId) {
                 $query->where('users.id', $studentId);
             })
             ->exists();
@@ -301,13 +298,13 @@ class GradeController extends Controller
         // Lấy tất cả điểm của học sinh
         $grades = Grade::where('student_id', $studentId)
             ->where('school_id', $schoolId)
-            ->when($classId, function($query) use ($classId) {
+            ->when($classId, function ($query) use ($classId) {
                 return $query->where('class_id', $classId);
             })
-            ->when($semesterId, function($query) use ($semesterId) {
+            ->when($semesterId, function ($query) use ($semesterId) {
                 return $query->where('semester_id', $semesterId);
             })
-            ->when($academicYearId, function($query) use ($academicYearId) {
+            ->when($academicYearId, function ($query) use ($academicYearId) {
                 return $query->where('academic_year_id', $academicYearId);
             })
             ->with(['subject', 'semester'])
@@ -330,8 +327,7 @@ class GradeController extends Controller
     }
 
 
-
-    public function getmestersByYear(Request $request)
+    public function getSemestersByYear(Request $request)
     {
         $academicYearId = $request->input('academic_year_id');
         $schoolId = Auth::user()->school_id;
@@ -356,19 +352,19 @@ class GradeController extends Controller
         $assignments = TeacherAssignment::where('teacher_id', $teacherId)
             ->where('academic_year_id', $academicYearId)
             ->where('school_id', $schoolId)
-            ->with(['class' => function($query) {
+            ->with(['class' => function ($query) {
                 $query->with('gradeLevel');
             }])
             ->get();
 
         // Sửa lại cách trả về dữ liệu
-        $classes = $assignments->map(function($assignment) {
+        $classes = $assignments->map(function ($assignment) {
             return [
                 'id' => $assignment->class->id,
                 'name' => $assignment->class->name,
                 'grade_level' => $assignment->class->gradeLevel
             ];// Giữ nguyên object
-       })->unique('id')->values();
+        })->unique('id')->values();
 
         return response()->json($classes);
     }

@@ -74,8 +74,8 @@ class StudentsTemplateExport implements FromArray, WithHeadings, ShouldAutoSize,
     public function styles(Worksheet $sheet)
     {
         // Merge instruction rows
-        $sheet->mergeCells('A1:E1');
-        $sheet->mergeCells('A2:E2');
+//        $sheet->mergeCells('A1:E1');
+//        $sheet->mergeCells('A2:E2');
 
         return [
             1 => ['font' => ['bold' => true, 'color' => ['rgb' => 'FF0000']]],

@@ -321,9 +321,10 @@
                         'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                     },
                     success: function(response) {
+                        alert("Hello");
                         $('#importModal').modal('hide');
                         // Reload lại bảng điểm sau khi import thành công
-                        $('#filter-form').submit();
+                        // $('#filter-form').submit();
                     },
                     error: function(xhr) {
                         alert('Lỗi khi import: ' + xhr.responseJSON.message);

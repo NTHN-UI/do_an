@@ -65,13 +65,7 @@ class SemesterController extends Controller
                 'start_date.semester1_start' => 'Học kỳ 1 phải bắt đầu vào tháng 9',
                 'start_date.semester2_start' => 'Học kỳ 2 phải bắt đầu vào tháng 1',
                 'end_date.semester1_end' => 'Học kỳ 1 phải kết thúc vào tháng 12 hoặc tháng 1',
-                'end_date.semester2_end' => function() use ($school) {
-                    return match($school->education_level) {
-                        School::LEVEL_SECONDARY => 'Học kỳ 2 phải kết thúc vào tháng 5 hoặc tháng 6',
-                        School::LEVEL_HIGH => 'Học kỳ 2 phải kết thúc vào tháng 5 hoặc tháng 6',
-                        default => 'Ngày kết thúc không hợp lệ'
-                    };
-                },
+                'end_date.semester2_end' =>  'Học kỳ 2 phải kết thúc vào tháng 5 hoặc tháng 6',
                 'duration.valid' => 'Học kỳ phải kéo dài từ 4 đến 5 tháng',
                 'overlap.exists' => 'Khoảng thời gian này đã có học kỳ khác',
                 'name.unique_semester' => 'Năm học này đã có :attribute rồi'
@@ -155,20 +149,11 @@ class SemesterController extends Controller
                                 $fail('Học kỳ 1 phải kết thúc vào tháng 12 hoặc tháng 1');
                             }
                         } else {
-                            $valid = match($school->education_level) {
-                                School::LEVEL_SECONDARY => in_array($month, ['05', '06']),
-                                School::LEVEL_HIGH => in_array($month, ['05', '06']),
-                                default => false
-                            };
-
-                            if (!$valid) {
-                                $fail(match($school->education_level) {
-                                    School::LEVEL_SECONDARY => 'Học kỳ 2 phải kết thúc vào tháng 5 hoặc tháng 6',
-                                    School::LEVEL_HIGH => 'Học kỳ 2 phải kết thúc vào tháng 5 hoặc tháng 6',
-                                    default => 'Ngày kết thúc không hợp lệ'
-                                });
+                            if (!in_array($month, ['05', '06'])) {
+                                $fail('Học kỳ 2 phải kết thúc vào tháng 5 hoặc tháng 6');
                             }
                         }
+
 
                         // Kiểm tra thời lượng học kỳ
                         $startDate = date_create($request->start_date);
@@ -284,13 +269,7 @@ class SemesterController extends Controller
             'start_date.semester1_start' => 'Học kỳ 1 phải bắt đầu vào tháng 9',
             'start_date.semester2_start' => 'Học kỳ 2 phải bắt đầu vào tháng 1',
             'end_date.semester1_end' => 'Học kỳ 1 phải kết thúc vào tháng 12 hoặc tháng 1',
-            'end_date.semester2_end' => function() use ($school) {
-                return match($school->education_level) {
-                    School::LEVEL_SECONDARY => 'Học kỳ 2 phải kết thúc vào tháng 5 hoặc tháng 6',
-                    School::LEVEL_HIGH => 'Học kỳ 2 phải kết thúc vào tháng 5 hoặc tháng 6',
-                    default => 'Ngày kết thúc không hợp lệ'
-                };
-            },
+            'end_date.semester2_end' =>  'Học kỳ 2 phải kết thúc vào tháng 5 hoặc tháng 6',
             'duration.valid' => 'Học kỳ phải kéo dài từ 4 đến 5 tháng',
             'overlap.exists' => 'Khoảng thời gian này đã có học kỳ khác',
             'name.unique_semester' => 'Năm học này đã có :attribute rồi'
@@ -377,18 +356,8 @@ class SemesterController extends Controller
                             $fail('Học kỳ 1 phải kết thúc vào tháng 12 hoặc tháng 1');
                         }
                     } else {
-                        $valid = match($school->education_level) {
-                            School::LEVEL_SECONDARY => in_array($month, ['05', '06']),
-                            School::LEVEL_HIGH => in_array($month, ['05', '06']),
-                            default => false
-                        };
-
-                        if (!$valid) {
-                            $fail(match($school->education_level) {
-                                School::LEVEL_SECONDARY => 'Học kỳ 2 phải kết thúc vào tháng 5 hoặc tháng 6',
-                                School::LEVEL_HIGH => 'Học kỳ 2 phải kết thúc vào tháng 5 hoặc tháng 6',
-                                default => 'Ngày kết thúc không hợp lệ'
-                            });
+                        if (!in_array($month, ['05', '06'])) {
+                            $fail('Học kỳ 2 phải kết thúc vào tháng 5 hoặc tháng 6');
                         }
                     }
 

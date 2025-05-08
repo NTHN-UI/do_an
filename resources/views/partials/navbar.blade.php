@@ -171,7 +171,7 @@
                             <li><a class="dropdown-item" href="{{ route('teachers.index') }}"><i
                                         class="fas fa-chalkboard-teacher me-2"></i> Quản lý giáo viên</a></li>
                             <li><a class="dropdown-item" href="{{ route('students.index') }}"><i
-                                        class="fas fa-user-graduate me-2"></i> QUản lý học sinh</a></li>
+                                        class="fas fa-user-graduate me-2"></i> Quản lý học sinh</a></li>
                         </ul>
                     </li>
 

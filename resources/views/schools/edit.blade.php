@@ -33,6 +33,15 @@
                 </div>
 
                 <div class="form-group">
+                    <label for="address">Địa chỉ *</label>
+                    <input type="text" class="form-control @error('address') is-invalid @enderror"
+                           id="address" name="address" value="{{ old('address', $school->address) }}">
+                    @error('address')
+                    <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                </div>
+
+                <div class="form-group">
                     <label for="district">Quận/Huyện *</label>
                     <input type="text" class="form-control @error('district') is-invalid @enderror"
                            id="district" name="district" value="{{ old('district', $school->district) }}" >
@@ -50,23 +59,6 @@
                     @enderror
                 </div>
 
-                <div class="form-group">
-                    <label for="education_level">Cấp học *</label>
-                    <select class="form-control @error('education_level') is-invalid @enderror"
-                            id="education_level" name="education_level" >
-                        <option
-                            value="secondary" {{ old('education_level', $school->education_level) == 'secondary' ? 'selected' : '' }}>
-                            THCS
-                        </option>
-                        <option
-                            value="high" {{ old('education_level', $school->education_level) == 'high' ? 'selected' : '' }}>
-                            THPT
-                        </option>
-                    </select>
-                    @error('education_level')
-                    <div class="invalid-feedback">{{ $message }}</div>
-                    @enderror
-                </div>
                 <div class="d-flex justify-content-end align-items-center mt-3">
                     <a href="{{ route('schools.index', $school->id) }}" class="btn me-2"
                        style="background-color: #ffffff; border-color: #013066; color: #013066;">

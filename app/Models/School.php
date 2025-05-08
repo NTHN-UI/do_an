@@ -8,24 +8,27 @@ use Illuminate\Database\Eloquent\Model;
 class  School extends Model
 {
     use HasFactory;
-    // Các cấp học
-    const LEVEL_SECONDARY = 'secondary';
-    const LEVEL_HIGH = 'high';
 
     protected $fillable = [
         'name',
+        'address',
         'district',
         'province',
-        'education_level'
+
     ];
-    protected $appends = ['education_level_name'];
 
     protected $casts = [
         'created_at' => 'datetime:d/m/Y H:i:s',
         'updated_at' => 'datetime:d/m/Y H:i:s',
-        'education_level' => 'string'
 
     ];
+    const HIGH_SCHOOL_SUBJECTS = [
+        'Toán', 'Ngữ văn', 'Ngoại ngữ', 'Vật lý', 'Hóa học',
+        'Sinh học', 'Lịch sử', 'Địa lý', 'Giáo dục kinh tế và pháp luật',
+        'Giáo dục quốc phòng và an ninh', 'Công nghệ', 'Tin học',
+        'Giáo dục thể chất', 'Nghệ thuật'
+    ];
+
     // Quan hệ với admin trường
     public function school_admins()
     {
@@ -65,38 +68,14 @@ class  School extends Model
         return $query->whereNull('deleted_at');
     }
 
-    // Lấy tên cấp học
-    public function getEducationLevelNameAttribute()
-    {
-        return match($this->education_level) {
-            self::LEVEL_SECONDARY => 'Trung học cơ sở',
-            self::LEVEL_HIGH => 'Trung học phổ thông',
-            default => 'Không xác định',
-        };
-    }
+    // Tự động tạo môn học khi tạo trường
     protected static function booted()
     {
         static::created(function (School $school) {
-            $subjects = match ($school->education_level) {
-                self::LEVEL_SECONDARY => [
-                    'Toán', 'Ngữ văn', 'Ngoại ngữ', 'Vật lý', 'Hóa học',
-                    'Sinh học', 'Lịch sử', 'Địa lý', 'Giáo dục công dân',
-                    'Công nghệ', 'Tin học', 'Giáo dục thể chất', 'Âm nhạc', 'Mỹ thuật'
-                ],
-                self::LEVEL_HIGH => [
-                    'Toán', 'Ngữ văn', 'Ngoại ngữ', 'Vật lý', 'Hóa học',
-                    'Sinh học', 'Lịch sử', 'Địa lý', 'Giáo dục kinh tế và pháp luật',
-                    'Giáo dục quốc phòng và an ninh', 'Công nghệ', 'Tin học',
-                    'Giáo dục thể chất', 'Nghệ thuật'
-                ],
-                default => [],
-            };
-
-            foreach($subjects as $name) {
-                $school->subjects()->create(compact('name'));
+            foreach (self::HIGH_SCHOOL_SUBJECTS as $name) {
+                $school->subjects()->create(['name' => $name]);
             }
         });
     }
-
 
 }

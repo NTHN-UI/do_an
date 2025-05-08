@@ -89,7 +89,7 @@
                             <label class="form-label">Trường</label>
                             <input type="hidden" name="school_id" value="{{ Auth::user()->school->id }}">
                             <div class="form-control bg-light">
-                                {{ Auth::user()->school->name }} ({{ Auth::user()->school->education_level_name }})
+                                {{ Auth::user()->school->name }}
                             </div>
                         </div>
 
@@ -150,6 +150,6 @@
                 document.getElementById('statusText').textContent = checkbox.checked ? 'Hoạt động' : 'Ngừng';
             }
 
-      
+
         </script>
     @endpush

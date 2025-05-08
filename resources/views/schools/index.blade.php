@@ -76,9 +76,9 @@
                         <tr>
                             <th class="ps-4">ID</th>
                             <th>Tên trường</th>
+                            <th>Địa chỉ</th>
                             <th>Quận/Huyện</th>
                             <th>Tỉnh/Thành</th>
-                            <th>Cấp học</th>
                             <th class="text-end pe-4"></th>
                         </tr>
                         </thead>
@@ -87,17 +87,10 @@
                             <tr class="text-center">
                                 <td class="ps-4">{{ $school->id }}</td>
                                 <td>{{ $school->name }}</td>
+                                <td>{{ $school->address }}</td>
+
                                 <td>{{ $school->district }}</td>
                                 <td>{{ $school->province }}</td>
-                                <td>
-                                    @if($school->education_level === 'primary')
-                                        Tiểu học
-                                    @elseif($school->education_level === 'secondary')
-                                        THCS
-                                    @else
-                                        THPT
-                                    @endif
-                                </td>
                                 <td class="text-end pe-4">
                                     <div class="dropdown">
                                         <button class="btn btn-sm" type="button" data-bs-toggle="dropdown"
