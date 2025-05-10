@@ -120,8 +120,6 @@ class ClassAssignmentController extends Controller
             $gradeLevelId = $request->grade_level_id;
             $academicYearId = $request->academic_year_id;
 
-            Log::info("Bắt đầu phân lớp tự động cho khối $gradeLevelId, năm học $academicYearId");
-
             // Lấy tất cả học sinh chưa phân lớp trong khối và năm học này
             $unassignedStudents = User::where('role', User::ROLE_STUDENT)
                 ->where('school_id', auth()->user()->school_id)
@@ -132,8 +130,10 @@ class ClassAssignmentController extends Controller
                 ->whereDoesntHave('studentClasses', function ($query) use ($academicYearId) {
                     $query->where('student_classes.academic_year_id', $academicYearId);
                 })
+                ->orderByDesc('entry_score')
                 ->orderBy('full_name')
                 ->get();
+
 
             // Lấy tất cả lớp trong khối và năm học
             $classes = ClassModel::where('grade_level_id', $gradeLevelId)
@@ -145,17 +145,14 @@ class ClassAssignmentController extends Controller
                 ->orderBy('students_count') // Ưu tiên lớp có ít học sinh hơn trước
                 ->get();
 
-            Log::info("Tìm thấy " . $classes->count() . " lớp trong khối");
-
             if ($classes->isEmpty()) {
-                Log::error("Không tìm thấy lớp nào trong khối $gradeLevelId năm học $academicYearId");
                 return back()->with('error', 'Không có lớp nào trong khối và năm học được chọn.');
             }
 
             if ($unassignedStudents->isEmpty()) {
-                Log::info("Không có học sinh nào cần phân lớp");
                 return back()->with('info', 'Không có học sinh nào cần phân lớp trong khối và năm học được chọn.');
             }
+
 
             $assignedCount = 0;
             $classIndex = 0;
@@ -188,8 +185,6 @@ class ClassAssignmentController extends Controller
             StudentClass::insert($assignments);
 
             DB::commit();
-
-            Log::info("Đã phân công thành công $assignedCount học sinh");
 
             // Tạo thông báo chi tiết
             $message = "Đã phân công tự động $assignedCount học sinh vào các lớp:<br>";

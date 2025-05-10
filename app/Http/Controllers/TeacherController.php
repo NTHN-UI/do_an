@@ -21,7 +21,8 @@ class TeacherController extends Controller
     {
         $search = $request->input('search');
 
-        $teachers = User::where('role', User::ROLE_TEACHER)
+        $teachers = User::with(['school', 'subject'])
+        ->where('role', User::ROLE_TEACHER)
             ->where('school_id', auth()->user()->school_id)
             ->when($search, function($query) use ($search) {
                 return $query->where(function($q) use ($search) {
@@ -53,7 +54,7 @@ class TeacherController extends Controller
             'gender' => 'required|in:Nam,Nữ,Khác',
             'date_of_birth' => 'required|date',
             'address' => 'required|string',
-            'subject_id' => 'required|exists:subjects,id,school_id,'.auth()->user()->school_id,
+            'subject_id' => 'required|exists:subjects,id',
         ]);
 
         // Lấy thông tin trường học
@@ -129,7 +130,9 @@ class TeacherController extends Controller
         $teacher = User::where('school_id', auth()->user()->school_id)
             ->where('role', User::ROLE_TEACHER)
             ->findOrFail($id);
-        return view('teachers.edit', compact('teacher'));
+        $subjects = Subject::where('school_id', auth()->user()->school_id)->get();
+
+        return view('teachers.edit', compact('teacher', 'subjects'));
     }
 
     /**
@@ -147,12 +150,15 @@ class TeacherController extends Controller
             'gender' => 'required|in:Nam,Nữ,Khác',
             'date_of_birth' => 'required|date',
             'address' => 'required|string',
-            'is_active' => 'boolean'
+            'is_active' => 'boolean',
+            'subject_id' => 'required|exists:subjects,id',
+
+
         ]);
 
         $data = $request->only([
             'full_name', 'phone', 'gender',
-            'date_of_birth', 'address', 'is_active'
+            'date_of_birth', 'address', 'is_active','subject_id'
         ]);
 
         // Giữ nguyên email và không cho phép thay đổi

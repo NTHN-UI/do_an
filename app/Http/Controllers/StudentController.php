@@ -39,11 +39,11 @@ class StudentController extends Controller
 
         // Xử lý AJAX request
         if ($request->ajax()) {
-            $query->when($request->grade_id, function($q) use ($request) {
+            $query->when($request->grade_id, function ($q) use ($request) {
                 $q->join('grade_users', 'users.id', '=', 'grade_users.user_id')
                     ->where('grade_id', $request->grade_id);
             })
-                ->when($request->academic_year_id, function($q) use ($request) {
+                ->when($request->academic_year_id, function ($q) use ($request) {
                     $q->where('academic_year_id', $request->academic_year_id);
                 });
 
@@ -65,10 +65,10 @@ class StudentController extends Controller
 
         // Xử lý request thông thường
         $query->when($search, function ($q) use ($search) {
-            $q->where(function($q) use ($search) {
-                $q->where('full_name', 'like', '%'.$search.'%')
-                    ->orWhere('email', 'like', '%'.$search.'%')
-                    ->orWhere('phone', 'like', '%'.$search.'%');
+            $q->where(function ($q) use ($search) {
+                $q->where('full_name', 'like', '%' . $search . '%')
+                    ->orWhere('email', 'like', '%' . $search . '%')
+                    ->orWhere('phone', 'like', '%' . $search . '%');
             });
         })
             ->when($classId, function ($q, $classId) {
@@ -132,7 +132,7 @@ class StudentController extends Controller
                 ->first();
 
         $classes = ClassModel::where('school_id', auth()->user()->school_id)
-            ->when($currentAcademicYear, function($query) use ($currentAcademicYear) {
+            ->when($currentAcademicYear, function ($query) use ($currentAcademicYear) {
                 $query->where('academic_year_id', $currentAcademicYear->id ?? null);
             })
             ->with('gradeLevel')
@@ -152,7 +152,8 @@ class StudentController extends Controller
             'selectedAcademicYearId' => $academicYearId,
             'selectedGradeLevelId' => $gradeLevelId,
             'academicYears' => $academicYears,
-            'gradeLevels' => $gradeLevels
+            'gradeLevels' => $gradeLevels,
+            'showEntryScoreField' => $gradeLevelId == 10 // Sử dụng biến đã lấy ở trên
         ]);
     }
 
@@ -176,17 +177,38 @@ class StudentController extends Controller
                             $fail('Số điện thoại đã tồn tại trong trường.');
                         }
                     },
+
                 ],
 
                 'gender' => 'nullable|in:Nam,Nữ,Khác',
                 'date_of_birth' => 'nullable|date',
-                'academic_year_id' => 'required|exists:academic_years,id,school_id,'.auth()->user()->school_id,
-                'grade_level_id' => 'required|exists:grade_levels,id,school_id,'.auth()->user()->school_id,
+                'academic_year_id' => 'required|exists:academic_years,id,school_id,' . auth()->user()->school_id,
+                'grade_level_id' => 'required|exists:grade_levels,id,school_id,' . auth()->user()->school_id,
+                'guardian_name' => 'nullable|string|max:255',
+                'guardian_email' => 'nullable|email|unique:users,guardian_email',
+                'guardian_phone' => 'nullable|string|max:20',
+
             ]);
+            // Tạo mảng rules mới chỉ cho entry_score nếu là khối 10
+            $entryScoreRules = [];
+            // Tìm grade => "Khối 10"
+
+
+            if ($request->grade_level_id == 1) {
+                $entryScoreRules = ['entry_score' => 'required|numeric|min:0|max:50'];
+
+                // Validate riêng cho entry_score
+                $request->validate($entryScoreRules);
+
+                // Thêm vào dữ liệu đã validate
+                $validated['entry_score'] = $request->entry_score;
+            }
 
             $validated['role'] = User::ROLE_STUDENT;
             $validated['school_id'] = auth()->user()->school_id;
             $validated['is_active'] = $request->has('is_active');
+
+            Log::info("Du lieu:", [$validated]);
 
             // Lấy thông tin trường học
             $school = School::find(auth()->user()->school_id);
@@ -300,9 +322,10 @@ class StudentController extends Controller
                     'nullable',
                     'string',
                     'regex:/^0\d{9}$/', // đúng 10 số bắt đầu bằng 0
-                    function ($attribute, $value, $fail) {
+                    function ($attribute, $value, $fail) use ($student) {
                         if ($value && User::where('phone', $value)
                                 ->where('school_id', auth()->user()->school_id)
+                                ->where('id', '!=', $student->id) // Loại trừ bản ghi hiện tại
                                 ->exists()) {
                             $fail('Số điện thoại đã tồn tại trong trường.');
                         }
@@ -311,8 +334,20 @@ class StudentController extends Controller
 
                 'gender' => 'nullable|in:Nam,Nữ,Khác',
                 'date_of_birth' => 'nullable|date',
-
+                'guardian_name' => 'nullable|string|max:255',
+                'guardian_email' => 'nullable|email|unique:users,guardian_email,' . $student->id,
+                'guardian_phone' => 'nullable|string|max:20',
             ]);
+
+            if ($student->studentGrades->first()?->grade_id == 1) {
+                $entryScoreRules = ['entry_score' => 'required|numeric|min:0|max:50'];
+
+                // Validate riêng cho entry_score
+                $request->validate($entryScoreRules);
+
+                // Thêm vào dữ liệu đã validate
+                $validated['entry_score'] = $request->entry_score;
+            }
 
             $validated['is_active'] = $request->has('is_active');
             $validated['email'] = $student->email; // Giữ nguyên email cũ
@@ -433,7 +468,7 @@ class StudentController extends Controller
                     ->where('academic_year_id', '=', $academic_year_id)
                     ->select('users.id', 'users.full_name', 'users.email',
                         'users.phone', 'users.is_active', 'users.school_id')
-                    ->with(['school' => function($query) {
+                    ->with(['school' => function ($query) {
                         $query->select('id', 'name');
                     }])
                     ->paginate(10);

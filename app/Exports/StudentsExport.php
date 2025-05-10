@@ -46,48 +46,44 @@ class StudentsExport implements FromCollection, WithHeadings, WithMapping, Shoul
 
     public function headings(): array
     {
-        return [
-            'ID',
-            'Họ và tên',
-            'Email',
+        $headings = [
+            'Họ tên',
             'Số điện thoại',
             'Giới tính',
             'Ngày sinh',
             'Địa chỉ',
             'Tên phụ huynh',
-            'SĐT phụ huynh',
             'Email phụ huynh',
-            'Trường',
-            'Lớp',
-            'Khối',
-            'Năm học',
-            'Trạng thái'
+            'Số điện thoại phụ huynh'
         ];
+
+        if ($this->gradeLevelId == 10) {
+            $headings[] = 'Điểm đầu vào';
+        }
+
+        return $headings;
+
     }
 
     public function map($student): array
     {
-        $currentClass = $student->studentClasses->first();
-
-        return [
-            $student->school_auto_id,
+        $data = [
             $student->full_name,
-            $student->email,
             $student->phone,
             $student->gender,
-            $student->date_of_birth ? $student->date_of_birth->format('d/m/Y') : '',
+            $student->date_of_birth?->format('d/m/Y'),
             $student->address,
             $student->guardian_name,
-            $student->guardian_phone,
             $student->guardian_email,
-            $student->school->name ?? '',
-            $currentClass->name ?? '',
-            $currentClass->gradeLevel->name ?? '',
-            $currentClass->academicYear->name ?? '',
-            $student->is_active ? 'Hoạt động' : 'Ngừng'
+            $student->guardian_phone
         ];
-    }
 
+        if ($this->gradeLevelId == 10) {
+            $data[] = $student->entry_score;
+        }
+
+        return $data;
+    }
     public function styles(Worksheet $sheet)
     {
         return [

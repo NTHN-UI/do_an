@@ -42,7 +42,6 @@ return new class extends Migration
             $table->enum('role', ['super_admin', 'school_admin', 'teacher', 'student']);
             $table->boolean('is_active')->default(true);
             $table->foreignId('school_id')->nullable()->constrained('schools')->onDelete('cascade');
-            $table->foreignId('subject_id')->nullable()->constrained()->onDelete('set null');
             $table->unique(['school_id', 'role', 'school_auto_id']);
             $table->timestamps();
         });

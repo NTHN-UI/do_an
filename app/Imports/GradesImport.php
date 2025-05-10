@@ -49,12 +49,52 @@ class GradesImport implements ToCollection, WithHeadingRow, WithCalculatedFormul
 
         $isTextSubject = $this->currentSubject->is_text_based;
 
+//        foreach ($rows as $index => $row) {
+//            if (empty($row->get("thong_tin_lop_lop_10a1_ma_1"))) {
+//                continue;
+//            }
+//
+//            $studentCode = $row->get("thong_tin_lop_lop_10a1_ma_1");
+//            $student = User::where('school_auto_id', $studentCode)
+//                ->where('school_id', $this->schoolId)
+//                ->where('role', 'student')
+//                ->first();
+//
+//            if (!$student) {
+//                continue;
+//            }
+//
+//            // Xử lý điểm số hoặc đánh giá
+//            if ($isTextSubject) {
+//                // Môn đạt/chưa đạt
+//                $this->processTextGrades($row, $student->id);
+//            } else {
+//                // Môn nhập điểm số
+//                $this->processNumericGrades($row, $student->id);
+//            }
+//            $this->importedStudentIds[] = $student->id;
+//        }
+
+
         foreach ($rows as $index => $row) {
-            if (empty($row->get("thong_tin_lop_lop_10a1_ma_1"))) {
+            // Bước 1: Tìm cột chứa mã học sinh
+            $studentCodeColumn = null;
+            foreach ($row->toArray() as $columnName => $value) {
+                if (str_contains($columnName, 'thong_tin_lop_') && str_contains($columnName, '_ma_')) {
+                    $studentCodeColumn = $columnName;
+                    break;
+                }
+            }
+
+            // Nếu không tìm thấy cột mã học sinh thì bỏ qua
+            if (!$studentCodeColumn || empty($row->get($studentCodeColumn))) {
                 continue;
             }
 
-            $studentCode = $row->get("thong_tin_lop_lop_10a1_ma_1");
+            // Lấy mã học sinh
+            $studentCode = $row->get($studentCodeColumn);
+
+            // Tìm học sinh trong database
             $student = User::where('school_auto_id', $studentCode)
                 ->where('school_id', $this->schoolId)
                 ->where('role', 'student')
@@ -64,14 +104,13 @@ class GradesImport implements ToCollection, WithHeadingRow, WithCalculatedFormul
                 continue;
             }
 
-            // Xử lý điểm số hoặc đánh giá
+            // Xử lý điểm số
             if ($isTextSubject) {
-                // Môn đạt/chưa đạt
                 $this->processTextGrades($row, $student->id);
             } else {
-                // Môn nhập điểm số
                 $this->processNumericGrades($row, $student->id);
             }
+
             $this->importedStudentIds[] = $student->id;
         }
     }
@@ -107,10 +146,7 @@ class GradesImport implements ToCollection, WithHeadingRow, WithCalculatedFormul
             ['test_type' => 'semester', 'value' => $row->get('6') ?? null],
         ];
 
-        Log::info("Grades: ", [$grades]);
-
         foreach ($grades as $grade) {
-            Log::info("Du lieu:", [$grade]);
             if (!empty($grade['value'])) {
                 $score = $grade['value'] === 'Đạt' ? 10 : 0;
                 Grade::updateOrCreate(
@@ -172,12 +208,6 @@ class GradesImport implements ToCollection, WithHeadingRow, WithCalculatedFormul
                     'score' => $average
                 ]
             );
-
-            Log::info("Đã tính trung bình và lưu:", [
-                'student_id' => $studentId,
-                'test_type' => $testType,
-                'average_score' => $average,
-            ]);
         }
     }
 

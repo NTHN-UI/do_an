@@ -57,7 +57,6 @@ class StudentsImport implements ToCollection, WithHeadingRow
         $schoolDomain = join('', $slugParts) . '.edu.vn';
 
         foreach ($rows as $row) {
-            Log::info("zz:", [$row]);
             try {
                 // Kiểm tra trường bắt buộc
                 if (empty($row['ho_ten'])) {
@@ -66,26 +65,28 @@ class StudentsImport implements ToCollection, WithHeadingRow
                     continue;
                 }
 
-                // Validate số điện thoại
-                $phone = $row['so_dien_thoai'] ?? null;
-                if ($phone) {
-                    // Xóa dấu cách, ký tự không phải số
-                    $phone = preg_replace('/\D/', '', $phone);
-
-                    // Kiểm tra định dạng số điện thoại
-                    if (strlen($phone) < 9 || strlen($phone) > 11) {
-                        $this->errors[] = "Dòng $lineNumber: Số điện thoại không hợp lệ (phải từ 9-11 chữ số)";
-                        $lineNumber++;
-                        continue;
-                    }
-
-                    // Kiểm tra số điện thoại đã tồn tại
-                    if (User::where('phone', $phone)->exists()) {
-                        $this->errors[] = "Dòng $lineNumber: Số điện thoại đã tồn tại trong hệ thống";
-                        $lineNumber++;
-                        continue;
-                    }
+                // Validate số điện thoại học sinh
+                $phone = $this->validatePhone($row['so_dien_thoai'] ?? null, $lineNumber);
+                if ($phone === false) {
+                    $lineNumber++;
+                    continue;
                 }
+
+                // Validate email phụ huynh
+                $guardianEmail = $row['email_phu_huynh'] ?? null;
+                if ($guardianEmail && !filter_var($guardianEmail, FILTER_VALIDATE_EMAIL)) {
+                    $this->errors[] = "Dòng $lineNumber: Email phụ huynh không hợp lệ";
+                    $lineNumber++;
+                    continue;
+                }
+
+                // Validate số điện thoại phụ huynh
+                $guardianPhone = $this->validatePhone($row['so_dien_thoai_phu_huynh'] ?? null, $lineNumber, true);
+                if ($guardianPhone === false) {
+                    $lineNumber++;
+                    continue;
+                }
+
                 // Create email
                 $email = $this->generateEmail($row['ho_ten'], $schoolDomain);
 
@@ -95,6 +96,10 @@ class StudentsImport implements ToCollection, WithHeadingRow
                 // Process date with better validation
                 $dateOfBirth = $this->parseDate($row['ngay_sinh_ddmmyyyy'] ?? null);
 
+                $entryScore = null;
+                if ($this->gradeLevelId == 10) { // ID của khối 10
+                    $entryScore = isset($row['diem_dau_vao']) ? (float)$row['diem_dau_vao'] : null;
+                }
                 // Tạo học sinh
                 $student = User::create([
                     'full_name' => $row['ho_ten'],
@@ -103,10 +108,15 @@ class StudentsImport implements ToCollection, WithHeadingRow
                     'gender' => $gender,
                     'date_of_birth' => $dateOfBirth,
                     'address' => $row['dia_chi'] ?? null,
+                    'guardian_name' => $row['ten_phu_huynh'] ?? null,
+                    'guardian_email' => $guardianEmail,
+                    'guardian_phone' => $guardianPhone,
                     'password' => Hash::make('12345678'),
                     'role' => User::ROLE_STUDENT,
                     'school_id' => $this->schoolId,
                     'is_active' => true,
+                    'entry_score' => $entryScore,
+
                 ]);
 
                 $student->studentGrades()->attach($this->academicYearId, [
@@ -128,6 +138,33 @@ class StudentsImport implements ToCollection, WithHeadingRow
     /**
      * Normalize row keys to handle different column name formats
      */
+
+    protected function validatePhone($phone, $lineNumber, $isGuardian = false)
+    {
+        if (empty($phone)) {
+            return null;
+        }
+
+        // Xóa dấu cách, ký tự không phải số
+        $phone = preg_replace('/\D/', '', $phone);
+
+        // Kiểm tra định dạng số điện thoại
+        if (strlen($phone) < 9 || strlen($phone) > 11) {
+            $prefix = $isGuardian ? "Số điện thoại phụ huynh" : "Số điện thoại";
+            $this->errors[] = "Dòng $lineNumber: $prefix không hợp lệ (phải từ 9-11 chữ số)";
+            return false;
+        }
+
+        // Kiểm tra số điện thoại đã tồn tại
+        $column = $isGuardian ? 'guardian_phone' : 'phone';
+        if (User::where($column, $phone)->exists()) {
+            $prefix = $isGuardian ? "Số điện thoại phụ huynh" : "Số điện thoại";
+            $this->errors[] = "Dòng $lineNumber: $prefix đã tồn tại trong hệ thống";
+            return false;
+        }
+
+        return $phone;
+    }
     protected function normalizeRowKeys($row)
     {
         $normalized = [];
@@ -144,6 +181,10 @@ class StudentsImport implements ToCollection, WithHeadingRow
             'gioitinh' => 'gioi_tinh',
             'ngaysinh' => 'ngay_sinh',
             'diachi' => 'dia_chi',
+            'tenphuhuynh' => 'ten_phu_huynh',
+            'emailphuhuynh' => 'email_phu_huynh',
+            'sodienthoaiphuhuynh' => 'so_dien_thoai_phu_huynh',
+            'dienthoaiphuhuynh' => 'so_dien_thoai_phu_huynh',
         ];
 
         $result = [];

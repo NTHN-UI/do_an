@@ -25,11 +25,14 @@ class StudentsTemplateExport implements FromArray, WithHeadings, ShouldAutoSize,
     {
         return [
             [
-                'Nguyễn Văn A',
-                '0987654321',
-                'Nam',
-                '15/05/2010',
-                '123 Đường ABC, Quận 1, TP.HCM',
+                'Nguyễn Văn A', // Họ tên
+                '0987654321', // SĐT
+                'Nam', // Giới tính
+                '15/05/2010', // Ngày sinh
+                '123 Đường ABC, Quận 1, TP.HCM', // Địa chỉ
+                'Nguyễn Văn Bố', // Tên phụ huynh
+                'bonguyenvana@example.com', // Email phụ huynh
+                '0987654333' // SĐT phụ huynh
             ],
             [
                 'Trần Thị B',
@@ -37,6 +40,9 @@ class StudentsTemplateExport implements FromArray, WithHeadings, ShouldAutoSize,
                 'Nữ',
                 '20/08/2010',
                 '456 Đường XYZ, Quận 2, TP.HCM',
+                'Trần Thị Mẹ',
+                'metranthib@example.com',
+                '0987654334'
             ]
         ];
     }
@@ -53,8 +59,14 @@ class StudentsTemplateExport implements FromArray, WithHeadings, ShouldAutoSize,
                 'Giới tính (Nam/Nữ/Khác)',
                 'Ngày sinh (dd/mm/yyyy)',
                 'Địa chỉ',
+                'Tên phụ huynh',
+                'Email phụ huynh',
+                'Số điện thoại phụ huynh'
             ]
         ];
+        if ($this->gradeLevelId == 10) {
+            $headings[] = 'Điểm đầu vào';
+        }
 
         if ($academicYear || $gradeLevel) {
             $headings[] = [];
@@ -81,7 +93,7 @@ class StudentsTemplateExport implements FromArray, WithHeadings, ShouldAutoSize,
             1 => ['font' => ['bold' => true, 'color' => ['rgb' => 'FF0000']]],
             2 => ['font' => ['italic' => true]],
             4 => ['font' => ['bold' => true]],
-            'A:E' => [
+            'A:H' => [
                 'alignment' => [
                     'wrapText' => true,
                     'vertical' => 'top'

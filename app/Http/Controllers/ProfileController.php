@@ -44,14 +44,7 @@ class ProfileController extends Controller
             'new_password' => 'nullable|min:8|confirmed',
         ];
 
-        // Thêm rules cho thông tin phụ huynh nếu là học sinh
-        if ($user->isStudent()) {
-            $rules = array_merge($rules, [
-                'guardian_name' => 'nullable|string|max:255',
-                'guardian_email' => 'nullable|email|unique:users,guardian_email,'.$user->id,
-                'guardian_phone' => 'nullable|string|max:20',
-            ]);
-        }
+
 
         $validated = $request->validate($rules);
 
@@ -62,12 +55,6 @@ class ProfileController extends Controller
             'phone' => $validated['phone'],
         ];
 
-        // Thêm thông tin phụ huynh nếu là học sinh
-        if ($user->isStudent()) {
-            $updateData['guardian_name'] = $validated['guardian_name'] ?? null;
-            $updateData['guardian_email'] = $validated['guardian_email'] ?? null;
-            $updateData['guardian_phone'] = $validated['guardian_phone'] ?? null;
-        }
 
         $user->update($updateData);
 

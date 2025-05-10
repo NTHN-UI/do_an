@@ -47,12 +47,27 @@
                                         <i class="fas fa-school me-2"></i> {{ $user->school->name }}
                                     </p>
                                 @endif
+
+                                <!-- Thông tin phụ huynh (chỉ hiển thị cho học sinh) -->
+                                @if($user->isStudent())
+                                    <div class="mb-4">
+                                        <h5>Thông tin phụ huynh</h5>
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <p> Tên phụ huynh: {{ $user->guardian_name ?? 'N/A' }}</p>
+                                                <p> Email phụ huynh: {{ $user->guardian_email ?? 'N/A' }}</p>
+                                                <p> SĐT phụ huynh: {{ $user->guardian_phone ?? 'N/A' }}</p>
+
+                                            </div>
+                                        </div>
+                                    </div>
+                                @endif
                             </div>
                         </div>
 
                         <div class="d-flex justify-content-end">
-                            <a href="{{ route('profile.edit') }}" class="btn btn-primary">
-                                <i class="fas fa-edit me-1"></i> Chỉnh sửa hồ sơ
+                            <a href="{{ route('home.index') }}" class="btn btn-primary">
+                                Đóng
                             </a>
                         </div>
                     </div>

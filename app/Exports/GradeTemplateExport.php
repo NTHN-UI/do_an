@@ -156,7 +156,9 @@ class GradeTemplateSubjectSheet implements FromCollection, WithHeadings, WithTit
                 'Điểm 1 tiết lần 2',
                 'Điểm học kỳ'
             ]
+
         ];
+
     }
 
     public function title(): string

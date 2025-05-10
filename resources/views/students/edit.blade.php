@@ -80,11 +80,47 @@
                         </div>
 
                         <div class="mb-3">
+                            <label for="entry_score" class="form-label">Điểm đầu vào</label>
+                            <input type="hidden" name="email" value="{{ $student->entry_score }}">
+
+                            <div class="form-control bg-light">
+                                {{ $student->entry_score }}
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
                             <label class="form-label">Trường học</label>
                             <input type="hidden" name="school_id" value="{{ Auth::user()->school->id }}">
                             <div class="form-control bg-light">
                                 {{ Auth::user()->school->name }}
                             </div>
+                        </div>
+                        <h5>Thông tin phụ huynh</h5>
+                        <div class="mb-3">
+                            <label for="guardian_name" class="form-label">Tên phụ huynh</label>
+                            <input type="text" class="form-control @error('guardian_name') is-invalid @enderror"
+                                   id="guardian_name" name="guardian_name" value="{{ old('guardian_name', $student->guardian_name) }}">
+                            @error('guardian_name')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="guardian_email" class="form-label">Email phụ huynh</label>
+                            <input type="email" class="form-control @error('guardian_email') is-invalid @enderror"
+                                   id="guardian_email" name="guardian_email" value="{{ old('guardian_email', $student->guardian_email) }}">
+                            @error('guardian_email')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="guardian_phone" class="form-label">Số điện thoại phụ huynh</label>
+                            <input type="text" class="form-control @error('guardian_phone') is-invalid @enderror"
+                                   id="guardian_phone" name="guardian_phone" value="{{ old('guardian_phone', $student->guardian_phone) }}">
+                            @error('guardian_phone')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
                         </div>
 
                     </div>

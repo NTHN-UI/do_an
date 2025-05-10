@@ -60,6 +60,7 @@
                             <th>Trường</th>
                             <th>Email</th>
                             <th>Điện thoại</th>
+                            <th>Môn dạy</th>
                             <th>Trạng thái</th>
                             <th>Thao tác</th>
                         </tr>
@@ -71,6 +72,8 @@
                                 <td>{{ $teacher->school->name ?? 'N/A' }}</td>
                                 <td>{{ $teacher->email }}</td>
                                 <td>{{ $teacher->phone }}</td>
+                                <td>{{ $teacher->subject->name ?? "Chưa được phân công" }}</td>
+                                <td></td>
                                 <td>
                                     @if($teacher->is_active)
                                         <span class="badge bg-success">Hoạt động</span>

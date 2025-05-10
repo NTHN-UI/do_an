@@ -41,28 +41,6 @@
                                         <label for="phone" class="form-label">Số điện thoại</label>
                                         <input type="text" class="form-control" id="phone" name="phone" value="{{ old('phone', $user->phone) }}">
                                     </div>
-
-                                    @if($user->isStudent())
-                                        <hr>
-                                        <h5>Thông tin phụ huynh</h5>
-                                        <div class="mb-3">
-                                            <label for="guardian_name" class="form-label">Tên phụ huynh</label>
-                                            <input type="text" class="form-control" id="guardian_name" name="guardian_name"
-                                                   value="{{ old('guardian_name', $user->guardian_name) }}">
-                                        </div>
-
-                                        <div class="mb-3">
-                                            <label for="guardian_email" class="form-label">Email phụ huynh</label>
-                                            <input type="email" class="form-control" id="guardian_email" name="guardian_email"
-                                                   value="{{ old('guardian_email', $user->guardian_email) }}">
-                                        </div>
-
-                                        <div class="mb-3">
-                                            <label for="guardian_phone" class="form-label">Số điện thoại phụ huynh</label>
-                                            <input type="text" class="form-control" id="guardian_phone" name="guardian_phone"
-                                                   value="{{ old('guardian_phone', $user->guardian_phone) }}">
-                                        </div>
-                                    @endif
                                 </div>
                             </div>
 

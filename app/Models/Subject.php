@@ -17,6 +17,9 @@ class Subject extends Model
     {
         return $query->where('school_id', $schoolId);
     }
+    public function users(){
+        return $this->hasMany(User::class);
+    }
 }
 
 

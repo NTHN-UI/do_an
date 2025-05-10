@@ -44,6 +44,23 @@
                                 {{ $teacher->email }}
                             </div>
                         </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label for="subject_id" class="form-label">Môn dạy <span class="text-danger">*</span></label>
+                            <select name="subject_id" id="subject_id"
+                                    class="form-select @error('subject_id') is-invalid @enderror">
+                                <option value="">-- Chọn môn học --</option>
+                                @foreach($subjects as $subject)
+                                    <option value="{{ $subject->id }}"
+                                        {{ old('subject_id', $teacher->subject_id) == $subject->id ? 'selected' : '' }}>
+                                        {{ $subject->name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            @error('subject_id')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
                     </div>
 
                     <!-- Thông tin liên hệ -->

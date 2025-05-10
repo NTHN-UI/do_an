@@ -31,14 +31,27 @@
                 </div>
                 <div class="col-md-6">
                     <p><strong>Trường:</strong> {{ $student->school->name ?? 'N/A' }}</p>
+                    <p><strong>Điểm đầu vào:</strong> {{ $student->entry_score ?? 'N/A' }}</p>
                     <p><strong>Trạng thái:</strong>
                         <span class="badge {{ $student->is_active ? 'bg-success' : 'bg-secondary' }}">
                             {{ $student->is_active ? 'Hoạt động' : 'Ngừng' }}
                         </span>
                     </p>
                 </div>
+
             </div>
             <p><strong>Địa chỉ:</strong> {{ $student->address ?? 'N/A' }}</p>
+
+            <div class="info-section">
+                <h5>Thông tin phụ huynh</h5>
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>Tên phụ huynh:</strong> {{ $student->guardian_name ?? 'N/A' }}</p>
+                        <p><strong>Email phụ huynh:</strong> {{ $student->guardian_email ?? 'N/A' }}</p>
+                        <p><strong>SĐT phụ huynh:</strong> {{ $student->guardian_phone ?? 'N/A' }}</p>
+                    </div>
+                </div>
+            </div>
             <div class="mt-3 d-flex justify-content-end">
                 <a href="{{ route('students.index', $student->id) }}" class="btn fw-bold"
                    style="background-color: #E15336; border-color: #E15336; color: #fff; width: 90px"> Đóng
