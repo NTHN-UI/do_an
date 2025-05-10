@@ -136,16 +136,21 @@
                                         @foreach($subjectsTaught as $subject)
                                             @php
                                                 $subjectGrades = $grades[$student->id][$subject->id] ?? [];
-                                                $fifteenMinutes = $subjectGrades['fifteen_minutes'] ?? [];
-                                                $onePeriod = $subjectGrades['one_period'] ?? [];
-                                                $semester = $subjectGrades['semester'] ?? [];
-                                                $average = $subjectGrades['average'] ?? [];
+                                                $fifteenMinutes = $subjectGrades['fifteen_minutes'] ?? collect();
+                                                $onePeriod = $subjectGrades['one_period'] ?? collect();
+                                                $semester = $subjectGrades['semester'] ?? collect();
+                                                $subjectAverage = $subjectGrades['average'] ?? null;
 
                                                 // Hiển thị điểm
-                                                $avgFifteen = count($fifteenMinutes) > 0 ? round(array_sum(array_column($fifteenMinutes->toArray(), 'score')) / count($fifteenMinutes), 1) : '';
-                                                $avgOnePeriod = count($onePeriod) > 0 ? round(array_sum(array_column($onePeriod->toArray(), 'score')) / count($onePeriod), 1) : '';
-                                                $semesterScore = count($semester) > 0 ? $semester->first()->score : '';
-                                                $subjectAverage = count($average) > 0 ? $average->first()->score : '';
+                                                $avgFifteen = $fifteenMinutes->isNotEmpty()
+                                                    ? round($fifteenMinutes->avg('score'), 1)
+                                                    : '';
+                                                $avgOnePeriod = $onePeriod->isNotEmpty()
+                                                    ? round($onePeriod->avg('score'), 1)
+                                                    : '';
+                                                $semesterScore = $semester->isNotEmpty()
+                                                    ? round($semester->first()->score, 1)
+                                                    : '';
                                             @endphp
 
                                             <td>{{ $avgFifteen }}</td>
@@ -154,11 +159,7 @@
                                         @endforeach
 
                                         <td>
-                                            @php
-                                                // Lấy điểm TB học kỳ đã tính
-                                                $semesterAverage = $grades[$student->id][null]['semester_average'][0]->score ?? '';
-                                            @endphp
-                                            {{ $semesterAverage }}
+                                            {{ $grades[$student->id]['semester_average'] ?? '' }}
                                         </td>
                                     </tr>
                                 @endforeach

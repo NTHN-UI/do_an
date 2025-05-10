@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\School;
+use App\Models\Subject;
 use App\Models\TeacherAssignment;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -39,8 +40,8 @@ class TeacherController extends Controller
      */
     public function create()
     {
-        return view('teachers.create');
-    }
+        $subjects = Subject::where('school_id', auth()->user()->school_id)->get();
+        return view('teachers.create', compact('subjects'));    }
     /**
      * Store a newly created resource in storage.
      */
@@ -52,6 +53,7 @@ class TeacherController extends Controller
             'gender' => 'required|in:Nam,Nữ,Khác',
             'date_of_birth' => 'required|date',
             'address' => 'required|string',
+            'subject_id' => 'required|exists:subjects,id,school_id,'.auth()->user()->school_id,
         ]);
 
         // Lấy thông tin trường học
@@ -100,6 +102,7 @@ class TeacherController extends Controller
             'address' => $request->address,
             'role' => User::ROLE_TEACHER,
             'school_id' => auth()->user()->school_id,
+            'subject_id' => $request->subject_id,
             'is_active' => true
         ]);
 

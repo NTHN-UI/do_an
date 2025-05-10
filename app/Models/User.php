@@ -31,7 +31,8 @@ class User extends Authenticatable
         'date_of_birth',
         'role',
         'is_active',
-        'school_id'
+        'school_id',
+        'subject_id'
     ];
 
     protected $hidden = [
@@ -172,6 +173,45 @@ class User extends Authenticatable
             'date_of_birth' => 'datetime:Y-m-d',
             'is_active' => 'boolean'
         ];
+    }
+    // Trong app/Models/User.php (nếu Student là User)
+    public function getSemesterAverageAttribute($classId, $semesterId, $academicYearId)
+    {
+        $subjects = Subject::whereIn('id', function($query) use ($classId) {
+            $query->select('subject_id')
+                ->from('class_subject')
+                ->where('class_id', $classId);
+        })->get();
+
+        $total = 0;
+        $count = 0;
+
+        foreach ($subjects as $subject) {
+            $average = $this->getSubjectAverage($subject->id, $classId, $semesterId, $academicYearId);
+            if ($average > 0) {
+                $total += $average;
+                $count++;
+            }
+        }
+
+        return $count > 0 ? round($total / $count, 1) : null;
+    }
+
+    public function getSubjectAverage($subjectId, $classId, $semesterId, $academicYearId)
+    {
+        $grades = Grade::where('student_id', $this->id)
+            ->where('subject_id', $subjectId)
+            ->where('class_id', $classId)
+            ->where('semester_id', $semesterId)
+            ->where('academic_year_id', $academicYearId)
+            ->get()
+            ->groupBy('test_type');
+
+        $fifteenAvg = $grades->get('fifteen_minutes')?->avg('score') ?? 0;
+        $onePeriodAvg = $grades->get('one_period')?->avg('score') ?? 0;
+        $semesterScore = $grades->get('semester')?->first()->score ?? 0;
+
+        return ($fifteenAvg * 0.2) + ($onePeriodAvg * 0.3) + ($semesterScore * 0.5);
     }
 
 }

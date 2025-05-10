@@ -55,12 +55,26 @@
                             <label for="date_of_birth" class="form-label">Ngày sinh <span class="text-danger">*</span></label>
                             <input type="date" name="date_of_birth" id="date_of_birth"
                                    class="form-control @error('date_of_birth') is-invalid @enderror"
-                                   value="{{ old('date_of_birth') }}" required>
+                                   value="{{ old('date_of_birth') }}" >
                             @error('date_of_birth')
                             <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
+
+                        <div class="form-group">
+                            <label for="subject_id">Môn học giảng dạy <span class="text-danger">*</span></label>
+                            <select name="subject_id" id="subject_id" class="form-control @error('date_of_birth') is-invalid @enderror"
+                                    value="{{ old('subject_id') }}">
+                                @foreach($subjects as $subject)
+                                    <option value="{{ $subject->id }}">{{ $subject->name }}</option>
+                                @endforeach
+                            </select>
+                            @error('subject_id')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
                     </div>
+
 
                     <!-- Trường học & Mật khẩu -->
                     <div class="row mb-4">

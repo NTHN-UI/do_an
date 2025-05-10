@@ -53,9 +53,6 @@ class GradesImport implements ToCollection, WithHeadingRow, WithCalculatedFormul
             if (empty($row->get("thong_tin_lop_lop_10a1_ma_1"))) {
                 continue;
             }
-            // Tu dang tat' mic, bay gio co 1 van de la:
-            // cai "key" cua ma sinh vien no dang la cai nay: "thong_tin_lop_lop_10a1_ma_1", thi vi du neu doi lop thi kha nang cao key se bi doi
-            // => Khong co dinh, khong lay duoc key. Hien tai Tu code lay' ma sinh vien chi co dung duoc tai cai file excel nay, ve sau bao no tim cach tim msv cho dung nhe'
 
             $studentCode = $row->get("thong_tin_lop_lop_10a1_ma_1");
             $student = User::where('school_auto_id', $studentCode)

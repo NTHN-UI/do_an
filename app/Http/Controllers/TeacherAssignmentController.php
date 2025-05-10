@@ -122,6 +122,13 @@ class TeacherAssignmentController extends Controller
     public function store(Request $request, User $teacher)
     {
         try {
+            if ($teacher->subject_id != $request->subject_id) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Giáo viên không được phân công dạy môn này!'
+                ], 422);
+            }
+            
             if ($teacher->school_id !== auth()->user()->school_id) {
                 return response()->json([
                     'success' => false,
