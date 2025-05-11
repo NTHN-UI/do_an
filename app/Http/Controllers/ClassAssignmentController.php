@@ -22,24 +22,33 @@ class ClassAssignmentController extends Controller
             ->orderBy('start_date', 'desc')
             ->get();
 
-        $currentAcademicYear = AcademicYear::where('school_id', auth()->user()->school_id)
-            ->where('start_date', '<=', now())
-            ->where('end_date', '>=', now())
-            ->first();
+        // Lấy năm học được chọn (nếu không có thì lấy năm học hiện tại)
+        $selectedAcademicYear = $request->input('academic_year_id');
+        if (!$selectedAcademicYear) {
+            $currentAcademicYear = AcademicYear::where('school_id', auth()->user()->school_id)
+                ->where('start_date', '<=', now())
+                ->where('end_date', '>=', now())
+                ->first();
+            $selectedAcademicYear = $currentAcademicYear?->id;
+        }
 
-        $selectedAcademicYear = $request->input('academic_year_id', $currentAcademicYear?->id);
-
-        $classes = ClassModel::withCount(['students' => function ($query) use ($selectedAcademicYear) {
+        // Lấy danh sách lớp với số học sinh theo năm học
+        $classes = ClassModel::withCount(['students' => function($query) use ($selectedAcademicYear) {
             $query->where('student_classes.academic_year_id', $selectedAcademicYear);
         }])
-            ->when($selectedAcademicYear, function ($query) use ($selectedAcademicYear) {
-                return $query->where('academic_year_id', $selectedAcademicYear);
-            })
             ->with(['gradeLevel', 'homeroomTeacher'])
             ->where('school_id', auth()->user()->school_id)
+            ->when($selectedAcademicYear, function($query) use ($selectedAcademicYear) {
+                return $query->where('academic_year_id', $selectedAcademicYear);
+            })
+            ->orderBy('name')
             ->get();
 
-        return view('class_assignments.index', compact('classes', 'academicYears', 'selectedAcademicYear'));
+        return view('class_assignments.index', [
+            'classes' => $classes,
+            'academicYears' => $academicYears,
+            'selectedAcademicYear' => $selectedAcademicYear
+        ]);
     }
 
     /**
@@ -120,6 +129,10 @@ class ClassAssignmentController extends Controller
             $gradeLevelId = $request->grade_level_id;
             $academicYearId = $request->academic_year_id;
 
+            // Lấy thông tin khối học
+            $gradeLevel = GradeLevel::find($gradeLevelId);
+            $isGrade10 = $gradeLevel && $gradeLevel->grade_number == 10;
+
             // Lấy tất cả học sinh chưa phân lớp trong khối và năm học này
             $unassignedStudents = User::where('role', User::ROLE_STUDENT)
                 ->where('school_id', auth()->user()->school_id)
@@ -130,19 +143,19 @@ class ClassAssignmentController extends Controller
                 ->whereDoesntHave('studentClasses', function ($query) use ($academicYearId) {
                     $query->where('student_classes.academic_year_id', $academicYearId);
                 })
-                ->orderByDesc('entry_score')
+                ->when($isGrade10, function ($query) {
+                    return $query->orderByDesc('entry_score');
+                }, function ($query) {
+                    return $query->orderBy('full_name');
+                })
                 ->orderBy('full_name')
                 ->get();
 
-
-            // Lấy tất cả lớp trong khối và năm học
+            // Lấy danh sách lớp trong khối
             $classes = ClassModel::where('grade_level_id', $gradeLevelId)
                 ->where('academic_year_id', $academicYearId)
                 ->where('school_id', auth()->user()->school_id)
-                ->withCount(['students' => function ($query) use ($academicYearId) {
-                    $query->where('student_classes.academic_year_id', $academicYearId);
-                }])
-                ->orderBy('students_count') // Ưu tiên lớp có ít học sinh hơn trước
+                ->orderBy('name')
                 ->get();
 
             if ($classes->isEmpty()) {
@@ -154,17 +167,26 @@ class ClassAssignmentController extends Controller
             }
 
 
-            $assignedCount = 0;
-            $classIndex = 0;
-            $totalClasses = $classes->count();
+            $totalStudents = $unassignedStudents->count();
+            $classCount = $classes->count();
+            $studentsPerClass = ceil($totalStudents / $classCount);
+
             $assignmentDetails = [];
 
             // Chuẩn bị dữ liệu để insert hàng loạt
             $assignments = [];
             $now = now();
 
-            foreach ($unassignedStudents as $student) {
+            foreach ($unassignedStudents as $index => $student) {
+                // Xác định lớp dựa trên thứ tự
+                $classIndex = floor($index / $studentsPerClass);
+                // Đảm bảo không vượt quá số lớp
+                if ($classIndex >= $classCount) {
+                    $classIndex = $classCount - 1;
+                }
+
                 $selectedClass = $classes[$classIndex];
+
 
                 $assignments[] = [
                     'user_id' => $student->id,
@@ -174,12 +196,12 @@ class ClassAssignmentController extends Controller
                     'updated_at' => $now
                 ];
 
-                // Ghi nhận thông tin phân lớp
-                $assignmentDetails[$selectedClass->id][] = $student->full_name;
-
-                $assignedCount++;
-                $classIndex = ($classIndex + 1) % $totalClasses;
+                $assignmentDetails[$selectedClass->id][] = [
+                    'name' => $student->full_name,
+                    'score' => $isGrade10 ? $student->entry_score : null
+                ];
             }
+
 
             // Thực hiện insert hàng loạt
             StudentClass::insert($assignments);
@@ -187,10 +209,28 @@ class ClassAssignmentController extends Controller
             DB::commit();
 
             // Tạo thông báo chi tiết
-            $message = "Đã phân công tự động $assignedCount học sinh vào các lớp:<br>";
-            foreach ($assignmentDetails as $classId => $students) {
-                $className = $classes->firstWhere('id', $classId)->name;
-                $message .= "<br>- Lớp $className: " . count($students) . " học sinh";
+            $message = "Đã phân công $totalStudents học sinh vào $classCount lớp ";
+            $message .= $isGrade10 ? "theo điểm đầu vào:<br><br>" : "theo thứ tự tên:<br><br>";
+
+            foreach ($classes as $class) {
+                $students = $assignmentDetails[$class->id] ?? [];
+                $message .= "<strong>{$class->name}</strong> (".count($students)." học sinh):<br>";
+
+                // Sắp xếp lại để hiển thị
+                if ($isGrade10) {
+                    usort($students, function($a, $b) {
+                        return $b['score'] <=> $a['score'];
+                    });
+
+                    foreach ($students as $student) {
+                        $message .= "- {$student['name']} (Điểm: {$student['score']})<br>";
+                    }
+                } else {
+                    foreach ($students as $student) {
+                        $message .= "- {$student['name']}<br>";
+                    }
+                }
+                $message .= "<br>";
             }
 
             return redirect()
@@ -200,10 +240,9 @@ class ClassAssignmentController extends Controller
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Lỗi phân công tự động: ' . $e->getMessage());
-            return back()->with('error', 'Đã xảy ra lỗi khi phân công tự động');
+            return back()->with('error', 'Đã xảy ra lỗi khi phân công tự động: ' . $e->getMessage());
         }
     }
-
     // Hiển thị danh sách học sinh trong lớp
     public function showClassStudents(ClassModel $class)
     {
