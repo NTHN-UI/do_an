@@ -23,12 +23,17 @@ class StudentsImport implements ToCollection, WithHeadingRow
     protected $gradeLevelId;
     protected $importedCount = 0;
     protected $errors = [];
+    protected $isGrade10 = false;
 
     public function __construct($schoolId, $academicYearId, $gradeLevelId)
     {
         $this->schoolId = $schoolId;
         $this->academicYearId = $academicYearId;
         $this->gradeLevelId = $gradeLevelId;
+
+        // Kiểm tra xem có phải khối 10 không
+        $gradeLevel = GradeLevel::find($gradeLevelId);
+        $this->isGrade10 = $gradeLevel && $gradeLevel->grade_number == 10;
     }
 
     public function collection(Collection $rows)
@@ -64,6 +69,15 @@ class StudentsImport implements ToCollection, WithHeadingRow
                     $lineNumber++;
                     continue;
                 }
+                // Xử lý điểm đầu vào nếu là khối 10
+                if (!isset($row['diem_dau_vao'])) {
+                    $this->errors[] = "Dòng $lineNumber: Thiếu điểm đầu vào (bắt buộc cho khối 10)";
+                    $lineNumber++;
+                    continue;
+                }
+
+                $entryScore = $this->validateEntryScore($row['diem_dau_vao'], $lineNumber);
+
 
                 // Validate số điện thoại học sinh
                 $phone = $this->validatePhone($row['so_dien_thoai'] ?? null, $lineNumber);
@@ -96,10 +110,7 @@ class StudentsImport implements ToCollection, WithHeadingRow
                 // Process date with better validation
                 $dateOfBirth = $this->parseDate($row['ngay_sinh_ddmmyyyy'] ?? null);
 
-                $entryScore = null;
-                if ($this->gradeLevelId == 10) { // ID của khối 10
-                    $entryScore = isset($row['diem_dau_vao']) ? (float)$row['diem_dau_vao'] : null;
-                }
+
                 // Tạo học sinh
                 $student = User::create([
                     'full_name' => $row['ho_ten'],
@@ -134,7 +145,27 @@ class StudentsImport implements ToCollection, WithHeadingRow
             }
         }
     }
+    protected function validateEntryScore($score, $lineNumber)
+    {
+        if (is_null($score) || $score === '') {
+            $this->errors[] = "Dòng $lineNumber: Điểm đầu vào không được để trống";
+            return false;
+        }
 
+        if (!is_numeric($score)) {
+            $this->errors[] = "Dòng $lineNumber: Điểm đầu vào phải là số";
+            return false;
+        }
+
+        $score = (float)$score;
+
+        if ($score < 0 || $score > 50) {
+            $this->errors[] = "Dòng $lineNumber: Điểm đầu vào phải từ 0 đến 50";
+            return false;
+        }
+
+        return $score;
+    }
     /**
      * Normalize row keys to handle different column name formats
      */

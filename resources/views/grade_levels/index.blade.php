@@ -6,13 +6,6 @@
             <h3 class="mb-0">Danh Sách Khối Học</h3>
             <div class="col-md-12">
                 <div class="card">
-                    <div class="card-header">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <a href="{{ route('grade_levels.create') }}" class="btn" style="background-color:#013066; color:#ffffff">
-                                Thêm mới
-                            </a>
-                        </div>
-                    </div>
 
                     <div class="card-body">
 
@@ -31,38 +24,26 @@
                                 <tbody>
                                 @forelse ($gradeLevels as $gradeLevel)
                                     <tr>
-                                        <td>{{ $gradeLevel-> school_auto_id }}</td>
+                                        <td>{{ $gradeLevel->school_auto_id }}</td>
                                         <td>
-                                        <span class="badge text-dark p-2">
-                                            Khối {{ $gradeLevel->grade_number }}
-                                        </span>
+                                            <span class="badge text-dark p-2">
+                                                Khối {{ $gradeLevel->grade_number }}
+                                            </span>
                                         </td>
                                         <td>{{ $gradeLevel->school->name }}</td>
                                         <td>{{ $gradeLevel->school->district }}, {{ $gradeLevel->school->province }}</td>
                                         <td class="text-center">
-                                        <span class="badge badge-pill text-dark">
-                                            {{ $gradeLevel->classes_count ?? $gradeLevel->classes->count() }}
-                                        </span>
+                                            <span class="badge badge-pill text-dark">
+                                                {{ $gradeLevel->classes_count ?? $gradeLevel->classes->count() }}
+                                            </span>
                                         </td>
                                         <td>
                                             <div class="d-flex justify-content-around">
                                                 <a href="{{ route('grade_levels.show', $gradeLevel->id) }}"
                                                    class="btn btn-sm btn-info" title="Xem chi tiết">
-                                                    <i class="fas fa-eye"></i>
+                                                    Xem
                                                 </a>
-                                                <a href="{{ route('grade_levels.edit', $gradeLevel->id) }}"
-                                                   class="btn btn-sm btn-primary" title="Chỉnh sửa">
-                                                    <i class="fas fa-edit"></i>
-                                                </a>
-                                                <form action="{{ route('grade_levels.destroy', $gradeLevel->id) }}"
-                                                      method="POST" class="d-inline">
-                                                    @csrf
-                                                    @method('DELETE')
-                                                    <button type="submit" class="btn btn-sm btn-danger"
-                                                            title="Xóa" onclick="return confirm('Bạn có chắc chắn muốn xóa?')">
-                                                        <i class="fas fa-trash"></i>
-                                                    </button>
-                                                </form>
+
                                             </div>
                                         </td>
                                     </tr>

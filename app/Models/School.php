@@ -57,6 +57,7 @@ class  School extends Model
     {
         return $this->hasMany(Subject::class);
     }
+
     public function users()
     {
         return $this->hasMany(User::class);
@@ -75,7 +76,25 @@ class  School extends Model
             foreach (self::HIGH_SCHOOL_SUBJECTS as $name) {
                 $school->subjects()->create(['name' => $name]);
             }
+
+            $grades = GradeLevel::where('school_id', $school->id)->get();
+
+            if ($grades->isEmpty()) {
+                GradeLevel::insert([
+                    [
+                        'grade_number' => 10,
+                        'school_id' => $school->id,
+                    ],
+                    [
+                        'grade_number' => 11,
+                        'school_id' => $school->id,
+                    ],
+                    [
+                        'grade_number' => 12,
+                        'school_id' => $school->id,
+                    ]
+                ]);
+            }
         });
     }
-
 }

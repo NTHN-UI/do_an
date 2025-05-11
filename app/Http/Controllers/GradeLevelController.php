@@ -15,8 +15,10 @@ class GradeLevelController extends Controller
      */
     public function index(Request $request)
     {
-        $gradeLevels = GradeLevel::where('school_id', auth()->user()->school_id)
-            ->orderBy('grade_number', 'asc')
+        $gradeLevels = GradeLevel::with(['school', 'classes'])
+            ->where('school_id', auth()->user()->school_id)
+            ->whereIn('grade_number', [10, 11, 12])
+            ->orderBy('grade_number')
             ->paginate(10);
 
         return view('grade_levels.index', compact('gradeLevels'));

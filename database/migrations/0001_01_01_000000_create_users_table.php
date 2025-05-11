@@ -209,6 +209,7 @@ return new class extends Migration
             $table->foreignId('academic_year_id')->constrained('academic_years')->onDelete('cascade');
         });
 
+
     }
     /**
      * Reverse the migrations.

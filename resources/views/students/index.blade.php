@@ -136,7 +136,10 @@
                     </button>
                     <ul class="dropdown-menu dropdown-menu-end">
                         <li>
-                            <a class="dropdown-item" href="{{ route('students.export.template') }}">
+                            <a class="dropdown-item" href="{{ route('students.export.template', [
+    'academic_year_id' => $academicYearId ?? null,
+    'grade_level_id' => $gradeLevelId ?? null
+]) }}" id="export-template-link">
                                 <i class="fas fa-file-excel me-1"></i> Tải file mẫu
                             </a>
                         </li>
@@ -333,6 +336,18 @@
                         }
                     });
                 });
+            });
+            // Cập nhật link export template khi thay đổi select
+            $('#academic_year_id, #grade_level_id').change(function() {
+                const academicYearId = $('#academic_year_id').val();
+                const gradeLevelId = $('#grade_level_id').val();
+
+                if (academicYearId && gradeLevelId) {
+                    const url = "{{ route('students.export.template') }}" +
+                        "?academic_year_id=" + academicYearId +
+                        "&grade_level_id=" + gradeLevelId;
+                    $('#export-template-link').attr('href', url);
+                }
             });
         });
     </script>

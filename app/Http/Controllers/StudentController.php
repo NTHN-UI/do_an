@@ -395,6 +395,30 @@ class StudentController extends Controller
             'grade_level_id' => 'required|exists:grade_levels,id,school_id,' . auth()->user()->school_id,
         ]);
         try {
+
+            // Kiểm tra xem có phải khối 10 không
+            $gradeLevel = GradeLevel::find($request->grade_level_id);
+            $isGrade10 = $gradeLevel && $gradeLevel->grade_number == 10;
+            if ($isGrade10) {
+                // Kiểm tra file có cột điểm đầu vào không
+                $fileData = Excel::toArray(new StudentsImport(
+                    auth()->user()->school_id,
+                    $request->academic_year_id,
+                    $request->grade_level_id
+                ), $request->file('file'))[0];
+
+                $hasEntryScoreColumn = isset($fileData[0]['diem_dau_vao']) ||
+                    isset($fileData[0]['diemdauvao']) ||
+                    isset($fileData[0]['diem dau vao']);
+
+                if (!$hasEntryScoreColumn) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'File import thiếu cột điểm đầu vào (bắt buộc cho khối 10)'
+                    ], 422);
+                }
+            }
+
             $import = new StudentsImport(
                 auth()->user()->school_id,
                 $request->academic_year_id,

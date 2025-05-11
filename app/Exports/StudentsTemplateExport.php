@@ -23,16 +23,16 @@ class StudentsTemplateExport implements FromArray, WithHeadings, ShouldAutoSize,
 
     public function array(): array
     {
-        return [
+        $sampleData = [
             [
-                'Nguyễn Văn A', // Họ tên
-                '0987654321', // SĐT
-                'Nam', // Giới tính
-                '15/05/2010', // Ngày sinh
-                '123 Đường ABC, Quận 1, TP.HCM', // Địa chỉ
-                'Nguyễn Văn Bố', // Tên phụ huynh
-                'bonguyenvana@example.com', // Email phụ huynh
-                '0987654333' // SĐT phụ huynh
+                'Nguyễn Văn A',
+                '0987654321',
+                'Nam',
+                '15/05/2010',
+                '123 Đường ABC, Quận 1, TP.HCM',
+                'Nguyễn Văn Bố',
+                'bonguyenvana@example.com',
+                '0987654333'
             ],
             [
                 'Trần Thị B',
@@ -45,41 +45,40 @@ class StudentsTemplateExport implements FromArray, WithHeadings, ShouldAutoSize,
                 '0987654334'
             ]
         ];
+
+        $gradeLevel = GradeLevel::find($this->gradeLevelId);
+
+        // Thêm cột điểm đầu vào nếu là khối 10
+        if ($gradeLevel && $gradeLevel->grade_number == 10) {
+            foreach ($sampleData as &$row) {
+                $row[] = '8.5'; // Thêm điểm mẫu
+            }
+        }
+
+        return $sampleData;
     }
+
 
     public function headings(): array
     {
-        $academicYear = AcademicYear::find($this->academicYearId);
         $gradeLevel = GradeLevel::find($this->gradeLevelId);
 
         $headings = [
-            [
-                'Họ tên*',
-                'Số điện thoại',
-                'Giới tính (Nam/Nữ/Khác)',
-                'Ngày sinh (dd/mm/yyyy)',
-                'Địa chỉ',
-                'Tên phụ huynh',
-                'Email phụ huynh',
-                'Số điện thoại phụ huynh'
-            ]
+            'Họ tên*',
+            'Số điện thoại',
+            'Giới tính (Nam/Nữ/Khác)',
+            'Ngày sinh (dd/mm/yyyy)',
+            'Địa chỉ',
+            'Tên phụ huynh',
+            'Email phụ huynh',
+            'Số điện thoại phụ huynh'
         ];
-        if ($this->gradeLevelId == 10) {
-            $headings[] = 'Điểm đầu vào';
+
+        if ($gradeLevel && $gradeLevel->grade_number == 10) {
+            $headings[] = 'Điểm đầu vào*';
         }
 
-        if ($academicYear || $gradeLevel) {
-            $headings[] = [];
-
-            if ($academicYear) {
-                $headings[] = ['Năm học: ' . ($academicYear->year ?? $academicYear->name ?? 'N/A')];
-            }
-
-            if ($gradeLevel) {
-                $headings[] = ['Khối: ' . ($gradeLevel->grade_number ?? $gradeLevel->name ?? 'N/A')];
-            }
-        }
-
+        // CHỈ trả về mảng headings, không thêm bất kỳ thông tin nào khác
         return $headings;
     }
 
@@ -93,7 +92,7 @@ class StudentsTemplateExport implements FromArray, WithHeadings, ShouldAutoSize,
             1 => ['font' => ['bold' => true, 'color' => ['rgb' => 'FF0000']]],
             2 => ['font' => ['italic' => true]],
             4 => ['font' => ['bold' => true]],
-            'A:H' => [
+            'A:I' => [
                 'alignment' => [
                     'wrapText' => true,
                     'vertical' => 'top'
