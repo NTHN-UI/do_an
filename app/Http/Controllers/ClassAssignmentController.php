@@ -8,6 +8,7 @@ use App\Models\GradeLevel;
 use App\Models\StudentClass;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -24,21 +25,14 @@ class ClassAssignmentController extends Controller
 
         // Lấy năm học được chọn (nếu không có thì lấy năm học hiện tại)
         $selectedAcademicYear = $request->input('academic_year_id');
-        if (!$selectedAcademicYear) {
-            $currentAcademicYear = AcademicYear::where('school_id', auth()->user()->school_id)
-                ->where('start_date', '<=', now())
-                ->where('end_date', '>=', now())
-                ->first();
-            $selectedAcademicYear = $currentAcademicYear?->id;
-        }
 
         // Lấy danh sách lớp với số học sinh theo năm học
-        $classes = ClassModel::withCount(['students' => function($query) use ($selectedAcademicYear) {
+        $classes = ClassModel::withCount(['students' => function ($query) use ($selectedAcademicYear) {
             $query->where('student_classes.academic_year_id', $selectedAcademicYear);
         }])
             ->with(['gradeLevel', 'homeroomTeacher'])
             ->where('school_id', auth()->user()->school_id)
-            ->when($selectedAcademicYear, function($query) use ($selectedAcademicYear) {
+            ->when($selectedAcademicYear, function ($query) use ($selectedAcademicYear) {
                 return $query->where('academic_year_id', $selectedAcademicYear);
             })
             ->orderBy('name')
@@ -214,11 +208,11 @@ class ClassAssignmentController extends Controller
 
             foreach ($classes as $class) {
                 $students = $assignmentDetails[$class->id] ?? [];
-                $message .= "<strong>{$class->name}</strong> (".count($students)." học sinh):<br>";
+                $message .= "<strong>{$class->name}</strong> (" . count($students) . " học sinh):<br>";
 
                 // Sắp xếp lại để hiển thị
                 if ($isGrade10) {
-                    usort($students, function($a, $b) {
+                    usort($students, function ($a, $b) {
                         return $b['score'] <=> $a['score'];
                     });
 
@@ -243,6 +237,7 @@ class ClassAssignmentController extends Controller
             return back()->with('error', 'Đã xảy ra lỗi khi phân công tự động: ' . $e->getMessage());
         }
     }
+
     // Hiển thị danh sách học sinh trong lớp
     public function showClassStudents(ClassModel $class)
     {
@@ -254,10 +249,40 @@ class ClassAssignmentController extends Controller
             ->where('student_classes.academic_year_id', $class->academic_year_id)
             ->paginate(20);
 
-        // Lấy academic year từ lớp
         $academicYear = AcademicYear::find($class->academic_year_id);
 
-        return view('class_assignments.class_students', compact('class', 'students', 'academicYear'));
+        $yearParts = explode('-', $academicYear->year);
+        $currentEndYear = trim($yearParts[1]);
+
+        $nextYear = AcademicYear::where('year', 'like', $currentEndYear . '%')->first();
+
+        $nextGrade = $class->gradeLevel->grade_number + 1;
+
+        $nextGradeLevel = GradeLevel::where('grade_number', $nextGrade)->first();
+
+        $nextGradeClasses = [];
+
+        if ($nextYear && $nextGradeLevel) {
+            $nextGradeClasses = ClassModel::where('academic_year_id', $nextYear->id)
+                ->where('grade_level_id', $nextGradeLevel->id)
+                ->where('school_id', auth()->user()->school_id)
+                ->get();
+        }
+        $targetClasses = ClassModel::where('grade_level_id', $class->grade_level_id)
+            ->where('academic_year_id', $academicYear->id)
+            ->where('school_id', auth()->user()->school_id)
+            ->where('id', '!=', $class->id)
+            ->get();
+
+        return view('class_assignments.class_students', compact(
+            'class',
+            'students',
+            'academicYear',
+            'nextYear',
+            'nextGrade',
+            'nextGradeClasses',
+            'targetClasses'
+        ));
     }
 
     // Chuyển học sinh sang lớp khác
