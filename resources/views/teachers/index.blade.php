@@ -27,7 +27,7 @@
         @endif
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h2>Quản lý Giáo viên</h2>
-            <a href="{{ route('teachers.create') }}" class="btn" style="background-color:#013066; color:#ffffff">Thêm mới
+            <a href="{{ route('teachers.create') }}" class="btn btn-primary-color">Thêm mới
             </a>
         </div>
 

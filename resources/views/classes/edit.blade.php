@@ -56,12 +56,10 @@
                 </div>
 
                 <div class="d-flex justify-content-end align-items-center mt-3">
-                    <a href="{{ route('classes.index', $class->id) }}" class="btn me-2"
-                       style="background-color: #ffffff; border-color: #013066; color: #013066;">
+                    <a href="{{ route('classes.index', $class->id) }}" class="btn btn-primary-color me-2">
                         Đóng
                     </a>
-                    <button type="submit" class="btn"
-                            style="background-color: #013066; border-color: #013066; color: #fff;">
+                    <button type="submit" class="btn btn-primary-color">
                         Cập nhật
                     </button>
                 </div>

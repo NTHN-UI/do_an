@@ -52,19 +52,18 @@
 
     </style>
     <div class="container">
-        <h3 class="mb-3" style = "color:#013066">Danh sách trường học</h3>
+        <h3 class="mb-3 text-primary-color">Danh sách trường học</h3>
         <div class="d-flex justify-content-end align-items-center mb-3">
             <form method="GET" action="{{ route('schools.index') }}" class="d-flex me-2" id="search-form">
                 <div class="input-group">
                     <input type="text" name="search" id="search-input" class="form-control" style="min-width: 300px"
                            placeholder="Tìm kiếm trường học..." value="{{ request('search') }}">
-                    <button type="submit" class="btn me-0" style="background-color: #013066;">
-                        <i class="fas fa-search" style="color: white"></i>
+                    <button type="submit" class="btn btn-primary-color me-0">
+                        <i class="fas fa-search"></i>
                     </button>
                 </div>
             </form>
-            <a href="{{ route('schools.create') }}" class="btn shadow"
-               style="background-color: #013066; border-color: #013066; color: #fff;">
+            <a href="{{ route('schools.create') }}" class="btn btn-primary-color">
                 Thêm mới
             </a>
         </div>
@@ -111,29 +110,13 @@
                     </table>
                 </div>
             </div>
-        </div>
-
-        <div class="d-flex justify-content-end align-items-center mt-2">
-            <div class="text-muted me-3">
-                {{ $schools->firstItem() }}-{{ $schools->lastItem() }} của {{ $schools->total() }} bản ghi
-            </div>
-            <ul class="pagination pagination-sm mb-0">
-                <li class="page-item {{ $schools->onFirstPage() ? 'disabled' : '' }}">
-                    <a class="page-link"href="{{ $schools->previousPageUrl() }}">
-                        <i class="fas fa-angle-left"></i>
-                    </a>
-                </li>
-                @for ($i = 1; $i <= $schools->lastPage(); $i++)
-                    <li class="page-item {{ $schools->currentPage() == $i ? 'active' : '' }}">
-                        <a class="page-link" style="background-color: #013066; border-color: #013066; color: #fff;" href="{{ $schools->url($i) }}">{{ $i }}</a>
-                    </li>
-                @endfor
-                <li class="page-item {{ $schools->hasMorePages() ? '' : 'disabled' }}">
-                    <a class="page-link" href="{{ $schools->nextPageUrl() }}">
-                        <i class="fas fa-angle-right"></i>
-                    </a>
-                </li>
-            </ul>
+            @if($schools->lastPage() > 1)
+                <div class="card-footer border-0 bg-transparent" id="pagination-container">
+                    <nav aria-label="page navigation">
+                        {{ $schools->links('pagination::bootstrap-5') }}
+                    </nav>
+                </div>
+            @endif
         </div>
     </div>
 @endsection

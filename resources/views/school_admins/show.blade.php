@@ -10,16 +10,6 @@
             overflow-x: auto;
         }
 
-        .btn-back {
-            background: none;
-            border: none;
-            font-size: 1.2rem;
-        }
-
-        .btn-back:hover {
-            color: #011a4d !important;
-        }
-
         dl.row dt {
             font-weight: 500;
             color: #495057;
@@ -32,10 +22,10 @@
 
     <div class="container">
         <div class="d-flex align-items-center mb-4">
-            <a href="{{ route('school_admins.index') }}" class="btn btn-back me-3" style="color: #013066;" title="Quay lại">
+            <a href="{{ url()->previous() }}" class="btn btn-primary-color btn-sm me-3"title="Quay lại">
                 <i class="fas fa-arrow-left"></i>
             </a>
-            <h4 class="mb-0" style="color: #013066;">Thông tin Admin Trường</h4>
+            <h4 class="mb-0 text-primary-color">Thông tin Admin Trường</h4>
         </div>
 
         <div class="card-body">
@@ -64,8 +54,7 @@
             </div>
 
             <div class="mt-3 d-flex justify-content-end">
-                <a href="{{ route('school_admins.index') }}" class="btn fw-bold"
-                   style="background-color: #ffffff; border-color: #013066; color: #013066; width: 90px">Đóng
+                <a href="{{ route('school_admins.index') }}" class="btn btn-primary-color fw-bold">Đóng
                 </a>
             </div>
         </div>

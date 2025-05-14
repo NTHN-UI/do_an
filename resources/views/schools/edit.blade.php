@@ -16,7 +16,7 @@
             <a href="{{ route('schools.index') }}" class="btn btn-back me-3" title="Quay lại">
                 <i class="fas fa-arrow-left"></i>
             </a>
-            <h4 class="mb-0" style = "color:#013066"> Sửa thông tin trường học </h4>
+            <h4 class="mb-0 text-primary-color"> Sửa thông tin trường học </h4>
         </div>
         <div class="card-body">
             <form action="{{ route('schools.update', $school->id) }}" method="POST">
@@ -60,12 +60,10 @@
                 </div>
 
                 <div class="d-flex justify-content-end align-items-center mt-3">
-                    <a href="{{ route('schools.index', $school->id) }}" class="btn me-2"
-                       style="background-color: #ffffff; border-color: #013066; color: #013066;">
+                    <a href="{{ route('schools.index', $school->id) }}" class="btn btn-primary-color me-2">
                         Đóng
                     </a>
-                    <button type="submit" class="btn"
-                            style="background-color: #013066; border-color: #013066; color: #fff;">
+                    <button type="submit" class="btn btn-primary-color">
                         Cập nhật
                     </button>
                 </div>

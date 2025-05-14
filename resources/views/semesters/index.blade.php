@@ -18,7 +18,7 @@
                         </select>
                         <div class="input-group-append">
                             <a href="{{ route('semesters.create') }}"
-                               class="btn" style="background-color:#013066; color:#ffffff">
+                               class="btn btn-primary-color">
                                 Thêm mới
                             </a>
                         </div>

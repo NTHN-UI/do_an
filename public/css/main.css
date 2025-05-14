@@ -1,0 +1,98 @@
+:root {
+    --primary-color: #013066;
+    --primary-color-hover: #1a4a8a;
+}
+
+.bg-primary-color {
+    background-color: var(--primary-color);
+    color: var(--bs-white);
+}
+
+.btn-primary-color {
+    background-color: var(--primary-color);
+    color: var(--bs-white);
+}
+
+.btn-primary-color:hover {
+    background-color: var(--primary-color-hover);
+    color: var(--bs-white);
+}
+
+.text-primary-color {
+    color: var(--primary-color);
+}
+
+
+.navbar-custom {
+    background-color: white !important;
+    box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+    padding: 0.5rem 6rem;
+}
+
+.navbar-custom .navbar-brand {
+    color: #4e73df;
+    font-weight: 700;
+    font-size: 1.2rem;
+    padding: 0.5rem 0;
+}
+
+.navbar-custom .nav-link {
+    font-weight: 600;
+    padding: 0.75rem 1rem;
+    position: relative;
+    transition: all 0.3s;
+}
+
+.navbar-custom .nav-link:hover,
+.navbar-custom .nav-link:focus {
+    color: #2e59d9;
+}
+
+.navbar-custom .nav-link.active {
+    color: #1a3b8b;
+}
+
+.navbar-custom .nav-link.active::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 1rem;
+    right: 1rem;
+    height: 0.25rem;
+    background-color: #1a3b8b;
+    border-radius: 0.25rem 0.25rem 0 0;
+}
+
+.navbar-custom .dropdown-menu {
+    border: none;
+    box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+}
+
+.navbar-custom .dropdown-item {
+    color: #5a5c69;
+}
+
+.navbar-custom .dropdown-item:hover {
+    background-color: #f8f9fc;
+    color: #4e73df;
+}
+
+.navbar-toggler-custom {
+    border: none;
+    padding: 0.5rem;
+}
+
+.navbar-toggler-custom:focus {
+    box-shadow: none;
+}
+
+@media (max-width: 991.98px) {
+    .navbar-custom .nav-link.active::after {
+        left: 0.5rem;
+        right: 0.5rem;
+    }
+}
+
+.content {
+    padding-top: 1.5rem;
+}

@@ -51,7 +51,7 @@
         }
     </style>
     <div class="container">
-        <h3 class="mb-3" style="color:#013066">Danh sách Admin Trường</h3>
+        <h3 class="mb-3 text-primary-color">Danh sách Admin Trường</h3>
         <div class="d-flex justify-content-end align-items-center mb-3">
             <form method="GET" action="{{ route('school_admins.index') }}" class="d-flex me-2" id="search-form">
                 <div class="input-group">
@@ -59,13 +59,12 @@
                            placeholder="Tìm theo tên, email hoặc tên trường..."
                            value="{{ request('search') }}"
                            autocomplete="off">
-                    <button type="submit" class="btn me-0" style="background-color: #013066;">
-                        <i class="fas fa-search" style="color: white"></i>
+                    <button type="submit" class="btn btn-primary-color me-0">
+                        <i class="fas fa-search"></i>
                     </button>
                 </div>
             </form>
-            <a href="{{ route('school_admins.create') }}" class="btn shadow"
-               style="background-color: #013066; border-color: #013066; color: #fff;">
+            <a href="{{ route('school_admins.create') }}" class="btn btn-primary-color">
                 Thêm mới
             </a>
         </div>
@@ -113,29 +112,14 @@
                     </table>
                 </div>
             </div>
-        </div>
+            @if($schoolAdmins->lastPage() > 1)
+                <div class="card-footer border-0 bg-transparent" id="pagination-container">
+                    <nav aria-label="page navigation">
+                        {{ $schoolAdmins->links('pagination::bootstrap-5') }}
+                    </nav>
+                </div>
+            @endif
 
-        <div class="d-flex justify-content-end align-items-center mt-2">
-            <div class="text-muted me-3">
-                {{ $schoolAdmins->firstItem() }}-{{ $schoolAdmins->lastItem() }} của {{ $schoolAdmins->total() }} bản ghi
-            </div>
-            <ul class="pagination pagination-sm mb-0">
-                <li class="page-item {{ $schoolAdmins->onFirstPage() ? 'disabled' : '' }}">
-                    <a class="page-link"href="{{ $schoolAdmins->previousPageUrl() }}">
-                        <i class="fas fa-angle-left"></i>
-                    </a>
-                </li>
-                @for ($i = 1; $i <= $schoolAdmins->lastPage(); $i++)
-                    <li class="page-item {{ $schoolAdmins->currentPage() == $i ? 'active' : '' }}">
-                        <a class="page-link" style="background-color: #013066; border-color: #013066; color: #fff;" href="{{ $schoolAdmins->url($i) }}">{{ $i }}</a>
-                    </li>
-                @endfor
-                <li class="page-item {{ $schoolAdmins->hasMorePages() ? '' : 'disabled' }}">
-                    <a class="page-link" href="{{ $schoolAdmins->nextPageUrl() }}">
-                        <i class="fas fa-angle-right"></i>
-                    </a>
-                </li>
-            </ul>
         </div>
     </div>
 @endsection

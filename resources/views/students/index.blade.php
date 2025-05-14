@@ -67,7 +67,7 @@
                             <div class="input-group">
                                 <input type="text" name="search" class="form-control"
                                        placeholder="Tìm kiếm học sinh..." value="{{ $search }}">
-                                <button type="submit" class="btn" style="background-color:#013066; color:#ffffff">
+                                <button type="submit" class="btn btn-primary-color">
                                     <i class="fas fa-search text-white"></i>
                                 </button>
                             </div>
@@ -108,12 +108,10 @@
         <!-- Action Buttons -->
         <div class="d-flex justify-content-between mb-3">
             <div>
-                <a href="{{ route('students.create') }}" class="btn shadow me-2"
-                   style="background-color:#013066; color:#ffffff">
+                <a href="{{ route('students.create') }}" class="btn btn-primary-color me-2">
                     Thêm mới
                 </a>
-                <a href="{{ route('class_assignments.index') }}" class="btn me-2"
-                   style="background-color:#013066; color:#ffffff">Phân lớp
+                <a href="{{ route('class_assignments.index') }}" class="btn btn-primary-color me-2">Phân lớp
                 </a>
             </div>
 

@@ -32,10 +32,10 @@
 
     <div class="container">
         <div class="d-flex align-items-center mb-4">
-            <a href="{{ route('school_admins.index') }}" class="btn btn-back me-3" style="color: #013066;" title="Quay lại">
+            <a href="{{ route('school_admins.index') }}" class="btn btn-back text-primary-color me-3" title="Quay lại">
                 <i class="fas fa-arrow-left"></i>
             </a>
-            <h4 class="mb-0" style="color: #013066;">Thêm mới Admin Trường</h4>
+            <h4 class="mb-0 text-primary-color">Thêm mới Admin Trường</h4>
         </div>
 
         <div class="card-body">
@@ -94,10 +94,8 @@
                 </div>
 
                 <div class="d-flex justify-content-end mt-3">
-                    <a href="{{ route('school_admins.index') }}" class="btn btn-secondary me-2"
-                       style="background-color: #ffffff; border-color: #013066; color: #013066;">Đóng</a>
-                    <button type="submit" class="btn btn-primary"
-                            style="background-color: #013066; border-color: #013066; color: #fff;">Lưu</button>
+                    <a href="{{ route('school_admins.index') }}" class="btn btn-secondary me-2">Đóng</a>
+                    <button type="submit" class="btn btn-primary-color">Lưu</button>
                 </div>
             </form>
         </div>

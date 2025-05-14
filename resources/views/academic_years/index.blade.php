@@ -3,7 +3,7 @@
 @section('content')
     <div class="container">
         <h2>Quản lý Năm học</h2>
-        <a href="{{ route('academic_years.create') }}" class="btn mb-3"  style="background-color:#013066; color:#ffffff">Thêm mới
+        <a href="{{ route('academic_years.create') }}" class="btn btn-primary-color mb-3">Thêm mới
         </a>
 
         <div class="table-responsive">

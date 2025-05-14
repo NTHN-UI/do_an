@@ -6,6 +6,7 @@
     <title>Đăng nhập hệ thống quản lý trường học</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ asset('css/main.css') }}">
     <style>
         body {
             background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
@@ -23,10 +24,10 @@
             background-color: transparent;
             border-right: none;
         }
-        .form-control {
+        /*.form-control {
             border-left: none;
             padding-left: 0;
-        }
+        }*/
         .toggle-password {
             cursor: pointer;
         }
@@ -42,7 +43,7 @@
             <div class="card login-card border-0">
                 <div class="card-header login-header text-white text-center py-4 border-0">
                     <div class="d-inline-block bg-white rounded-circle p-3 mb-3">
-                        <i class="fas fa-graduation-cap fa-3x" style = "color: #013066"></i>
+                        <i class="fas fa-graduation-cap fa-3x text-primary-color"></i>
                     </div>
                     <h3 class="fw-bold mb-1">HỆ THỐNG QUẢN LÝ TRƯỜNG HỌC</h3>
                     <p class="mb-0 opacity-75">Xin mời đăng nhập hệ thống</p>
@@ -93,17 +94,17 @@
                                     Ghi nhớ đăng nhập
                                 </label>
                             </div>
-                            <a href="#" class="text-decoration-none" style = "color: #013066">Quên mật khẩu?</a>
+                            <a href="#" class="text-decoration-none text-primary-color">Quên mật khẩu?</a>
                         </div>
 
-                        <button type="submit" class="btn btn-lg w-100 mb-3" style = "background:#013066; color: #ffffff">
+                        <button type="submit" class="btn btn-lg btn-primary-color w-100 mb-3">
                             <i class="fas fa-sign-in-alt me-2"></i> ĐĂNG NHẬP
                         </button>
                     </form>
                 </div>
             </div>
 
-            <div class="text-center mt-4 small" style = "color: #013066" >
+            <div class="text-center mt-4 small text-primary-color" >
                 © <span id="currentYear"></span> Hệ thống Quản lý Trường học
             </div>
         </div>
@@ -136,7 +137,7 @@
             event.preventDefault();
             event.stopPropagation();
         }
-        this.classList.add('was-validated');
+        this.classList.add('invalid-feedback');
     }, false);
 </script>
 </body>

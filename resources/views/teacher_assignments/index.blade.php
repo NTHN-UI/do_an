@@ -5,7 +5,7 @@
         <h2>Quản lý Phân công giảng dạy</h2>
         <div class="d-flex justify-content-end align-items-center mb-4">
             <div>
-                <a href="{{ route('teachers.index') }}?assign=1" class="btn" style="background-color:#013066; color:#ffffff">Thêm phân công
+                <a href="{{ route('teachers.index') }}?assign=1" class="btn btn-primary-color">Thêm phân công
                 </a>
             </div>
         </div>
@@ -26,7 +26,8 @@
                             <select name="academic_year_id" class="form-select" id="academic-year-filter">
                                 <option value="">-- Tất cả năm --</option>
                                 @foreach($academicYears as $year)
-                                    <option value="{{ $year->id }}" {{ request('academic_year_id') == $year->id ? 'selected' : '' }}>
+                                    <option
+                                        value="{{ $year->id }}" {{ request('academic_year_id') == $year->id ? 'selected' : '' }}>
                                         {{ $year->year }}
                                     </option>
                                 @endforeach
@@ -38,7 +39,8 @@
                             <select name="class_id" class="form-select" id="class-filter">
                                 <option value="">-- Tất cả lớp --</option>
                                 @foreach($classes as $class)
-                                    <option value="{{ $class->id }}" {{ request('class_id') == $class->id ? 'selected' : '' }}>
+                                    <option
+                                        value="{{ $class->id }}" {{ request('class_id') == $class->id ? 'selected' : '' }}>
                                         {{ $class->gradeLevel->grade_number }} - {{ $class->name }}
                                     </option>
                                 @endforeach
@@ -98,11 +100,8 @@
                                     - {{ $assignment->class->name }}</td>
                                 <td>{{ $assignment->subject->name }}</td>
                                 <td>
-                                    @if($assignment->is_homeroom)
-                                        <span class="badge" style="background-color:#013066; color:#ffffff">Giáo viên chủ nhiệm</span>
-                                    @else
-                                        <span class="badge" style="background-color:#013066; color:#ffffff">Giáo viên bộ môn</span>
-                                    @endif
+                                    <span
+                                        class="badge bg-primary-color">{{ $assignment->is_homeroom ? "Giáo viên bộ môn" : "Giáo viên chủ nhiệm" }}</span>
                                 </td>
                                 <td>{{ $assignment->academicYear->year }}</td>
                                 <td>
@@ -172,7 +171,7 @@
                 }
             });
             // Tự động submit form khi có thay đổi filter
-            $('#academic-year-filter, #class-filter, [name="subject_id"], [name="is_homeroom"]').change(function() {
+            $('#academic-year-filter, #class-filter, [name="subject_id"], [name="is_homeroom"]').change(function () {
                 $('#filter-form').submit();
             });
 
@@ -225,52 +224,52 @@
                 });
             });
         });
-            {{--// Xử lý khi năm học thay đổi--}}
-            {{--$('#academic-year-filter').change(function() {--}}
-            {{--    const academicYearId = $(this).val();--}}
+        {{--// Xử lý khi năm học thay đổi--}}
+        {{--$('#academic-year-filter').change(function() {--}}
+        {{--    const academicYearId = $(this).val();--}}
 
-            {{--    // Gọi API lấy danh sách lớp theo năm học--}}
-            {{--    if (academicYearId) {--}}
-            {{--        $.ajax({--}}
-            {{--            url: '{{ route("teacher_assignments.getClassesByAcademicYear") }}',--}}
-            {{--            method: 'GET',--}}
-            {{--            data: {--}}
-            {{--                academic_year_id: academicYearId--}}
-            {{--            },--}}
-            {{--            success: function(response) {--}}
-            {{--                // Cập nhật dropdown lớp--}}
-            {{--                const classFilter = $('#class-filter');--}}
-            {{--                classFilter.empty();--}}
-            {{--                classFilter.append('<option value="">-- Tất cả lớp --</option>');--}}
+        {{--    // Gọi API lấy danh sách lớp theo năm học--}}
+        {{--    if (academicYearId) {--}}
+        {{--        $.ajax({--}}
+        {{--            url: '{{ route("teacher_assignments.getClassesByAcademicYear") }}',--}}
+        {{--            method: 'GET',--}}
+        {{--            data: {--}}
+        {{--                academic_year_id: academicYearId--}}
+        {{--            },--}}
+        {{--            success: function(response) {--}}
+        {{--                // Cập nhật dropdown lớp--}}
+        {{--                const classFilter = $('#class-filter');--}}
+        {{--                classFilter.empty();--}}
+        {{--                classFilter.append('<option value="">-- Tất cả lớp --</option>');--}}
 
-            {{--                response.forEach(function(classItem) {--}}
-            {{--                    classFilter.append(--}}
-            {{--                        `<option value="${classItem.id}">--}}
-            {{--                            ${classItem.grade_level.grade_number} - ${classItem.name}--}}
-            {{--                        </option>`--}}
-            {{--                    );--}}
-            {{--                });--}}
-            {{--            },--}}
-            {{--            error: function(xhr) {--}}
-            {{--                console.error('Error fetching classes:', xhr.responseText);--}}
-            {{--            }--}}
-            {{--        });--}}
-            {{--    } else {--}}
-            {{--        // Nếu chọn "Tất cả năm" thì reset dropdown lớp--}}
-            {{--        const classFilter = $('#class-filter');--}}
-            {{--        classFilter.empty();--}}
-            {{--        classFilter.append('<option value="">-- Tất cả lớp --</option>');--}}
+        {{--                response.forEach(function(classItem) {--}}
+        {{--                    classFilter.append(--}}
+        {{--                        `<option value="${classItem.id}">--}}
+        {{--                            ${classItem.grade_level.grade_number} - ${classItem.name}--}}
+        {{--                        </option>`--}}
+        {{--                    );--}}
+        {{--                });--}}
+        {{--            },--}}
+        {{--            error: function(xhr) {--}}
+        {{--                console.error('Error fetching classes:', xhr.responseText);--}}
+        {{--            }--}}
+        {{--        });--}}
+        {{--    } else {--}}
+        {{--        // Nếu chọn "Tất cả năm" thì reset dropdown lớp--}}
+        {{--        const classFilter = $('#class-filter');--}}
+        {{--        classFilter.empty();--}}
+        {{--        classFilter.append('<option value="">-- Tất cả lớp --</option>');--}}
 
-            {{--        // Thêm tất cả lớp (nếu cần)--}}
-            {{--        @foreach($allClasses as $class)--}}
-            {{--        classFilter.append(--}}
-            {{--            `<option value="{{ $class->id }}" {{ request('class_id') == $class->id ? 'selected' : '' }}>--}}
-            {{--                    {{ $class->gradeLevel->grade_number }} - {{ $class->name }}--}}
-            {{--            </option>`--}}
-            {{--        );--}}
-            {{--        @endforeach--}}
-            {{--    }--}}
-            {{--});--}}
+        {{--        // Thêm tất cả lớp (nếu cần)--}}
+        {{--        @foreach($allClasses as $class)--}}
+        {{--        classFilter.append(--}}
+        {{--            `<option value="{{ $class->id }}" {{ request('class_id') == $class->id ? 'selected' : '' }}>--}}
+        {{--                    {{ $class->gradeLevel->grade_number }} - {{ $class->name }}--}}
+        {{--            </option>`--}}
+        {{--        );--}}
+        {{--        @endforeach--}}
+        {{--    }--}}
+        {{--});--}}
 
 
     </script>

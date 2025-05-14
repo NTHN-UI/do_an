@@ -103,7 +103,7 @@
                         <a href="{{ route('teachers.index') }}" class="btn btn-secondary">
                             <i class="fas fa-arrow-left me-1"></i> Quay lại
                         </a>
-                        <button type="submit" class="btn" style="background-color:#013066; color:#ffffff">
+                        <button type="submit" class="btn btn-primary-color">
                             <i class="fas fa-save me-1"></i> Lưu thông tin
                         </button>
                     </div>

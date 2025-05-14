@@ -97,17 +97,6 @@
         justify-content: center;
         padding-bottom: 2rem;
     }
-
-    #logoutModal .btn-primary {
-        background-color: #013066;
-        border-color: #013066;
-        padding: 0.5rem 1.5rem;
-    }
-
-    #logoutModal .btn-secondary {
-        padding: 0.5rem 1.5rem;
-        margin-right: 1rem;
-    }
 </style>
 <nav class="navbar navbar-expand-lg navbar-custom">
     <a class="navbar-brand text-white d-flex align-items-center gap-2" href="#">

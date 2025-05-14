@@ -32,7 +32,7 @@
             overflow: visible !important;
         }
 
-        .table-responsive .dropdown-menu  {
+        .table-responsive .dropdown-menu {
             position: fixed !important;
             z-index: 1000 !important;
             min-width: 90px;
@@ -41,9 +41,11 @@
         .table-responsive .show > .dropdown-menu {
             display: block !important;
         }
+
         th {
             font-weight: 500;
         }
+
         .dropdown-item:active,
         .dropdown-item:focus {
             background-color: #013066 !important;
@@ -52,27 +54,23 @@
     </style>
 
     <div class="container">
-        <h3 class="mb-0" style="color:#013066">Danh sách lớp học</h3>
-        <div class="row mb-3">
-            <div class="col-md-4">
-                <form method="GET" action="{{ route('classes.index') }}">
-                    <div class="input-group">
-                        <select name="academic_year_id" class="form-select" onchange="this.form.submit()">
-                            <option value="">-- Chọn năm học --</option>
+        <h3 class="mb-3 text-primary-color">Danh sách lớp học</h3>
+        <div class="mb-3 d-flex justify-content-end align-items-center">
+            <form method="GET" action="{{ route('classes.index') }}">
+                <div class="input-group">
+                    <select name="academic_year_id" class="form-select" onchange="this.form.submit()">
+                        <option value="">-- Chọn năm học --</option>
                         @foreach($academicYears as $year)
-                                <option value="{{ $year->id }}" {{ $selectedYearId == $year->id ? 'selected' : '' }}>
-                                    {{ $year->year }}
-                                </option>
-                            @endforeach
-                        </select>
-                        <div>
-                            <a href="{{ route('classes.create') }}" class="btn" style="background-color:#013066; color:#ffffff">
-                               Thêm mới
-                            </a>
-                        </div>
-                    </div>
-                </form>
-            </div>
+                            <option value="{{ $year->id }}" {{ $selectedYearId == $year->id ? 'selected' : '' }}>
+                                {{ $year->year }}
+                            </option>
+                        @endforeach
+                    </select>
+                    <a href="{{ route('classes.create') }}" class="btn btn-primary-color">
+                        Thêm mới
+                    </a>
+                </div>
+            </form>
         </div>
 
         <div class="card border-0 shadow-sm">
@@ -97,17 +95,20 @@
                                 <td>Khối {{ $class->gradeLevel->grade_number }}</td>
                                 <td class="text-end pe-4">
                                     <div class="dropdown">
-                                        <button class="btn btn-sm" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                        <button class="btn btn-sm" type="button" data-bs-toggle="dropdown"
+                                                aria-expanded="false">
                                             <i class="fas fa-ellipsis-v text-muted"></i>
                                         </button>
                                         <ul class="dropdown-menu dropdown-menu-end shadow-sm rounded-3 border-0">
                                             <li>
-                                                <a class="dropdown-item px-3 py-2" href="{{ route('classes.show', $class->id) }}">
-                                                   Xem
+                                                <a class="dropdown-item px-3 py-2"
+                                                   href="{{ route('classes.show', $class->id) }}">
+                                                    Xem
                                                 </a>
                                             </li>
                                             <li>
-                                                <a class="dropdown-item px-3 py-2" href="{{ route('classes.edit', $class->id) }}">
+                                                <a class="dropdown-item px-3 py-2"
+                                                   href="{{ route('classes.edit', $class->id) }}">
                                                     Sửa
                                                 </a>
                                             </li>
@@ -115,7 +116,8 @@
                                                 <form action="{{ route('classes.destroy', $class->id) }}" method="POST">
                                                     @csrf
                                                     @method('DELETE')
-                                                    <button type="submit" class="dropdown-item px-3 py-2 " onclick="return confirm('Bạn có chắc muốn xóa?')">
+                                                    <button type="submit" class="dropdown-item px-3 py-2 "
+                                                            onclick="return confirm('Bạn có chắc muốn xóa?')">
                                                         Xóa
                                                     </button>
                                                 </form>
@@ -133,28 +135,13 @@
                     </table>
                 </div>
             </div>
-        </div>
-        <div class="d-flex justify-content-end align-items-center mt-2">
-            <div class="text-muted me-3">
-                {{ $classes->firstItem() }}-{{ $classes->lastItem() }} của {{ $classes->total() }} bản ghi
-            </div>
-            <ul class="pagination pagination-sm mb-0">
-                <li class="page-item {{ $classes->onFirstPage() ? 'disabled' : '' }}">
-                    <a class="page-link" href="{{ $classes->previousPageUrl() }}">
-                        <i class="fas fa-angle-left"></i>
-                    </a>
-                </li>
-                @for ($i = 1; $i <= $classes->lastPage(); $i++)
-                    <li class="page-item  {{ $classes->currentPage() == $i ? 'active' : '' }}">
-                        <a class="page-link" style="background-color: #013066; border-color: #013066; color: #fff;" href="{{ $classes->url($i) }}">{{ $i }}</a>
-                    </li>
-                @endfor
-                <li class="page-item {{ $classes->hasMorePages() ? '' : 'disabled' }}">
-                    <a class="page-link" href="{{ $classes->nextPageUrl() }}">
-                        <i class="fas fa-angle-right"></i>
-                    </a>
-                </li>
-            </ul>
+            @if($classes->lastPage() > 1)
+                <div class="card-footer border-0 bg-transparent" id="pagination-container">
+                    <nav aria-label="page navigation">
+                        {{ $classes->links('pagination::bootstrap-5') }}
+                    </nav>
+                </div>
+            @endif
         </div>
     </div>
 @endsection
