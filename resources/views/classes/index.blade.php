@@ -57,18 +57,19 @@
             <div class="col-md-4">
                 <form method="GET" action="{{ route('classes.index') }}">
                     <div class="input-group">
-                        <select name="academic_year_id" class="form-control" onchange="this.form.submit()">
-                            @foreach($academicYears as $year)
+                        <select name="academic_year_id" class="form-select" onchange="this.form.submit()">
+                            <option value="">-- Chọn năm học --</option>
+                        @foreach($academicYears as $year)
                                 <option value="{{ $year->id }}" {{ $selectedYearId == $year->id ? 'selected' : '' }}>
                                     {{ $year->year }}
                                 </option>
                             @endforeach
                         </select>
-        <div>
-            <a href="{{ route('classes.create') }}" class="btn" style="background-color:#013066; color:#ffffff">
-               Thêm mới
-            </a>
-        </div>
+                        <div>
+                            <a href="{{ route('classes.create') }}" class="btn" style="background-color:#013066; color:#ffffff">
+                               Thêm mới
+                            </a>
+                        </div>
                     </div>
                 </form>
             </div>

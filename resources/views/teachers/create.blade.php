@@ -65,7 +65,8 @@
                             <label for="subject_id">Môn học giảng dạy <span class="text-danger">*</span></label>
                             <select name="subject_id" id="subject_id" class="form-control @error('date_of_birth') is-invalid @enderror"
                                     value="{{ old('subject_id') }}">
-                                @foreach($subjects as $subject)
+                                <option value="">-- Chọn môn học --</option>
+                            @foreach($subjects as $subject)
                                     <option value="{{ $subject->id }}">{{ $subject->name }}</option>
                                 @endforeach
                             </select>

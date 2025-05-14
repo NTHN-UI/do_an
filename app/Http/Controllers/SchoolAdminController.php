@@ -54,13 +54,13 @@ class SchoolAdminController extends Controller
     public function store(Request $request)
     {
         $messages = [
-            'full_name.required' => 'Họ tên không được để trống',
-            'full_name.max' => 'Họ tên không được vượt quá 50 ký tự',
+            'full_name.required' => 'Tên không được để trống',
+            'full_name.max' => 'Tối đa 50 ký tự',
             'email.required' => 'Email không được để trống',
-            'email.email' => 'Email không hợp lệ',
+            'email.regex' => 'Email không hợp lệ',
             'email.unique' => 'Email đã tồn tại',
             'school_id.required' => 'Trường học không được để trống',
-            'school_id.unique' => 'Trường học đã tồn tại',
+            'school_id.unique_school_admin' => 'Trường học đã có tài khoản admin',
             'password.required' => 'Mật khẩu không được để trống',
             'password.min' => 'Mật khẩu phải có ít nhất 8 ký tự',
             'password.confirmed' => 'Xác nhận mật khẩu không khớp',
@@ -68,9 +68,21 @@ class SchoolAdminController extends Controller
 
         $validator = Validator::make($request->all(), [
             'full_name' => 'required|string|max:50',
-            'email' => 'required|email|unique:users',
-            'school_id' => 'required|exists:schools,id',
-            'password' => 'required|min:8|confirmed'
+            'email' => [
+                'required',
+                'email',
+                'regex:/^[a-zA-Z0-9._%+-]+@gmail\.com$/',
+                'unique:users'
+            ],
+            'school_id' => [
+                'required',
+                'exists:schools,id',
+                function ($attribute, $value, $fail) {
+                    if (User::where('school_id', $value)->where('role', 'school_admin')->exists()) {
+                        $fail('Trường học đã có admin');
+                    }
+                }
+            ],            'password' => 'required|min:8|confirmed'
         ], $messages);
 
         if ($validator->fails()) {
@@ -118,21 +130,36 @@ class SchoolAdminController extends Controller
     {
         $messages = [
             'full_name.required' => 'Họ tên không được để trống',
-            'full_name.max' => 'Họ tên không được vượt quá 50 ký tự',
+            'full_name.max' => 'Tối đa 50 ký tự',
             'email.required' => 'Email không được để trống',
-            'email.email' => 'Email không hợp lệ',
+            'email.regex' => 'Email không hợp lệ',
             'email.unique' => 'Email đã tồn tại',
             'school_id.required' => 'Trường học không được để trống',
-            'school_id.exists' => 'Trường học không tồn tại',
+            'school_id.unique_school_admin' => 'Trường học đã có admin',
             'password.min' => 'Mật khẩu phải có ít nhất 8 ký tự',
             'password.confirmed' => 'Xác nhận mật khẩu không khớp',
         ];
 
         $validator = Validator::make($request->all(), [
             'full_name' => 'required|string|max:50',
-            'email' => 'required|email|unique:users,email,'.$id,
-            'school_id' => 'required|exists:schools,id',
-            'password' => 'nullable|min:8|confirmed'
+            'email' => [
+                'required',
+                'email',
+                'unique:users,email,'.$id, // $id là ID của bản ghi đang update
+                'regex:/^[a-zA-Z0-9._%+-]+@gmail\.com$/'
+            ],
+            'school_id' => [
+                'required',
+                'exists:schools,id',
+                function ($attribute, $value, $fail) use ($id) {
+                    if (User::where('school_id', $value)
+                        ->where('role', 'school_admin')
+                        ->where('id', '!=', $id)
+                        ->exists()) {
+                        $fail('Trường học đã có admin');
+                    }
+                }
+            ],            'password' => 'nullable|min:8|confirmed'
         ], $messages);
 
         if ($validator->fails()) {

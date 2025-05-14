@@ -64,7 +64,7 @@ class ClassController extends Controller
 
         $messages = [
             'name.required' => 'Tên lớp học không được để trống',
-            'name.max' => 'Tên lớp học không được vượt quá 50 ký tự',
+            'name.max' => 'Tối đa 50 ký tự',
             'grade_level_id.required' => 'Vui lòng chọn khối học',
             'academic_year_id.required' => 'Vui lòng chọn năm học',
             'name.unique_class' => 'Lớp học đã tồn tại trong khối và năm học đã chọn'
@@ -157,10 +157,10 @@ class ClassController extends Controller
 
         $messages = [
             'name.required' => 'Tên lớp học không được để trống',
-            'name.max' => 'Tên lớp học không được vượt quá 50 ký tự',
+            'name.max' => 'Tối đa 50 ký tự',
             'grade_level_id.required' => 'Vui lòng chọn khối học',
             'academic_year_id.required' => 'Vui lòng chọn năm học',
-            'name.unique_class' => 'Lớp học đã tồn tại trong khối và năm học đã chọn'
+                'name.unique_class' => 'Lớp học đã tồn tại trong khối và năm học đã chọn'
         ];
 
         $validator = Validator::make($request->all(), [

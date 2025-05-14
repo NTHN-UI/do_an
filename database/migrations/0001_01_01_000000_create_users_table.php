@@ -25,7 +25,13 @@ return new class extends Migration
             $table->string('province');
             $table->timestamps();
         });
-
+        Schema::create('subjects', function (Blueprint $table) {
+            $table->id();
+            $table->string('name');
+            $table->boolean('is_text_based')->default(false);
+            $table->foreignId('school_id')->constrained('schools')->onDelete('cascade');
+            $table->timestamps();
+        });
         Schema::create('users', function (Blueprint $table) {
             $table->id();
             $table->unsignedInteger('school_auto_id')->nullable();
@@ -35,6 +41,7 @@ return new class extends Migration
             $table->string('guardian_name')->nullable();
             $table->string('guardian_email')->nullable()->unique();
             $table->string('guardian_phone', 20)->nullable();
+            $table->decimal('entry_score', 5, 2)->nullable();
             $table->text('address')->nullable();
             $table->string('phone', 20)->nullable();
             $table->enum('gender', ['Nam', 'Nữ', 'Khác'])->nullable();
@@ -42,6 +49,7 @@ return new class extends Migration
             $table->enum('role', ['super_admin', 'school_admin', 'teacher', 'student']);
             $table->boolean('is_active')->default(true);
             $table->foreignId('school_id')->nullable()->constrained('schools')->onDelete('cascade');
+            $table->foreignId('subject_id')->nullable()->constrained()->onDelete('set null');
             $table->unique(['school_id', 'role', 'school_auto_id']);
             $table->timestamps();
         });
@@ -86,7 +94,7 @@ return new class extends Migration
 
         Schema::create('grade_levels', function (Blueprint $table) {
             $table->id();
-            $table->unsignedInteger('school_auto_id');
+            $table->unsignedInteger('school_auto_id')->nullable();
             $table->integer('grade_number');
             $table->foreignId('school_id')->constrained('schools')->onDelete('cascade');
             $table->unique(['grade_number', 'school_id']);
@@ -107,13 +115,6 @@ return new class extends Migration
             $table->timestamps();
         });
 
-        Schema::create('subjects', function (Blueprint $table) {
-            $table->id();
-            $table->string('name');
-            $table->boolean('is_text_based')->default(false);
-            $table->foreignId('school_id')->constrained('schools')->onDelete('cascade');
-            $table->timestamps();
-        });
 
         Schema::create('student_classes', function (Blueprint $table) {
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');

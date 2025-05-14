@@ -29,10 +29,26 @@ class SchoolController extends Controller
      */
     public function create()
     {
-        return view('schools.create');
+        // Đọc dữ liệu từ file JSON
+        $provinces = json_decode(file_get_contents(public_path('data/tinh_tp.json')), true);
 
+        return view('schools.create', compact('provinces'));
     }
+    public function getDistricts($provinceCode)
+    {
+        $allDistricts = json_decode(file_get_contents(public_path('data/quan_huyen.json')), true);
 
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            return response()->json(['error' => 'Invalid JSON data'], 500);
+        }
+
+        // Lọc quận/huyện theo mã tỉnh
+        $districts = array_filter($allDistricts, function($district) use ($provinceCode) {
+            return isset($district['parent_code']) && $district['parent_code'] == $provinceCode;
+        });
+
+        return response()->json(array_values($districts));
+    }
     /**
      * Store a newly created resource in storage.
      */
@@ -40,29 +56,41 @@ class SchoolController extends Controller
     {
         $messages = [
             'name.required' => 'Tên trường không được để trống',
-            'name.max' => 'Tên trường không được vượt quá 50 ký tự',
+            'name.max' => 'Tối đa 50 ký tự',
             'address.required' => 'Địa chỉ không được để trống',
-            'address.max' => 'Địa chỉ không được vượt quá 50 ký tự',
+            'address.max' => 'Tối đa 50 ký tự',
             'district.required' => 'Quận/Huyện không được để trống',
-            'district.max' => 'Quận/Huyện không được vượt quá 50 ký tự',
             'province.required' => 'Tỉnh/Thành không được để trống',
-            'province.max' => 'Tỉnh/Thành không được vượt quá 50 ký tự',
 
 
         ];
         $validator = Validator::make($request->all(), [
             'name' => 'required|max:50',
             'address' => 'required|string|max:50',
-            'district' => 'required|max:50',
-            'province' => 'required|max:50',
+            'district' => 'required',
+            'province' => 'required',
         ], $messages);
         if ($validator->fails()) {
             return redirect()->back()
                 ->withErrors($validator)
                 ->withInput();
         }
+        // Lấy tên tỉnh và quận/huyện từ code
+        $provinces = json_decode(file_get_contents(public_path('data/tinh_tp.json')), true);
+        $districts = json_decode(file_get_contents(public_path('data/quan_huyen.json')), true);
 
-        School::create($request->all());
+        $provinceName = collect($provinces)->firstWhere('code', $request->province)['name'] ?? '';
+        $districtName = collect($districts)->firstWhere('code', $request->district)['name'] ?? '';
+
+        School::create([
+            'name' => $request->name,
+            'address' => $request->address,
+            'district' => $districtName,
+            'province' => $provinceName,
+            // Lưu thêm code nếu cần
+            'district_code' => $request->district,
+            'province_code' => $request->province,
+        ]);
 
         return redirect()->route('schools.index')
             ->with('success', 'Thêm trường học thành công!');
@@ -93,13 +121,13 @@ class SchoolController extends Controller
     {
         $messages = [
             'name.required' => 'Tên trường không được để trống',
-            'name.max' => 'Tên trường không được vượt quá 50 ký tự',
+            'name.max' => 'Tối đa 50 ký tự',
             'address.required' => 'Địa chỉ không được để trống',
-            'address.max' => 'Địa chỉ không được vượt quá 50 ký tự',
+            'address.max' => 'Tối đa 50 ký tự',
             'district.required' => 'Quận/Huyện không được để trống',
-            'district.max' => 'Quận/Huyện không được vượt quá 50 ký tự',
+            'district.max' => 'Tối đa 50 ký tự',
             'province.required' => 'Tỉnh/Thành không được để trống',
-            'province.max' => 'Tỉnh/Thành không được vượt quá 50 ký tự',
+            'province.max' => 'Tối đa 50 ký tự',
 
 
         ];

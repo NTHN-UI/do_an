@@ -40,7 +40,10 @@ Route::middleware(['auth'])->group(function () {
     Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
 
     Route::middleware(SuperAdminMiddleware::class)->group(function () {
+        // routes/web.php
+        Route::get('/districts/{province}', [SchoolController::class, 'getDistricts']);
         Route::resource('schools', SchoolController::class);
+
         Route::resource('school_admins', SchoolAdminController::class);
     });
 

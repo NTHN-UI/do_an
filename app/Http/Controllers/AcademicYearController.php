@@ -46,7 +46,8 @@ class AcademicYearController extends Controller
             'end_date.required' => 'Ngày kết thúc không được để trống',
             'end_date.after' => 'Ngày kết thúc phải sau ngày bắt đầu',
             'start_date.custom_start' => 'Năm học phải bắt đầu từ tháng 9',
-            'end_date.custom_end' =>'Năm học THPT phải kết thúc trước ngày 30/6'
+            'end_date.custom_end' =>'Năm học THPT phải kết thúc trước ngày 30/6',
+            'end_date.min_duration' => 'Năm học phải kéo dài ít nhất 8 tháng'
         ];
 
         $validator = Validator::make($request->all(), [
@@ -84,25 +85,25 @@ class AcademicYearController extends Controller
                     $inputDate = date_create($value);
                     if (preg_match('/^(\d{4})-(\d{4})$/', $request->year, $matches)) {
                         $endYear = $matches[2];
+                        $startDate = date_create($request->start_date);
 
                         // Kiểm tra năm kết thúc phải là năm sau năm bắt đầu
-                        $startDate = date_create($request->start_date);
                         if ($inputDate->format('Y') != $endYear) {
                             $fail('Năm kết thúc phải là '.$endYear);
                             return;
                         }
 
-                        $isValid = ($inputDate->format('m') == '05' && $inputDate->format('d') <= 31)
-                            || ($inputDate->format('m') == '06' && $inputDate->format('d') <= 30);
-
-                        if (!$isValid) {
+                        // Kiểm tra phải kết thúc trước 30/6
+                        $maxEndDate = date_create($endYear.'-06-30');
+                        if ($inputDate > $maxEndDate) {
                             $fail('Năm học phải kết thúc trước ngày 30/06');
+                            return;
                         }
 
-                        // Kiểm tra thời lượng tối thiểu 8 tháng
-                        $interval = $startDate->diff($inputDate);
-                        if ($interval->y < 1 && $interval->m < 8) {
-                            $fail('Năm học phải kéo dài ít nhất 8 tháng');
+                        // Kiểm tra thời lượng tối thiểu 8 tháng (chính xác hơn)
+                        $minEndDate = (clone $startDate)->modify('+8 months');
+                        if ($inputDate < $minEndDate) {
+                            $fail('Năm học phải kéo dài ít nhất 8 tháng (từ '.$startDate->format('d/m/Y').' đến '.$minEndDate->format('d/m/Y').')');
                         }
                     }
                 }

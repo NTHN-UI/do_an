@@ -40,19 +40,28 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="district">Quận/Huyện <span class="text-danger">*</span></label>
-                    <input type="text" class="form-control @error('district') is-invalid @enderror"
-                           id="district" name="district" value="{{ old('district') }}" >
-                    @error('district')
+                    <label for="province">Tỉnh/Thành <span class="text-danger">*</span></label>
+                    <select class="form-select @error('province') is-invalid @enderror"
+                            id="province" name="province">
+                        <option value="">-- Chọn tỉnh/thành --</option>
+                        @foreach($provinces as $province)
+                            <option value="{{ $province['code'] }}" {{ old('province') == $province['code'] ? 'selected' : '' }}>
+                                {{ $province['name'] }}
+                            </option>
+                        @endforeach
+                    </select>
+                    @error('province')
                     <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
                 </div>
 
                 <div class="form-group">
-                    <label for="province">Tỉnh/Thành <span class="text-danger">*</span></label>
-                    <input type="text" class="form-control @error('province') is-invalid @enderror"
-                           id="province" name="province" value="{{ old('province') }}" >
-                    @error('province')
+                    <label for="district">Quận/Huyện <span class="text-danger">*</span></label>
+                    <select class="form-select @error('district') is-invalid @enderror"
+                            id="district" name="district" disabled>
+                        <option value="">-- Chọn quận/huyện --</option>
+                    </select>
+                    @error('district')
                     <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
                 </div>
@@ -67,5 +76,55 @@
             </form>
         </div>
     </div>
-
 @endsection
+@push('scripts')
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        // Phần script trong blade
+        $(document).ready(function() {
+            $('#province').change(function() {
+                var provinceCode = $(this).val();
+                console.log('Selected province code:', provinceCode);
+
+                if (provinceCode) {
+                    $('#district').prop('disabled', false);
+
+                    $.ajax({
+                        url: '/districts/' + provinceCode, // Đã sửa thành /districts/
+                        type: 'GET',
+                        headers: {
+                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                        },
+                        success: function(data) {
+                            console.log('Received districts data:', data);
+                            $('#district').empty().append('<option value="">-- Chọn quận/huyện --</option>');
+
+                            $.each(data, function(key, district) {
+                                $('#district').append($('<option>', {
+                                    value: district.code,
+                                    text: district.name
+                                }));
+                            });
+
+                            @if(old('district'))
+                            $('#district').val('{{ old('district') }}');
+                            @endif
+                        },
+                        error: function(xhr) {
+                            console.error('Error:', xhr.responseText);
+                            $('#district').empty().append('<option value="">-- Lỗi tải dữ liệu --</option>');
+                        }
+                    });
+                } else {
+                    $('#district').prop('disabled', true)
+                        .empty()
+                        .append('<option value="">-- Chọn quận/huyện --</option>');
+                }
+            });
+
+            @if(old('province'))
+            $('#province').val('{{ old('province') }}').trigger('change');
+            @endif
+        });
+    </script>
+@endpush
