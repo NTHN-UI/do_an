@@ -49,6 +49,7 @@ Route::middleware(['auth'])->group(function () {
 
     Route::middleware(AdminMiddleware::class)->group(function () {
         Route::resource('academic_years', AcademicYearController::class);
+        // index, create, store, edit, update, destroy
         Route::resource('classes', ClassController::class);
         Route::resource('grade_levels', GradeLevelController::class);
         Route::resource('semesters', SemesterController::class);
@@ -106,7 +107,7 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/grades/export-template', [GradeController::class, 'exportTemplate'])->name('grades.exportTemplate');
             Route::post('/import', [GradeController::class, 'import'])->name('grades.import');
             Route::get('/student/{student}', [GradeController::class, 'viewAllGrades'])->name('grades.student_grades');
-
+            Route::get('/homeroom-grades', [GradeController::class, 'homeroomGrades'])->name('grades.homeroom');
             // API hỗ trợ
             Route::get('/get-semesters-by-year', [GradeController::class, 'getSemestersByYear'])->name('get_semesters_by_year');
             Route::get('/get-classes-by-year', [GradeController::class, 'getClassesByYear'])->name('get_classes_by_year');

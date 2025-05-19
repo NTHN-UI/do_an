@@ -40,9 +40,9 @@
                 </tr>
                 </thead>
                 <tbody>
-                @foreach($semesters as $semester)
+                @foreach($semesters as $index => $semester)
                     <tr>
-                        <td>{{ $semester-> school_auto_id }}</td>
+                        <td>{{ $index }}</td>
                         <td>{{ $semester->name }}</td>
                         <td>{{ $semester->start_date->format('d/m/Y') }}</td>
                         <td>{{ $semester->end_date->format('d/m/Y') }}</td>

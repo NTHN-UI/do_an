@@ -102,8 +102,8 @@
     <a class="navbar-brand text-white d-flex align-items-center gap-2" href="#">
         <img src="{{ asset('build/assets/img/education_4207253.png') }}" alt="Logo" style="height: 40px">
         <span class="d-flex flex-column">
-        <span class="fw-semibold fs-6">QUẢN LÝ TRƯỜNG HỌC</span>
-        <small class="fw-normal" style="font-size: 0.8rem">School Management</small>
+        <span class="fw-semibold fs-6">HỆ THỐNG QUẢN LÝ TRƯỜNG HỌC</span>
+        <small class="fw-normal" style="font-size: 0.8rem">School Management System</small>
     </span>
     </a>
     <button class="navbar-toggler navbar-toggler-custom" type="button" data-bs-toggle="collapse"
@@ -120,111 +120,111 @@
             </li>
             @if(Auth::check())
                 @if(Auth::user()->isSchoolAdmin())
+                    <!-- Quản lý học tập -->
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="learningDropdown" role="button"
                            data-bs-toggle="dropdown">
-                            <i class="fas fa-book-open me-1"></i> Học tập
+                            <i class="fas fa-book-open me-1"></i> Quản lý học tập
                         </a>
                         <ul class="dropdown-menu">
                             <li><a class="dropdown-item" href="{{ route('classes.index') }}"><i
-                                        class="fas fa-users-class me-2"></i> Lớp học</a></li>
+                                        class="fas fa-users-class me-2"></i> Danh sách lớp học</a></li>
                             <li><a class="dropdown-item" href="{{ route('grade_levels.index') }}"><i
                                         class="fas fa-layer-group me-2"></i> Khối lớp</a></li>
-
-
                         </ul>
                     </li>
 
+                    <!-- Quản lý phân công -->
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="usersDropdown" role="button"
                            data-bs-toggle="dropdown">
-                            <i class="fas fa-user-shield me-1"></i> Phân công
+                            <i class="fas fa-tasks me-1"></i> Quản lý phân công
                         </a>
                         <ul class="dropdown-menu">
                             <li><a class="dropdown-item" href="{{ route('teacher_assignments.index') }}">
                                     <i class="fas fa-chalkboard-teacher me-2"></i> Phân công giảng dạy
                                 </a></li>
                             <li><a class="dropdown-item" href="{{ route('class_assignments.index') }}">
-                                    <i class="fas fa-door-open me-2"></i> Phân công lớp học
+                                    <i class="fas fa-user-friends me-2"></i> Phân công lớp học
                                 </a></li>
                         </ul>
                     </li>
-                    <!-- Quản lý người dùng -->
 
+                    <!-- Quản lý người dùng -->
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="usersDropdown" role="button"
                            data-bs-toggle="dropdown">
-                            <i class="fas fa-users me-1"></i> Người dùng
+                            <i class="fas fa-users me-1"></i> Quản lý người dùng
                         </a>
                         <ul class="dropdown-menu">
                             <li><a class="dropdown-item" href="{{ route('teachers.index') }}"><i
-                                        class="fas fa-chalkboard-teacher me-2"></i> Quản lý giáo viên</a></li>
+                                        class="fas fa-chalkboard-teacher me-2"></i> Giáo viên</a></li>
                             <li><a class="dropdown-item" href="{{ route('students.index') }}"><i
-                                        class="fas fa-user-graduate me-2"></i> Quản lý học sinh</a></li>
+                                        class="fas fa-user-graduate me-2"></i> Học sinh</a></li>
                         </ul>
                     </li>
 
-                    <!-- Năm học/Học kỳ -->
+                    <!-- Quản lý năm học -->
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="academicDropdown" role="button"
                            data-bs-toggle="dropdown">
-                            <i class="fas fa-calendar-alt me-1"></i> Năm học
+                            <i class="fas fa-calendar-alt me-1"></i> Quản lý năm học
                         </a>
                         <ul class="dropdown-menu">
                             <li><a class="dropdown-item" href="{{ route('academic_years.index') }}"><i
-                                        class="fas fa-calendar me-2"></i> Quản lý năm học</a></li>
+                                        class="fas fa-calendar me-2"></i> Năm học</a></li>
                             <li><a class="dropdown-item" href="{{ route('semesters.index') }}"><i
-                                        class="fas fa-calendar-week me-2"></i> Quản lý học kỳ</a></li>
+                                        class="fas fa-calendar-week me-2"></i> Học kỳ</a></li>
                         </ul>
                     </li>
                 @endif
                 @if(Auth::user()->isTeacher() || Auth::user()->isStudent())
-                    <!-- Tài liệu & Thi cử -->
+                    <!-- Tài liệu học tập -->
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="resourcesDropdown" role="button"
                            data-bs-toggle="dropdown">
-                            <i class="fas fa-file-alt me-1"></i> Học liệu
+                            <i class="fas fa-book me-1"></i> Tài liệu học tập
                         </a>
                         <ul class="dropdown-menu">
                             <li><a class="dropdown-item" href="{{ route('materials.index') }}"><i
-                                        class="fas fa-file-download me-2"></i> Tài liệu</a></li>
-                            {{--                        <li><a class="dropdown-item" href="{{ route('exams.index') }}"><i class="fas fa-edit me-2"></i> Bài thi</a></li>--}}
+                                        class="fas fa-file-download me-2"></i> Tài liệu học tập</a></li>
                         </ul>
                     </li>
-
-                    <!-- Báo cáo -->
-                    {{--                <li class="nav-item">--}}
-                    {{--                    <a class="nav-link" href="{{ route('reports.index') }}">--}}
-                    {{--                        <i class="fas fa-chart-bar me-1"></i> Báo cáo--}}
-                    {{--                    </a>--}}
-                    {{--                </li>--}}
-
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ route('grades.index') }}">
-                            <i class="fas fa-star me-1"></i> Điểm số
-                        </a>
-                    </li>
-
                 @endif
+                    @if(Auth::user()->isTeacher())
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                                <i class="fas fa-star me-1"></i> Quản lý điểm
+                            </a>
+                            <ul class="dropdown-menu">
+                                @if(Auth::user()->isHomeroomTeacher(session('academic_year_id')))
+                                    <li><a class="dropdown-item" href="{{ route('grades.homeroom') }}">
+                                            <i class="fas fa-users me-2"></i> Điểm lớp chủ nhiệm
+                                        </a></li>
+                                @endif
+                                <li><a class="dropdown-item" href="{{ route('grades.index') }}">
+                                        <i class="fas fa-book me-2"></i> Điểm bộ môn
+                                    </a></li>
+                            </ul>
+                        </li>
+                    @endif
+
             @endif
         </ul>
         @if(Auth::check())
             @if(Auth::user()->isSuperAdmin())
-
-                <!-- Menu bên phải -->
+                <!-- Quản trị hệ thống -->
                 <ul class="navbar-nav">
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="adminDropdown" role="button"
                            data-bs-toggle="dropdown">
-                            <i class="fas fa-cog me-1"></i> Quản trị
+                            <i class="fas fa-cog me-1"></i> Quản trị hệ thống
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end">
                             <li><a class="dropdown-item" href="{{ route('schools.index') }}"><i
-                                        class="fas fa-school me-2"></i>
-                                    Quản lý trường học</a></li>
-
+                                        class="fas fa-school me-2"></i> Quản lý trường học</a></li>
                             <li><a class="dropdown-item" href="{{ route('school_admins.index') }}"><i
-                                        class="fas fa-sliders-h me-2"></i> Quản lý tài khoản Admin</a></li>
+                                        class="fas fa-user-shield me-2"></i> Quản lý Admin</a></li>
                         </ul>
                     </li>
                 </ul>
@@ -232,7 +232,7 @@
         @endif
         <ul class="navbar-nav ms-auto">
             @auth
-                <!-- Dropdown người dùng -->
+                <!-- Tài khoản người dùng -->
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle" href="#" id="userMenu" role="button"
                        data-bs-toggle="dropdown">

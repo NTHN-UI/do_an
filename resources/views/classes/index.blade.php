@@ -87,9 +87,9 @@
                         </tr>
                         </thead>
                         <tbody>
-                        @forelse($classes as $class)
+                        @forelse($classes as $index => $class)
                             <tr class="text-center">
-                                <td>{{ $class->school_auto_id }}</td>
+                                <td>{{ $index }}</td>
                                 <td>{{ $class->name }}</td>
                                 <td>{{ $class->school->name }}</td>
                                 <td>Khối {{ $class->gradeLevel->grade_number }}</td>

@@ -49,7 +49,6 @@ class StudentController extends Controller
 
             $students = $query->select('users.*')
                 ->with(['school:id,name'])
-                ->orderBy('school_auto_id')
                 ->paginate(10)
                 ->appends($request->except('page')); // Thêm dòng này để giữ bộ lọc
 
@@ -90,7 +89,6 @@ class StudentController extends Controller
             });
 
         $students = $query->with(['school', 'studentClasses.gradeLevel'])
-            ->orderBy('school_auto_id')
             ->paginate(10)
             ->appends($request->except('page'));
 
@@ -370,20 +368,6 @@ class StudentController extends Controller
     public function destroy(User $student)
     {
     }
-
-    private function reorderStudentNumbers($school_id)
-    {
-        $students = User::where('school_id', $school_id)
-            ->where('role', User::ROLE_STUDENT)
-            ->orderBy('school_auto_id')
-            ->get();
-
-        foreach ($students as $index => $student) {
-            $student->school_auto_id = $index + 1;
-            $student->save();
-        }
-    }
-
     /**
      * Xử lý import học sinh từ file Excel
      */

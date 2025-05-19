@@ -96,8 +96,8 @@
         </div>
 
         <div id="grades-container">
-            @if($selectedClassId && $selectedSemesterId)
-                <!-- Phần hiển thị danh sách điểm -->
+            @if($selectedClassId && $selectedSemesterId !== null)
+            <!-- Phần hiển thị danh sách điểm -->
                 <div class="card shadow mb-4">
                     <div class="card-header py-3 d-flex justify-content-between align-items-center">
                         <h6 class="m-0 font-weight-bold text-primary">Danh sách điểm học sinh</h6>
@@ -110,31 +110,60 @@
                             <table class="table table-bordered" id="dataTable">
                                 <thead>
                                 <tr>
-                                    <th rowspan="2">STT</th>
                                     <th rowspan="2">Mã HS</th>
                                     <th rowspan="2">Họ và tên</th>
                                     @foreach($subjectsTaught as $subject)
-                                        <th colspan="3" class="text-center">{{ $subject->name }}</th>
+                                        @if($selectedSemesterId == 0)
+                                            <th colspan="3" class="text-center">{{ $subject->name }}</th>
+                                        @else
+                                            <th colspan="3" class="text-center">{{ $subject->name }}</th>
+                                        @endif
                                     @endforeach
-                                    <th rowspan="2">Điểm TB HK</th>
+                                    <th rowspan="2">
+                                        @if($selectedSemesterId == 0)
+                                            Điểm TB cả năm
+                                        @else
+                                            Điểm TB HK
+                                        @endif
+                                    </th>
                                 </tr>
                                 <tr>
                                     @foreach($subjectsTaught as $subject)
-                                        <th>15 phút</th>
-                                        <th>1 tiết</th>
-                                        <th>HK</th>
+                                        @if($selectedSemesterId == 0)
+                                            @foreach($semesters as $semester)
+                                                @if($semester->id != 0)
+                                                <th>HK{{ $semester->id }}</th>
+                                                @endif
+                                            @endforeach
+                                            <th>Cả năm</th>
+                                        @else
+                                            <th>15 phút</th>
+                                            <th>1 tiết</th>
+                                            <th>HK</th>
+                                        @endif
                                     @endforeach
                                 </tr>
                                 </thead>
                                 <tbody>
                                 @foreach($students as $index => $student)
                                     <tr>
-                                        <td>{{ $index + 1 }}</td>
-                                        <td>{{ $student->student_code }}</td>
+                                        <td>{{ $student->id }}</td>
                                         <td>{{ $student->full_name }}</td>
 
                                         @foreach($subjectsTaught as $subject)
-                                            @php
+                                            @if($selectedSemesterId == 0)
+                                                @php
+                                                    $subjectGrades = $grades[$student->id][$subject->id] ?? [];
+                                                    $semester1 = $subjectGrades['semester1'] ?? '';
+                                                    $semester2 = $subjectGrades['semester2'] ?? '';
+                                                    $yearlyAvg = $subjectGrades['average'] ?? '';
+                                                @endphp
+
+                                                <td>{{ $semester1 }}</td>
+                                                <td>{{ $semester2 }}</td>
+                                                <td>{{ $yearlyAvg }}</td>
+                                            @else
+                                                @php
                                                 $subjectGrades = $grades[$student->id][$subject->id] ?? [];
                                                 $fifteenMinutes = $subjectGrades['fifteen_minutes'] ?? collect();
                                                 $onePeriod = $subjectGrades['one_period'] ?? collect();
@@ -156,10 +185,15 @@
                                             <td>{{ $avgFifteen }}</td>
                                             <td>{{ $avgOnePeriod }}</td>
                                             <td>{{ $semesterScore }}</td>
+                                            @endif
                                         @endforeach
 
                                         <td>
-                                            {{ $grades[$student->id]['semester_average'] ?? '' }}
+                                            @if($selectedSemesterId == 0)
+                                                {{ $grades[$student->id]['yearly_average'] ?? '' }}
+                                            @else
+                                                {{ $grades[$student->id]['semester_average'] ?? '' }}
+                                            @endif
                                         </td>
                                     </tr>
                                 @endforeach
@@ -273,6 +307,8 @@
                                 $semesterSelect.append(html);
                             });
                         }
+                        // Thêm option "Cả năm"
+                        $semesterSelect.append($('<option></option>').attr('value', 0).text('Cả năm'));
                     }
                 });
             });

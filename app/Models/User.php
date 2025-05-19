@@ -47,38 +47,6 @@ class User extends Authenticatable
         'is_active' => 'boolean'
 
     ];
-    protected static function booted()
-    {
-        static::creating(function ($model) {
-            // Đảm bảo rằng school_id và role đã được thiết lập
-            if ($model->school_id && $model->role) {
-                // Lấy giá trị lớn nhất hiện có và tăng lên 1
-                $maxAutoId = static::where('school_id', $model->school_id)
-                    ->where('role', $model->role)
-                    ->lockForUpdate() // Chống race condition
-                    ->max('school_auto_id') ?? 0;
-
-                $model->school_auto_id = $maxAutoId + 1;
-            }
-        });
-
-        static::deleted(function ($model) {
-            // Cập nhật lại school_auto_id sau khi xóa người dùng
-            $users = static::where('school_id', $model->school_id)
-                ->where('role', $model->role)
-                ->orderBy('id')
-                ->get();
-
-            // Cập nhật lại theo STT mới
-            foreach ($users as $index => $user) {
-                $newAutoId = $index + 1;
-                if ($user->school_auto_id !== $newAutoId) {
-                    $user->school_auto_id = $newAutoId;
-                    $user->saveQuietly(); // dùng saveQuietly để tránh kích hoạt sự kiện tạo mới nữa
-                }
-            }
-        });
-    }
     public function scopeActive($query)
     {
         return $query->where('is_active', true);
@@ -172,6 +140,19 @@ class User extends Authenticatable
     {
         return $this->belongsTo(Subject::class);
     }
+    // App\Models\User.php
+    public function isHomeroomTeacher($academicYearId = null)
+    {
+        $query = $this->teacherAssignments()
+            ->where('is_homeroom', true);
+
+        if ($academicYearId) {
+            $query->where('academic_year_id', $academicYearId);
+        }
+
+        return $query->exists();
+    }
+
     protected function casts(): array
     {
         return [

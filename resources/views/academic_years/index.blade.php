@@ -18,9 +18,9 @@
                 </tr>
                 </thead>
                 <tbody>
-                @foreach($academicYears as $year)
+                @foreach($academicYears as $index => $year)
                     <tr>
-                        <td>{{ $year->school_auto_id }}</td>
+                        <td>{{ $index }}</td>
                         <td>{{ $year->year }}</td>
                         <td>{{ $year->start_date->format('d/m/Y') }}</td>
                         <td>{{ $year->end_date->format('d/m/Y') }}</td>
@@ -31,10 +31,12 @@
                             <a href="{{ route('academic_years.edit', $year->id) }}" class="btn btn-sm btn-primary">
                                 <i class="fas fa-edit"></i>
                             </a>
-                            <form action="{{ route('academic_years.destroy', $year->id) }}" method="POST" class="d-inline">
+                            <form action="{{ route('academic_years.destroy', $year->id) }}" method="POST"
+                                  class="d-inline">
                                 @csrf
                                 @method('DELETE')
-                                <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Bạn có chắc muốn xóa?')">
+                                <button type="submit" class="btn btn-sm btn-danger"
+                                        onclick="return confirm('Bạn có chắc muốn xóa?')">
                                     <i class="fas fa-trash"></i>
                                 </button>
                             </form>

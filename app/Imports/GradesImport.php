@@ -49,32 +49,6 @@ class GradesImport implements ToCollection, WithHeadingRow, WithCalculatedFormul
 
         $isTextSubject = $this->currentSubject->is_text_based;
 
-//        foreach ($rows as $index => $row) {
-//            if (empty($row->get("thong_tin_lop_lop_10a1_ma_1"))) {
-//                continue;
-//            }
-//
-//            $studentCode = $row->get("thong_tin_lop_lop_10a1_ma_1");
-//            $student = User::where('school_auto_id', $studentCode)
-//                ->where('school_id', $this->schoolId)
-//                ->where('role', 'student')
-//                ->first();
-//
-//            if (!$student) {
-//                continue;
-//            }
-//
-//            // Xử lý điểm số hoặc đánh giá
-//            if ($isTextSubject) {
-//                // Môn đạt/chưa đạt
-//                $this->processTextGrades($row, $student->id);
-//            } else {
-//                // Môn nhập điểm số
-//                $this->processNumericGrades($row, $student->id);
-//            }
-//            $this->importedStudentIds[] = $student->id;
-//        }
-
 
         foreach ($rows as $index => $row) {
             // Bước 1: Tìm cột chứa mã học sinh
@@ -91,14 +65,13 @@ class GradesImport implements ToCollection, WithHeadingRow, WithCalculatedFormul
                 continue;
             }
 
-            // Lấy mã học sinh
-            $studentCode = $row->get($studentCodeColumn);
+            $studentId = $row->get($studentCodeColumn); // đây là cột chứa ID học sinh trong Excel
 
-            // Tìm học sinh trong database
-            $student = User::where('school_auto_id', $studentCode)
+            $student = User::where('id', $studentId)
                 ->where('school_id', $this->schoolId)
                 ->where('role', 'student')
                 ->first();
+
 
             if (!$student) {
                 continue;

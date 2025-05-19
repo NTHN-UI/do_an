@@ -176,17 +176,4 @@ class TeacherController extends Controller
     {
 
     }
-
-        private function reorderTeacherNumbers($school_id)
-        {
-            $teachers = User::where('school_id', $school_id)
-                ->where('role', User::ROLE_TEACHER)
-                ->orderBy('school_auto_id')
-                ->get();
-
-            foreach ($teachers as $index => $teacher) {
-                $teacher->school_auto_id = $index + 1;
-                $teacher->save();
-            }
-        }
 }

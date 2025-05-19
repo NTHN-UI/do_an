@@ -111,7 +111,7 @@ class GradeTemplateSubjectSheet implements FromCollection, WithHeadings, WithTit
 
         foreach ($this->students as $student) {
             $row = [
-                $student->school_auto_id,
+                $student->id,
                 $student->full_name,
                 '', // Điểm 15 phút 1 hoặc Đánh giá 1
                 '', // Điểm 15 phút 2 hoặc Đánh giá 2
@@ -132,7 +132,7 @@ class GradeTemplateSubjectSheet implements FromCollection, WithHeadings, WithTit
 
 
         return [
-            ['THÔNG TIN LỚP: ' . $this->class->name . ' (Mã: ' . $this->class->school_auto_id . ')'],
+            ['THÔNG TIN LỚP: ' . $this->class->name . ' (Mã: ' . $this->class->id . ')'],
             ['NĂM HỌC: ' . $this->academicYearId],
             ['HỌC KỲ: ' . $this->semesterId],
             ['MÔN HỌC: ' . $this->subject->name],

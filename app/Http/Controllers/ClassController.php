@@ -35,7 +35,6 @@ class ClassController extends Controller
                 return $query->where('academic_year_id', $selectedYearId);
             })
             ->with(['gradeLevel', 'academicYear'])
-            ->orderBy('school_auto_id', 'asc')
             ->paginate(10);
 
         return view('classes.index', compact('classes', 'academicYears', 'selectedYearId'));
@@ -230,25 +229,12 @@ class ClassController extends Controller
 
             $school_id = $class->school_id;
             $class->delete();
-            $this->reorderClassNumbers($school_id);
 
             return redirect()->route('classes.index')
                 ->with('success', 'Xóa lớp học thành công!');
         } catch (\Exception $e) {
             return redirect()->back()
                 ->with('error', 'Có lỗi xảy ra: ' . $e->getMessage());
-        }
-    }
-
-    private function reorderClassNumbers($school_id)
-    {
-        $classes = ClassModel::where('school_id', $school_id)
-            ->orderBy('school_auto_id')
-            ->get();
-
-        foreach ($classes as $index => $class) {
-            $class->school_auto_id = $index + 1;
-            $class->save();
         }
     }
 }

@@ -32,7 +32,6 @@ class SemesterController extends Controller
         $semesters = Semester::with('academicYear')
             ->where('school_id', auth()->user()->school_id)
             ->where('academic_year_id', $selectedYearId)
-            ->orderBy('school_auto_id', 'asc')
             ->paginate(10);
 
         return view('semesters.index', compact('semesters', 'academicYears', 'selectedYearId'));
@@ -476,25 +475,11 @@ class SemesterController extends Controller
             $semester_name = $semester->name;
             $semester->delete();
 
-            // Cập nhật lại STT cho các học kỳ còn lại cùng năm học
-            $this->reorderSemesterNumbers($academic_year_id);
-
             return redirect()->route('semesters.index')
                 ->with('success', 'Đã xóa học kỳ "' . $semester_name . '" thành công!');
         } catch (\Exception $e) {
             return redirect()->back()
                 ->with('error', 'Xóa học kỳ thất bại: ' . $e->getMessage());
-        }
-    }
-    private function reorderSemesterNumbers($academic_year_id)
-    {
-        $semesters = Semester::where('academic_year_id', $academic_year_id)
-            ->orderBy('school_auto_id')
-            ->get();
-
-        foreach ($semesters as $index => $semester) {
-            $semester->school_auto_id = $index + 1;
-            $semester->save();
         }
     }
 }

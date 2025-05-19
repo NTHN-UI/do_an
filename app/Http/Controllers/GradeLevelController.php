@@ -186,24 +186,11 @@ class GradeLevelController extends Controller
             $school_id = $gradeLevel->school_id;
             $gradeLevel->delete();
 
-            $this->reorderGradeLevelNumbers($school_id);
-
             return redirect()->route('grade_levels.index')
                 ->with('success', 'Xóa khối học thành công!');
         } catch (\Exception $e) {
             return redirect()->route('grade_levels.index')
                 ->with('error', 'Có lỗi xảy ra khi xóa: ' . $e->getMessage());
-        }
-    }
-    private function reorderGradeLevelNumbers($school_id)
-    {
-        $gradeLevels = GradeLevel::where('school_id', $school_id)
-            ->orderBy('school_auto_id')
-            ->get();
-
-        foreach ($gradeLevels as $index => $gradeLevel) {
-            $gradeLevel->school_auto_id = $index + 1;
-            $gradeLevel->save();
         }
     }
 }

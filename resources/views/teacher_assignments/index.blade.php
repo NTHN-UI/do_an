@@ -101,7 +101,7 @@
                                 <td>{{ $assignment->subject->name }}</td>
                                 <td>
                                     <span
-                                        class="badge bg-primary-color">{{ $assignment->is_homeroom ? "Giáo viên bộ môn" : "Giáo viên chủ nhiệm" }}</span>
+                                        class="badge bg-primary-color">{{ $assignment->is_homeroom ? "Giáo viên chủ nhiệm" : "Giáo viên bộ môn" }}</span>
                                 </td>
                                 <td>{{ $assignment->academicYear->year }}</td>
                                 <td>

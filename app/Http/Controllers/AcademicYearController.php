@@ -17,7 +17,6 @@ class AcademicYearController extends Controller
     public function index()
     {
         $academicYears = AcademicYear::where('school_id', auth()->user()->school_id)
-            ->orderBy('school_auto_id', 'asc')
             ->paginate(10);
 
         return view('academic_years.index', compact('academicYears'));
@@ -287,25 +286,11 @@ class AcademicYearController extends Controller
             $school_id = $academicYear->school_id;
             $academicYear->delete();
 
-            // Cập nhật lại STT cho các năm học còn lại
-            $this->reorderAcademicYearNumbers($school_id);
-
             return redirect()->route('academic_years.index')
                 ->with('success', 'Xóa năm học thành công!');
         } catch (\Exception $e) {
             return redirect()->back()
                 ->with('error', 'Xóa năm học thất bại: ' . $e->getMessage());
-        }
-    }
-    private function reorderAcademicYearNumbers($school_id)
-    {
-        $academicYears = AcademicYear::where('school_id', $school_id)
-            ->orderBy('school_auto_id')
-            ->get();
-
-        foreach ($academicYears as $index => $academicYear) {
-            $academicYear->school_auto_id = $index + 1;
-            $academicYear->save();
         }
     }
 }
