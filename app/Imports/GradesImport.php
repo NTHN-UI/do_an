@@ -151,37 +151,95 @@ class GradesImport implements ToCollection, WithHeadingRow, WithCalculatedFormul
     protected function processNumericGrades($row, $studentId)
     {
         $grades = collect([
-            ['test_type' => 'fifteen_minutes', 'value' => (float) $row->get('2')],
-            ['test_type' => 'fifteen_minutes', 'value' => (float) $row->get('3')],
-            ['test_type' => 'one_period', 'value' => (float) $row->get('4')],
-            ['test_type' => 'one_period', 'value' => (float) $row->get('5')],
-            ['test_type' => 'semester', 'value' => (float) $row->get('6')],
+            ['test_type' => 'fifteen_minutes', 'test_number' => 1, 'value' => (float)$row->get('2')],
+            ['test_type' => 'fifteen_minutes', 'test_number' => 2, 'value' => (float)$row->get('3')],
+            ['test_type' => 'fifteen_minutes', 'test_number' => 3, 'value' => (float)$row->get('4')],
+            ['test_type' => 'one_period', 'test_number' => 1, 'value' => (float)$row->get('5')],
+            ['test_type' => 'semester', 'test_number' => 1, 'value' => (float)$row->get('6')],
         ]);
 
-        // Nhóm theo loại điểm (test_type)
-        $grouped = $grades
-            ->filter(fn($g) => is_numeric($g['value']) && $g['value'] >= 0 && $g['value'] <= 10)
-            ->groupBy('test_type');
+        // Lưu các điểm thành phần
+        $subjectGrades = [
+            'fifteen_minutes' => [],
+            'one_period' => null,
+            'semester' => null
+        ];
 
-        foreach ($grouped as $testType => $items) {
-            $average = round($items->avg('value'), 2); // Làm tròn 2 chữ số thập phân
+        foreach ($grades as $grade) {
+            if (is_numeric($grade['value']) && $grade['value'] >= 0 && $grade['value'] <= 10) {
+                Grade::updateOrCreate(
+                    [
+                        'teacher_id' => $this->teacherId,
+                        'student_id' => $studentId,
+                        'subject_id' => $this->currentSubject->id,
+                        'class_id' => $this->classId,
+                        'academic_year_id' => $this->academicYearId,
+                        'semester_id' => $this->semesterId,
+                        'test_type' => $grade['test_type'],
+                        'test_number' => $grade['test_number'],
+                        'school_id' => $this->schoolId,
+                    ],
+                    ['score' => $grade['value']]
+                );
 
-            Grade::updateOrCreate(
-                [
-                    'teacher_id' => $this->teacherId,
-                    'student_id' => $studentId,
-                    'subject_id' => $this->currentSubject->id,
-                    'class_id' => $this->classId,
-                    'academic_year_id' => $this->academicYearId,
-                    'semester_id' => $this->semesterId,
-                    'test_type' => $testType,
-                    'school_id' => $this->schoolId,
-                ],
-                [
-                    'score' => $average
-                ]
-            );
+                // Chuẩn bị dữ liệu để tính điểm TB
+                if ($grade['test_type'] == 'fifteen_minutes') {
+                    $subjectGrades['fifteen_minutes'][] = $grade['value'];
+                } else {
+                    $subjectGrades[$grade['test_type']] = $grade['value'];
+                }
+            }
         }
-    }
 
+        // Tính và lưu điểm trung bình học kỳ (final)
+        $semesterAvg = $this->calculateSemesterAverage($subjectGrades);
+        Grade::updateOrCreate(
+            [
+                'teacher_id' => $this->teacherId,
+                'student_id' => $studentId,
+                'subject_id' => $this->currentSubject->id,
+                'class_id' => $this->classId,
+                'academic_year_id' => $this->academicYearId,
+                'semester_id' => $this->semesterId,
+                'test_type' => 'final',
+                'school_id' => $this->schoolId,
+            ],
+            ['score' => $semesterAvg]
+        );
+    }
+    private function calculateSemesterAverage($subjectGrades)
+    {
+        $fifteenMinutes = array_filter($subjectGrades['fifteen_minutes'] ?? [], function($score) {
+            return !is_null($score) && $score >= 0;
+        });
+
+        $onePeriod = !is_null($subjectGrades['one_period'] ?? null) ? [$subjectGrades['one_period']] : [];
+        $semester = !is_null($subjectGrades['semester'] ?? null) ? [$subjectGrades['semester']] : [];
+
+        $total = 0;
+        $weights = 0;
+
+        // Điểm 15 phút (hệ số 1)
+        $count = 0;
+        foreach ($fifteenMinutes as $score) {
+            if ($count >= 3) break;
+            $total += $score * 1;
+            $weights += 1;
+            $count++;
+        }
+
+        // Điểm 1 tiết (hệ số 2)
+        if (!empty($onePeriod)) {
+            $total += $onePeriod[0] * 2;
+            $weights += 2;
+        }
+
+        // Điểm cuối kỳ (hệ số 3)
+        if (!empty($semester)) {
+            $total += $semester[0] * 3;
+            $weights += 3;
+        }
+
+        return $weights > 0 ? round($total / $weights, 1) : 0;
+    }
 }

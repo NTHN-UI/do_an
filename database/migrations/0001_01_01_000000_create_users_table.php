@@ -28,6 +28,7 @@ return new class extends Migration
         Schema::create('subjects', function (Blueprint $table) {
             $table->id();
             $table->string('name');
+            $table->string('type')->default('score');
             $table->boolean('is_text_based')->default(false);
             $table->foreignId('school_id')->constrained('schools')->onDelete('cascade');
             $table->timestamps();
@@ -136,7 +137,9 @@ return new class extends Migration
             $table->foreignId('semester_id')->constrained('semesters')->onDelete('cascade');
             $table->foreignId('school_id')->nullable()->constrained('schools')->onDelete('cascade');
             $table->enum('test_type', ['fifteen_minutes', 'one_period', 'semester', 'final']);
+            $table->unsignedTinyInteger('test_number')->nullable();
             $table->decimal('score', 5, 2);
+
             $table->timestamps();
         });
 

@@ -63,7 +63,7 @@
                                 <th rowspan="2">Mã HS</th>
                                 <th rowspan="2">Họ và tên</th>
                                 @foreach($subjects as $subject)
-                                    <th colspan="2" class="text-center">{{ $subject->name }}</th>
+                                    <th colspan="3" class="text-center">{{ $subject->name }}</th>
                                 @endforeach
                                 <th colspan="3" class="text-center">Tổng hợp</th>
                             </tr>
@@ -71,10 +71,12 @@
                                 @foreach($subjects as $subject)
                                     <th>HK1</th>
                                     <th>HK2</th>
+                                    <th>CN</th>
+
                                 @endforeach
-                                <th>ĐTB HK1</th>
-                                <th>ĐTB HK2</th>
-                                <th>ĐTB CN</th>
+                                <th>ĐTB các môn HK1</th>
+                                <th>ĐTB các môn HK2</th>
+                                <th>ĐTB các môn CN</th>
                             </tr>
                             </thead>
                             <tbody>
@@ -87,8 +89,15 @@
                                     <td>{{ $student->full_name }}</td>
 
                                     @foreach($subjects as $subject)
-                                        <td>{{ $result['semester1']['subjects'][$subject->id] ?? '' }}</td>
-                                        <td>{{ $result['semester2']['subjects'][$subject->id] ?? '' }}</td>
+                                        <td>{{ $result['semester1']['subjects'][$subject->id] ?? '-' }}</td>
+                                        <td>{{ $result['semester2']['subjects'][$subject->id] ?? '-' }}</td>
+                                        <td>
+                                            @if(isset($result['yearly']['subjects'][$subject->id]) && $result['yearly']['subjects'][$subject->id] > 0)
+                                                {{ number_format($result['yearly']['subjects'][$subject->id], 1) }}
+                                            @else
+                                                -
+                                            @endif
+                                        </td>
                                     @endforeach
 
                                     <td class="font-weight-bold">

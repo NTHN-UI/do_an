@@ -93,6 +93,7 @@ class GradeTemplateSubjectSheet implements FromCollection, WithHeadings, WithTit
     protected $semesterId;
     protected $class;
     protected $academicYearId;
+    protected $textBasedSubjects = ['Giáo dục quốc phòng và an ninh', 'Giáo dục thể chất', 'Nghệ thuật'];
 
     public function __construct($students, $subject, $semesterId, $class, $academicYearId)
     {
@@ -106,18 +107,18 @@ class GradeTemplateSubjectSheet implements FromCollection, WithHeadings, WithTit
     public function collection()
     {
         $data = [];
-        $isTextSubject = $this->subject->is_text_based;
+        $isTextSubject = in_array($this->subject->name, $this->textBasedSubjects);
 
 
         foreach ($this->students as $student) {
             $row = [
                 $student->id,
                 $student->full_name,
-                '', // Điểm 15 phút 1 hoặc Đánh giá 1
-                '', // Điểm 15 phút 2 hoặc Đánh giá 2
-                '', // Điểm 1 tiết 1 hoặc Đánh giá 3
-                '', // Điểm 1 tiết 2 hoặc Đánh giá 4
-                '', // Điểm học kỳ hoặc Đánh giá HK
+                '', // Điểm 15p lần 1 (thay cho điểm miệng)
+                '', // Điểm 15p lần 2 (thay cho điểm thực hành)
+                '', // Điểm 15p lần 3
+                '', // Điểm 1 tiết
+                '', // Điểm cuối kỳ
             ];
 
             $data[] = $row;
@@ -128,38 +129,39 @@ class GradeTemplateSubjectSheet implements FromCollection, WithHeadings, WithTit
 
     public function headings(): array
     {
-        $isTextSubject = $this->subject->is_text_based;
+        $isTextSubject = in_array($this->subject->name, $this->textBasedSubjects);
+        $subjectTypeNote = $isTextSubject ? ' (Nhập "Đạt" hoặc "Chưa đạt")' : ' (Nhập điểm số 0-10)';
 
 
-        return [
-            ['THÔNG TIN LỚP: ' . $this->class->name . ' (Mã: ' . $this->class->id . ')'],
-            ['NĂM HỌC: ' . $this->academicYearId],
-            ['HỌC KỲ: ' . $this->semesterId],
-            ['MÔN HỌC: ' . $this->subject->name],
-            [''],
-            $isTextSubject
-                ? [
-                'Mã HS',
-                'Họ và tên',
-                'Đánh giá 1',
-                'Đánh giá 2',
-                'Đánh giá 3',
-                'Đánh giá 4',
-                'Đánh giá HK'
-            ]
-                : [
-                'Mã HS',
-                'Họ và tên',
-                'Điểm 15p lần 1',
-                'Điểm 15p lần 2',
-                'Điểm 1 tiết lần 1',
-                'Điểm 1 tiết lần 2',
-                'Điểm học kỳ'
-            ]
+            return [
+                ['THÔNG TIN LỚP: ' . $this->class->name . ' (Mã: ' . $this->class->id . ')'],
+                ['NĂM HỌC: ' . $this->academicYearId],
+                ['HỌC KỲ: ' . $this->semesterId],
+                ['MÔN HỌC: ' . $this->subject->name . $subjectTypeNote],
+                [''],
+                $isTextSubject
+                    ? [
+                    'Mã HS',
+                    'Họ và tên',
+                    'Đánh giá 1',
+                    'Đánh giá 2',
+                    'Đánh giá 3',
+                    'Đánh giá 4',
+                    'Đánh giá HK'
+                ]
+                    : [
+                    'Mã HS',
+                    'Họ và tên',
+                    'Điểm 15p lần 1',
+                    'Điểm 15p lần 2',
+                    'Điểm 15p lần 3',
+                    'Điểm 1 tiết',
+                    'Điểm học kỳ'
+                ]
 
-        ];
+            ];
 
-    }
+        }
 
     public function title(): string
     {
@@ -191,48 +193,53 @@ class GradeTemplateSubjectSheet implements FromCollection, WithHeadings, WithTit
         $sheet->getColumnDimension('G')->setWidth(15);
 
         // Đặt kiểu dữ liệu cho các cột điểm
-        $isTextSubject = $this->subject->is_text_based;
+        // Thiết lập data validation
+        $isTextSubject = in_array($this->subject->name, $this->textBasedSubjects);
+        $lastRow = count($this->students) + 6;
 
         if ($isTextSubject) {
-            // Thiết lập data validation cho môn đạt/chưa đạt
-            $validationValues = ['Đạt', 'Chưa đạt'];
+            // Thiết lập dropdown cho môn đạt/chưa đạt
+            $validation = $sheet->getCell('C7')->getDataValidation();
+            $validation->setType(\PhpOffice\PhpSpreadsheet\Cell\DataValidation::TYPE_LIST);
+            $validation->setErrorStyle(\PhpOffice\PhpSpreadsheet\Cell\DataValidation::STYLE_STOP);
+            $validation->setAllowBlank(false);
+            $validation->setShowInputMessage(true);
+            $validation->setShowErrorMessage(true);
+            $validation->setShowDropDown(true);
+            $validation->setErrorTitle('Lỗi nhập liệu');
+            $validation->setError('Chỉ được nhập "Đạt" hoặc "Chưa đạt"');
+            $validation->setPromptTitle('Chọn giá trị');
+            $validation->setPrompt('Chọn "Đạt" hoặc "Chưa đạt"');
+            $validation->setFormula1('"Đạt,Chưa đạt"');
 
-            for ($i = 6; $i <= count($this->students) + 5; $i++) {
+            // Áp dụng cho tất cả các ô nhập liệu
+            for ($row = 7; $row <= $lastRow; $row++) {
                 for ($col = 'C'; $col <= 'G'; $col++) {
-                    $sheet->getCell("{$col}{$i}")->getDataValidation()
-                        ->setType(\PhpOffice\PhpSpreadsheet\Cell\DataValidation::TYPE_LIST)
-                        ->setErrorStyle(\PhpOffice\PhpSpreadsheet\Cell\DataValidation::STYLE_INFORMATION)
-                        ->setAllowBlank(false)
-                        ->setShowInputMessage(true)
-                        ->setShowErrorMessage(true)
-                        ->setShowDropDown(true)
-                        ->setErrorTitle('Lỗi nhập liệu')
-                        ->setError('Giá trị không hợp lệ, chỉ được nhập "Đạt" hoặc "Chưa đạt"')
-                        ->setPromptTitle('Chọn giá trị')
-                        ->setPrompt('Chọn "Đạt" hoặc "Chưa đạt"')
-                        ->setFormula1('"' . implode(',', $validationValues) . '"');
+                    $sheet->getCell("{$col}{$row}")->setDataValidation(clone $validation);
                 }
             }
         } else {
-            // Thiết lập data validation cho môn nhập điểm (0-10)
-            for ($i = 7; $i <= count($this->students) + 5; $i++) {
+            // Thiết lập validation cho môn nhập điểm số
+            $validation = $sheet->getCell('C7')->getDataValidation();
+            $validation->setType(\PhpOffice\PhpSpreadsheet\Cell\DataValidation::TYPE_DECIMAL);
+            $validation->setOperator(\PhpOffice\PhpSpreadsheet\Cell\DataValidation::OPERATOR_BETWEEN);
+            $validation->setFormula1('0');
+            $validation->setFormula2('10');
+            $validation->setAllowBlank(false);
+            $validation->setShowInputMessage(true);
+            $validation->setShowErrorMessage(true);
+            $validation->setErrorTitle('Lỗi nhập liệu');
+            $validation->setError('Điểm phải từ 0 đến 10');
+            $validation->setPromptTitle('Nhập điểm');
+            $validation->setPrompt('Nhập điểm từ 0 đến 10 (có thể nhập 1 chữ số thập phân)');
+
+            // Áp dụng cho tất cả các ô nhập liệu
+            for ($row = 7; $row <= $lastRow; $row++) {
                 for ($col = 'C'; $col <= 'G'; $col++) {
-                    $sheet->getCell("{$col}{$i}")->getDataValidation()
-                        ->setType(\PhpOffice\PhpSpreadsheet\Cell\DataValidation::TYPE_DECIMAL)
-                        ->setOperator(\PhpOffice\PhpSpreadsheet\Cell\DataValidation::OPERATOR_BETWEEN)
-                        ->setFormula1('0')
-                        ->setFormula2('10')
-                        ->setAllowBlank(false)
-                        ->setShowInputMessage(true)
-                        ->setShowErrorMessage(true)
-                        ->setErrorTitle('Lỗi nhập liệu')
-                        ->setError('Điểm phải từ 0 đến 10')
-                        ->setPromptTitle('Nhập điểm')
-                        ->setPrompt('Nhập điểm từ 0 đến 10 (có thể nhập 1 chữ số thập phân)');
+                    $sheet->getCell("{$col}{$row}")->setDataValidation(clone $validation);
                 }
             }
         }
-
         return [
             1 => ['font' => ['bold' => true, 'size' => 14]],
             2 => ['font' => ['bold' => true]],

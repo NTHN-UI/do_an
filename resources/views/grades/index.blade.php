@@ -97,7 +97,6 @@
 
         <div id="grades-container">
             @if($selectedClassId && $selectedSemesterId !== null)
-            <!-- Phần hiển thị danh sách điểm -->
                 <div class="card shadow mb-4">
                     <div class="card-header py-3 d-flex justify-content-between align-items-center">
                         <h6 class="m-0 font-weight-bold text-primary">Danh sách điểm học sinh</h6>
@@ -114,11 +113,12 @@
                                     <th rowspan="2">Họ và tên</th>
                                     @foreach($subjectsTaught as $subject)
                                         @if($selectedSemesterId == 0)
-                                            <th colspan="3" class="text-center">{{ $subject->name }}</th>
+                                            <th colspan="2" class="text-center">{{ $subject->name }}</th>
                                         @else
-                                            <th colspan="3" class="text-center">{{ $subject->name }}</th>
+                                            <th colspan="5" class="text-center">{{ $subject->name }}</th>
                                         @endif
                                     @endforeach
+
                                     <th rowspan="2">
                                         @if($selectedSemesterId == 0)
                                             Điểm TB cả năm
@@ -130,61 +130,37 @@
                                 <tr>
                                     @foreach($subjectsTaught as $subject)
                                         @if($selectedSemesterId == 0)
-                                            @foreach($semesters as $semester)
-                                                @if($semester->id != 0)
-                                                <th>HK{{ $semester->id }}</th>
-                                                @endif
-                                            @endforeach
-                                            <th>Cả năm</th>
+                                            <th>HK1</th>
+                                            <th>HK2</th>
                                         @else
-                                            <th>15 phút</th>
+                                            <th>15p 1</th>
+                                            <th>15p 2</th>
+                                            <th>15p 3</th>
                                             <th>1 tiết</th>
-                                            <th>HK</th>
+                                            <th>Cuối kỳ</th>
                                         @endif
                                     @endforeach
                                 </tr>
                                 </thead>
                                 <tbody>
-                                @foreach($students as $index => $student)
+                                @foreach($students as $student)
                                     <tr>
                                         <td>{{ $student->id }}</td>
                                         <td>{{ $student->full_name }}</td>
 
                                         @foreach($subjectsTaught as $subject)
-                                            @if($selectedSemesterId == 0)
-                                                @php
-                                                    $subjectGrades = $grades[$student->id][$subject->id] ?? [];
-                                                    $semester1 = $subjectGrades['semester1'] ?? '';
-                                                    $semester2 = $subjectGrades['semester2'] ?? '';
-                                                    $yearlyAvg = $subjectGrades['average'] ?? '';
-                                                @endphp
-
-                                                <td>{{ $semester1 }}</td>
-                                                <td>{{ $semester2 }}</td>
-                                                <td>{{ $yearlyAvg }}</td>
-                                            @else
-                                                @php
+                                            @php
                                                 $subjectGrades = $grades[$student->id][$subject->id] ?? [];
-                                                $fifteenMinutes = $subjectGrades['fifteen_minutes'] ?? collect();
-                                                $onePeriod = $subjectGrades['one_period'] ?? collect();
-                                                $semester = $subjectGrades['semester'] ?? collect();
-                                                $subjectAverage = $subjectGrades['average'] ?? null;
-
-                                                // Hiển thị điểm
-                                                $avgFifteen = $fifteenMinutes->isNotEmpty()
-                                                    ? round($fifteenMinutes->avg('score'), 1)
-                                                    : '';
-                                                $avgOnePeriod = $onePeriod->isNotEmpty()
-                                                    ? round($onePeriod->avg('score'), 1)
-                                                    : '';
-                                                $semesterScore = $semester->isNotEmpty()
-                                                    ? round($semester->first()->score, 1)
-                                                    : '';
                                             @endphp
-
-                                            <td>{{ $avgFifteen }}</td>
-                                            <td>{{ $avgOnePeriod }}</td>
-                                            <td>{{ $semesterScore }}</td>
+                                            @if($selectedSemesterId == 0)
+                                                <td>{{ $grades[$student->id][$subject->id]['semester1_avg'] ?? '-' }}</td>
+                                                <td>{{ $grades[$student->id][$subject->id]['semester2_avg'] ?? '-' }}</td>
+                                            @else
+                                                <td>{{ $subjectGrades['fifteen_minutes'][0] ?? '' }}</td>
+                                                <td>{{ $subjectGrades['fifteen_minutes'][1] ?? '' }}</td>
+                                                <td>{{ $subjectGrades['fifteen_minutes'][2] ?? '' }}</td>
+                                                <td>{{ $subjectGrades['one_period'] ?? '' }}</td>
+                                                <td>{{ $subjectGrades['semester'] ?? '' }}</td>
                                             @endif
                                         @endforeach
 
@@ -202,9 +178,8 @@
                         </div>
                     </div>
                 </div>
+            @endif
         </div>
-        @endif
-    </div>
 
     <!-- Import Modal -->
     <div class="modal fade" id="importModal" tabindex="-1" aria-labelledby="importModalLabel" aria-hidden="true">

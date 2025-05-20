@@ -90,96 +90,93 @@ class GradeController extends Controller
             // Khởi tạo mảng grades
             $grades = [];
 
-            if ($selectedSemesterId == 0) {
-                // Lấy điểm của cả 2 học kỳ
-                $semester1Grades = Grade::where('class_id', $selectedClassId)
-                    ->where('semester_id', 1) // HK1
-                    ->where('academic_year_id', $selectedAcademicYearId)
-                    ->where('school_id', $schoolId)
-                    ->get()
-                    ->groupBy(['student_id', 'subject_id', 'test_type']);
+            if ($selectedClassId && $selectedSemesterId !== null) {
+                if ($selectedSemesterId == 0) {
+                    // Lấy điểm TB học kỳ từ test_type = 'final'
+                    $semester1Avgs = Grade::where('class_id', $selectedClassId)
+                        ->where('semester_id', 1)
+                        ->where('test_type', 'final')
+                        ->where('academic_year_id', $selectedAcademicYearId)
+                        ->get()
+                        ->groupBy(['student_id', 'subject_id']);
 
-                $semester2Grades = Grade::where('class_id', $selectedClassId)
-                    ->where('semester_id', 2) // HK2
-                    ->where('academic_year_id', $selectedAcademicYearId)
-                    ->where('school_id', $schoolId)
-                    ->get()
-                    ->groupBy(['student_id', 'subject_id', 'test_type']);
+                    $semester2Avgs = Grade::where('class_id', $selectedClassId)
+                        ->where('semester_id', 2)
+                        ->where('test_type', 'final')
+                        ->where('academic_year_id', $selectedAcademicYearId)
+                        ->get()
+                        ->groupBy(['student_id', 'subject_id']);
 
-                // Tính điểm trung bình cả năm
-                foreach ($students as $student) {
-                    $totalScore = 0;
-                    $subjectCount = 0;
+                    foreach ($students as $student) {
+                        $totalScore = 0;
+                        $subjectCount = 0;
 
-                    foreach ($subjectsTaught as $subject) {
-                        // Tính điểm TB môn từng học kỳ
-                        $semester1Avg = $this->calculateSemesterAverage($semester1Grades[$student->id][$subject->id] ?? []);
-                        $semester2Avg = $this->calculateSemesterAverage($semester2Grades[$student->id][$subject->id] ?? []);
+                        foreach ($subjectsTaught as $subject) {
+                            // Lấy điểm TB đã lưu
+                            $semester1Avg = $semester1Avgs[$student->id][$subject->id][0]->score ?? 0;
+                            $semester2Avg = $semester2Avgs[$student->id][$subject->id][0]->score ?? 0;
 
-                        // Tính điểm TB cả năm (trung bình 2 học kỳ)
-                        $yearlyAverage = ($semester1Avg + $semester2Avg) / 2;
+                            $grades[$student->id][$subject->id]['semester1_avg'] = $semester1Avg;
+                            $grades[$student->id][$subject->id]['semester2_avg'] = $semester2Avg;
 
-                        if ($yearlyAverage > 0) {
-                            $totalScore += $yearlyAverage;
-                            $subjectCount++;
+                            $yearlyAverage = ($semester1Avg + $semester2Avg * 2) / 3;
+                            $grades[$student->id][$subject->id]['average'] = round($yearlyAverage, 1);
+
+                            if ($yearlyAverage > 0) {
+                                $totalScore += $yearlyAverage;
+                                $subjectCount++;
+                            }
                         }
 
-                        // Lưu thông tin để hiển thị
-                        $grades[$student->id][$subject->id] = [
-                            'semester1' => round($semester1Avg, 1),
-                            'semester2' => round($semester2Avg, 1),
-                            'average' => round($yearlyAverage, 1)
-                        ];
+                        $grades[$student->id]['yearly_average'] = $subjectCount > 0
+                            ? round($totalScore / $subjectCount, 1)
+                            : 0;
                     }
+                } else {
+                    // For semester grades (not yearly)
+                    $allGrades = Grade::where('class_id', $selectedClassId)
+                        ->where('semester_id', $selectedSemesterId)
+                        ->where('academic_year_id', $selectedAcademicYearId)
+                        ->where('school_id', $schoolId)
+                        ->get()
+                        ->groupBy(['student_id', 'subject_id', 'test_type']);
 
-                    // Tính điểm TB cả năm (trung bình các môn)
-                    $yearlyAverage = $subjectCount > 0 ? round($totalScore / $subjectCount, 1) : 0;
-                    $grades[$student->id]['yearly_average'] = $yearlyAverage;
-                }
-            } else {
-                // Xử lý khi chọn học kỳ cụ thể
-                $allGrades = Grade::where('class_id', $selectedClassId)
-                    ->where('semester_id', $selectedSemesterId)
-                    ->where('academic_year_id', $selectedAcademicYearId)
-                    ->where('school_id', $schoolId)
-                    ->get()
-                    ->groupBy(['student_id', 'subject_id', 'test_type']);
+                    foreach ($students as $student) {
+                        $totalScore = 0;
+                        $subjectCount = 0;
 
-                foreach ($students as $student) {
-                    $totalScore = 0;
-                    $subjectCount = 0;
+                        foreach ($subjectsTaught as $subject) {
+                            $subjectGrades = $allGrades[$student->id][$subject->id] ?? [];
 
-                    foreach ($subjectsTaught as $subject) {
-                        $subjectGrades = $allGrades[$student->id][$subject->id] ?? [];
-                        $fifteenMinutes = $subjectGrades['fifteen_minutes'] ?? collect();
-                        $onePeriod = $subjectGrades['one_period'] ?? collect();
-                        $semester = $subjectGrades['semester'] ?? collect();
+                            // Initialize the grades array with the structure your view expects
+                            $grades[$student->id][$subject->id] = [
+                                'fifteen_minutes' => [
+                                    $subjectGrades['fifteen_minutes'][0]->score ?? null,
+                                    $subjectGrades['fifteen_minutes'][1]->score ?? null,
+                                    $subjectGrades['fifteen_minutes'][2]->score ?? null,
+                                ],
+                                'one_period' => $subjectGrades['one_period'][0]->score ?? null,
+                                'semester' => $subjectGrades['semester'][0]->score ?? null,
+                            ];
 
-                        $avgFifteen = $fifteenMinutes->avg('score') ?? 0;
-                        $avgOnePeriod = $onePeriod->avg('score') ?? 0;
-                        $semesterScore = $semester->first()->score ?? 0;
+                            // Calculate average
+                            $subjectAverage = $this->calculateSubjectAverage($grades[$student->id][$subject->id]);
 
-                        $subjectAverage = ($avgFifteen * 0.2) + ($avgOnePeriod * 0.3) + ($semesterScore * 0.5);
+                            if ($subjectAverage > 0) {
+                                $totalScore += $subjectAverage;
+                                $subjectCount++;
+                            }
 
-                        if ($subjectAverage > 0) {
-                            $totalScore += $subjectAverage;
-                            $subjectCount++;
+                            $grades[$student->id][$subject->id]['average'] = round($subjectAverage, 1);
                         }
 
-                        $grades[$student->id][$subject->id] = [
-                            'fifteen_minutes' => $fifteenMinutes,
-                            'one_period' => $onePeriod,
-                            'semester' => $semester,
-                            'average' => round($subjectAverage, 1)
-                        ];
+                        $grades[$student->id]['semester_average'] = $subjectCount > 0
+                            ? round($totalScore / $subjectCount, 1)
+                            : 0;
                     }
-
-                    $semesterAverage = $subjectCount > 0 ? round($totalScore / $subjectCount, 1) : 0;
-                    $grades[$student->id]['semester_average'] = $semesterAverage;
                 }
             }
         }
-
         return view('grades.index', compact(
             'assignedClasses',
             'students',
@@ -192,7 +189,47 @@ class GradeController extends Controller
             'selectedAcademicYearId'
         ));
     }
+    private function calculateSubjectAverage($subjectGrades)
+    {
+        $fifteenMinutes = array_filter($subjectGrades['fifteen_minutes'] ?? [], function($score) {
+            return !is_null($score) && $score >= 0;
+        });
 
+        $onePeriod = !is_null($subjectGrades['one_period'] ?? null) && $subjectGrades['one_period'] >= 0
+            ? [$subjectGrades['one_period']]
+            : [];
+
+        $semester = !is_null($subjectGrades['semester'] ?? null) && $subjectGrades['semester'] >= 0
+            ? [$subjectGrades['semester']]
+            : [];
+
+        // Tổng điểm có trọng số
+        $total = 0;
+        $weights = 0;
+
+        // Điểm 15 phút: hệ số 1 (lấy tối đa 3 điểm)
+        $count = 0;
+        foreach ($fifteenMinutes as $score) {
+            if ($count >= 3) break;
+            $total += $score * 1;
+            $weights += 1;
+            $count++;
+        }
+
+        // Điểm 1 tiết: hệ số 2 (lấy 1 điểm)
+        if (!empty($onePeriod)) {
+            $total += $onePeriod[0] * 2;
+            $weights += 2;
+        }
+
+        // Điểm cuối kỳ: hệ số 3 (lấy 1 điểm)
+        if (!empty($semester)) {
+            $total += $semester[0] * 3;
+            $weights += 3;
+        }
+
+        return $weights > 0 ? round($total / $weights, 1) : 0;
+    }
     public function exportTemplate(Request $request)
     {
         $request->validate([
@@ -388,19 +425,6 @@ class GradeController extends Controller
 
         return response()->json($classes);
     }
-    // Hàm tính điểm TB học kỳ cho một môn
-    private function calculateSemesterAverage($subjectGrades)
-    {
-        $fifteenMinutes = $subjectGrades['fifteen_minutes'] ?? collect();
-        $onePeriod = $subjectGrades['one_period'] ?? collect();
-        $semester = $subjectGrades['semester'] ?? collect();
-
-        $avgFifteen = $fifteenMinutes->avg('score') ?? 0;
-        $avgOnePeriod = $onePeriod->avg('score') ?? 0;
-        $semesterScore = $semester->first()->score ?? 0;
-
-        return ($avgFifteen * 0.2) + ($avgOnePeriod * 0.3) + ($semesterScore * 0.5);
-    }
 // Thêm vào GradeController.php
 
     public function homeroomGrades(Request $request)
@@ -440,8 +464,8 @@ class GradeController extends Controller
         // Lấy điểm đã tổng kết từ bảng grades (điểm cuối kỳ)
         $finalGrades = Grade::where('class_id', $selectedClassId)
             ->where('academic_year_id', $selectedAcademicYearId)
-            ->whereIn('semester_id', [1, 2]) // Chỉ lấy điểm HK1 và HK2
-            ->where('test_type', 'semester') // Chỉ lấy điểm tổng kết
+            ->whereIn('semester_id', [1, 2])
+            ->where('test_type', 'final') // Thay 'semester' bằng 'final'
             ->get()
             ->groupBy(['student_id', 'semester_id', 'subject_id']);
 
@@ -460,50 +484,48 @@ class GradeController extends Controller
             $semester2Total = 0;
             $semester2Count = 0;
 
-            foreach ($subjects as $subject) {
-                // Lấy điểm HK1 đã tổng kết
-                $semester1Grade = $finalGrades[$student->id][1][$subject->id] ?? null;
-                $semester1Avg = $semester1Grade ? $semester1Grade->first()->score : 0;
 
+            foreach ($subjects as $subject) {
+                $semester1Avg = $finalGrades[$student->id][1][$subject->id][0]->score ?? 0;
+                $semester2Avg = $finalGrades[$student->id][2][$subject->id][0]->score ?? 0;
+
+                // Lưu điểm HK1, HK2
+                $result['semester1']['subjects'][$subject->id] = $semester1Avg;
+                $result['semester2']['subjects'][$subject->id] = $semester2Avg;
+
+                // Tính điểm cả năm cho từng môn (CN) = (ĐTB HK1 + ĐTB HK2 * 2) / 3
+                $yearlySubjectAvg = round(($semester1Avg + $semester2Avg * 2) / 3, 1);
+                $result['yearly']['subjects'][$subject->id] = $yearlySubjectAvg;
+
+
+                // Cập nhật tổng điểm và số môn cho HK1 (chỉ tính các môn có điểm > 0)
                 if ($semester1Avg > 0) {
                     $semester1Total += $semester1Avg;
                     $semester1Count++;
                 }
-                $result['semester1']['subjects'][$subject->id] = $semester1Avg;
 
-                // Lấy điểm HK2 đã tổng kết
-                $semester2Grade = $finalGrades[$student->id][2][$subject->id] ?? null;
-                $semester2Avg = $semester2Grade ? $semester2Grade->first()->score : 0;
-
+                // Cập nhật tổng điểm và số môn cho HK2 (chỉ tính các môn có điểm > 0)
                 if ($semester2Avg > 0) {
                     $semester2Total += $semester2Avg;
                     $semester2Count++;
                 }
-                $result['semester2']['subjects'][$subject->id] = $semester2Avg;
             }
 
-            // Tính điểm TB HK1
+            // Tính điểm TB và xếp loại nếu có dữ liệu
             if ($semester1Count > 0) {
                 $result['semester1']['average'] = round($semester1Total / $semester1Count, 1);
                 $result['semester1']['classification'] = $this->classifyStudent($result['semester1']['average'], $result['semester1']['subjects']);
             }
 
-            // Tính điểm TB HK2
             if ($semester2Count > 0) {
                 $result['semester2']['average'] = round($semester2Total / $semester2Count, 1);
                 $result['semester2']['classification'] = $this->classifyStudent($result['semester2']['average'], $result['semester2']['subjects']);
             }
 
-            // Tính điểm TB cả năm
             if ($semester1Count > 0 && $semester2Count > 0) {
-                $result['yearly']['average'] = round(($result['semester1']['average'] + $result['semester2']['average']) / 2, 1);
-
-                // Gộp điểm cả 2 học kỳ để xếp loại
-                $yearlySubjects = [];
-                foreach ($subjects as $subject) {
-                    $yearlySubjects[$subject->id] = round(($result['semester1']['subjects'][$subject->id] + $result['semester2']['subjects'][$subject->id]) / 2, 1);
-                }
-                $result['yearly']['classification'] = $this->classifyStudent($result['yearly']['average'], $yearlySubjects);
+                $yearAvg = round(($result['semester1']['average'] + $result['semester2']['average'] * 2) / 3, 1);
+                $result['yearly']['average'] = $yearAvg;
+                $result['yearly']['classification'] = $this->classifyStudent($yearAvg, $result['yearly']['subjects']);
             }
 
             $studentResults[$student->id] = $result;
