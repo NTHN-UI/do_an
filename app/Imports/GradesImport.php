@@ -128,10 +128,28 @@ class GradesImport implements ToCollection, WithHeadingRow, WithCalculatedFormul
             ['test_type' => 'semester', 'test_number' => 1, 'value' => $row->get('6') ?? null],
         ];
 
-        foreach ($grades as $grade) {
-            $textValue = $this->normalizeTextGrade($grade['value']);
+        $fifteenMinPassed = 0;
+        $onePeriodPassed = false;
+        $semesterGrade = null;
 
-            if ($textValue !== null) {
+        // Xử lý và lưu điểm 15 phút và 1 tiết
+        foreach ($grades as $grade) {
+            if ($grade['test_type'] === 'semester') {
+                $semesterGrade = $grade['value']; // Lưu tạm giá trị điểm cuối kỳ
+                continue;
+            }
+
+            // Kiểm tra và đếm bài đạt
+            if ($grade['value'] === 'Đạt') {
+                if ($grade['test_type'] === 'fifteen_minutes') {
+                    $fifteenMinPassed++;
+                } elseif ($grade['test_type'] === 'one_period') {
+                    $onePeriodPassed = true;
+                }
+            }
+
+            // Lưu điểm vào database nếu có giá trị
+            if ($grade['value'] !== null) {
                 Grade::updateOrCreate(
                     [
                         'teacher_id' => $this->teacherId,
@@ -145,14 +163,49 @@ class GradesImport implements ToCollection, WithHeadingRow, WithCalculatedFormul
                         'school_id' => $this->schoolId,
                     ],
                     [
-                        'text_value' => $textValue,
+                        'text_value' => $grade['value'],
                         'score' => null
                     ]
                 );
             }
         }
-        // Cập nhật điểm tổng kết (final) cho môn đặc biệt
-        $finalGrade = $this->calculateFinalTextGrade($grades);
+
+        // Kiểm tra điều kiện thi cuối kỳ
+        $isEligible = ($fifteenMinPassed >= 2) && $onePeriodPassed;
+
+        // Xử lý điểm cuối kỳ
+        $finalSemesterGrade = $isEligible ? $semesterGrade : 'Chưa đạt';
+
+        // Nếu không đủ điều kiện, ghi đè thành "Chưa đạt" bất kể Excel nhập gì
+        if (!$isEligible) {
+            $finalSemesterGrade = 'Chưa đạt';
+        } elseif ($semesterGrade === null) {
+            // Nếu đủ điều kiện nhưng không có điểm cuối kỳ
+            $finalSemesterGrade = null;
+        }
+        // Lưu điểm cuối kỳ
+        if ($finalSemesterGrade !== null) {
+            Grade::updateOrCreate(
+                [
+                    'teacher_id' => $this->teacherId,
+                    'student_id' => $studentId,
+                    'subject_id' => $this->currentSubject->id,
+                    'class_id' => $this->classId,
+                    'academic_year_id' => $this->academicYearId,
+                    'semester_id' => $this->semesterId,
+                    'test_type' => 'semester',
+                    'test_number' => 1,
+                    'school_id' => $this->schoolId,
+                ],
+                [
+                    'text_value' => $finalSemesterGrade,
+                    'score' => null
+                ]
+            );
+        }
+
+        // Tính và lưu điểm tổng kết (final)
+        $finalGrade = $this->calculateFinalTextGrade($grades, $isEligible);
         Grade::updateOrCreate(
             [
                 'teacher_id' => $this->teacherId,
@@ -190,16 +243,20 @@ class GradesImport implements ToCollection, WithHeadingRow, WithCalculatedFormul
         return null;
     }
 
-    private function calculateFinalTextGrade($grades)
+    private function calculateFinalTextGrade($grades, $isEligible)
     {
+        // Nếu không đủ điều kiện thì tự động "Chưa đạt"
+        if (!$isEligible) {
+            return 'Chưa đạt';
+        }
+
+        // Kiểm tra tất cả các điểm thành phần
         foreach ($grades as $grade) {
-            if (!empty($grade['value'])) {
-                $textValue = $this->normalizeTextGrade($grade['value']);
-                if ($textValue === 'Chưa đạt') {
-                    return 'Chưa đạt';
-                }
+            if ($grade['value'] === 'Chưa đạt') {
+                return 'Chưa đạt';
             }
         }
+
         return 'Đạt';
     }
 

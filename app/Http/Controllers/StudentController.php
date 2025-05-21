@@ -206,8 +206,6 @@ class StudentController extends Controller
             $validated['school_id'] = auth()->user()->school_id;
             $validated['is_active'] = $request->has('is_active');
 
-            Log::info("Du lieu:", [$validated]);
-
             // Lấy thông tin trường học
             $school = School::find(auth()->user()->school_id);
 

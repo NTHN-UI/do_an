@@ -74,7 +74,17 @@ class  School extends Model
     {
         static::created(function (School $school) {
             foreach (self::HIGH_SCHOOL_SUBJECTS as $name) {
-                $school->subjects()->create(['name' => $name]);
+                $isSpecialSubject = in_array($name, [
+                    'Giáo dục quốc phòng và an ninh',
+                    'Giáo dục thể chất',
+                    'Nghệ thuật'
+                ]);
+
+                if ($isSpecialSubject) {
+                    $school->subjects()->create(['name' => $name, 'is_text_based' => 1]);
+                } else {
+                        $school->subjects()->create(['name' => $name]);
+                }
             }
 
             $grades = GradeLevel::where('school_id', $school->id)->get();

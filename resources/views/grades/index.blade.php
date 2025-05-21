@@ -150,65 +150,61 @@
 
                                         @foreach($subjectsTaught as $subject)
                                             @php
-                                                $subjectGrades = $grades[$student->id][$subject->id] ?? [];
-                                                $isSpecialSubject = in_array($subject->name, [
-                                                    'Giáo dục quốc phòng và an ninh',
-                                                    'Giáo dục thể chất',
-                                                    'Nghệ thuật'
-                                                ]);
+                                                $subjectData = $grades[$student->id][$subject->id] ?? [];
+                                                $isSpecialSubject = $subjectData['is_special'] ?? false;
                                             @endphp
 
                                             @if($selectedSemesterId == 0)
                                                 <!-- Hiển thị điểm cả năm -->
                                                 <td>
                                                     @if($isSpecialSubject)
-                                                        {{ $grades[$student->id][$subject->id]['semester1_text'] ?? '-' }}
+                                                        {{ $subjectData['semester1_text'] ?? '-' }}
                                                     @else
-                                                        {{ $grades[$student->id][$subject->id]['semester1_avg'] ?? '-' }}
+                                                        {{ $subjectData['semester1_avg'] ?? '-' }}
                                                     @endif
                                                 </td>
                                                 <td>
                                                     @if($isSpecialSubject)
-                                                        {{ $grades[$student->id][$subject->id]['semester2_text'] ?? '-' }}
+                                                        {{ $subjectData['semester2_text'] ?? '-' }}
                                                     @else
-                                                        {{ $grades[$student->id][$subject->id]['semester2_avg'] ?? '-' }}
+                                                        {{ $subjectData['semester2_avg'] ?? '-' }}
                                                     @endif
                                                 </td>
                                             @else
                                                 <!-- Hiển thị điểm học kỳ -->
                                                 <td>
                                                     @if($isSpecialSubject)
-                                                        {{ $subjectGrades['fifteen_minutes'][0]->text_value ?? '' }}
+                                                        {{ $subjectData['fifteen_minutes'][0]->text_value ?? '' }}
                                                     @else
-                                                        {{ $subjectGrades['fifteen_minutes'][0]->score ?? '' }}
+                                                        {{ $subjectData['fifteen_minutes'][0]->score ?? '' }}
                                                     @endif
                                                 </td>
                                                 <td>
                                                     @if($isSpecialSubject)
-                                                        {{ $subjectGrades['fifteen_minutes'][1]->text_value ?? '' }}
+                                                        {{ $subjectData['fifteen_minutes'][1]->text_value ?? '' }}
                                                     @else
-                                                        {{ $subjectGrades['fifteen_minutes'][1]->score ?? '' }}
+                                                        {{ $subjectData['fifteen_minutes'][1]->score ?? '' }}
                                                     @endif
                                                 </td>
                                                 <td>
                                                     @if($isSpecialSubject)
-                                                        {{ $subjectGrades['fifteen_minutes'][2]->text_value ?? '' }}
+                                                        {{ $subjectData['fifteen_minutes'][2]->text_value ?? '' }}
                                                     @else
-                                                        {{ $subjectGrades['fifteen_minutes'][2]->score ?? '' }}
+                                                        {{ $subjectData['fifteen_minutes'][2]->score ?? '' }}
                                                     @endif
                                                 </td>
                                                 <td>
                                                     @if($isSpecialSubject)
-                                                        {{ $subjectGrades['one_period'][0]->text_value ?? '' }}
+                                                        {{ $subjectData['one_period']->text_value ?? '' }}
                                                     @else
-                                                        {{ $subjectGrades['one_period'][0]->score ?? '' }}
+                                                        {{ $subjectData['one_period']->score ?? '' }}
                                                     @endif
                                                 </td>
                                                 <td>
                                                     @if($isSpecialSubject)
-                                                        {{ $subjectGrades['semester'][0]->text_value ?? '' }}
+                                                        {{ $subjectData['semester']->text_value ?? '' }}
                                                     @else
-                                                        {{ $subjectGrades['semester'][0]->score ?? '' }}
+                                                        {{ $subjectData['semester']->score ?? '' }}
                                                     @endif
                                                 </td>
                                             @endif
@@ -219,7 +215,49 @@
                                             @if($selectedSemesterId == 0)
                                                 {{ $grades[$student->id]['yearly_average'] ?? '-' }}
                                             @else
-                                                {{ $grades[$student->id]['semester_average'] ?? '-' }}
+                                                @php
+                                                    $allSubjectsPassed = true;
+                                                    $hasSpecialSubjects = false;
+                                                    $numericAverage = 0;
+                                                    $numericCount = 0;
+
+                                                    foreach($subjectsTaught as $subject) {
+                                                        $subjectData = $grades[$student->id][$subject->id] ?? [];
+
+                                                        // Xử lý môn đặc biệt
+                                                        if ($subjectData['is_special'] ?? false) {
+                                                            $hasSpecialSubjects = true;
+                                                            $semesterValue = $subjectData['semester']->text_value ?? '';
+                                                            if ($semesterValue !== 'Đạt') {
+                                                                $allSubjectsPassed = false;
+                                                            }
+                                                        }
+                                                        // Xử lý môn thường
+                                                        else {
+                                                            $subjectAvg = $subjectData['average'] ?? 0;
+                                                            if ($subjectAvg > 0) {
+                                                                $numericAverage += $subjectAvg;
+                                                                $numericCount++;
+                                                            }
+                                                        }
+                                                    }
+
+                                                    // Nếu có môn đặc biệt và có môn chưa đạt
+                                                    if ($hasSpecialSubjects && !$allSubjectsPassed) {
+                                                        echo 'Chưa đạt';
+                                                    }
+                                                    // Nếu tất cả môn đặc biệt đều đạt hoặc không có môn đặc biệt
+                                                    else {
+                                                        // Nếu có môn thường
+                                                        if ($numericCount > 0) {
+                                                            echo round($numericAverage / $numericCount, 1);
+                                                        }
+                                                        // Nếu chỉ có môn đặc biệt và tất cả đều đạt
+                                                        else {
+                                                            echo 'Đạt';
+                                                        }
+                                                    }
+                                                @endphp
                                             @endif
                                         </td>
                                     </tr>
@@ -384,7 +422,6 @@
                         'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                     },
                     success: function(response) {
-                        alert("Hello");
                         $('#importModal').modal('hide');
                         // Reload lại bảng điểm sau khi import thành công
                         // $('#filter-form').submit();
