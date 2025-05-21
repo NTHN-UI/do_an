@@ -83,10 +83,9 @@ class GradeController extends Controller
                 ->where('class_id', $selectedClassId)
                 ->where('academic_year_id', $selectedAcademicYearId)
                 ->where('school_id', $schoolId)
-                ->with('subject')
+                ->with('subject') // Chỉ cần with('subject') thôi
                 ->get()
                 ->pluck('subject');
-
             // Khởi tạo mảng grades
             $grades = [];
 
@@ -148,26 +147,27 @@ class GradeController extends Controller
                         foreach ($subjectsTaught as $subject) {
                             $subjectGrades = $allGrades[$student->id][$subject->id] ?? [];
 
-                            // Initialize the grades array with the structure your view expects
                             $grades[$student->id][$subject->id] = [
                                 'fifteen_minutes' => [
-                                    $subjectGrades['fifteen_minutes'][0]->score ?? null,
-                                    $subjectGrades['fifteen_minutes'][1]->score ?? null,
-                                    $subjectGrades['fifteen_minutes'][2]->score ?? null,
+                                    $subjectGrades['fifteen_minutes'][0] ?? null,
+                                    $subjectGrades['fifteen_minutes'][1] ?? null,
+                                    $subjectGrades['fifteen_minutes'][2] ?? null,
                                 ],
-                                'one_period' => $subjectGrades['one_period'][0]->score ?? null,
-                                'semester' => $subjectGrades['semester'][0]->score ?? null,
+                                'one_period' => $subjectGrades['one_period'][0] ?? null,
+                                'semester' => $subjectGrades['semester'][0] ?? null,
                             ];
 
-                            // Calculate average
-                            $subjectAverage = $this->calculateSubjectAverage($grades[$student->id][$subject->id]);
+                            if (!$subject->is_text_based) {
+                                // Calculate average
+                                $subjectAverage = $this->calculateSubjectAverage($grades[$student->id][$subject->id]);
 
-                            if ($subjectAverage > 0) {
-                                $totalScore += $subjectAverage;
-                                $subjectCount++;
+                                if ($subjectAverage > 0) {
+                                    $totalScore += $subjectAverage;
+                                    $subjectCount++;
+                                }
+
+                                $grades[$student->id][$subject->id]['average'] = round($subjectAverage, 1);
                             }
-
-                            $grades[$student->id][$subject->id]['average'] = round($subjectAverage, 1);
                         }
 
                         $grades[$student->id]['semester_average'] = $subjectCount > 0
@@ -189,9 +189,10 @@ class GradeController extends Controller
             'selectedAcademicYearId'
         ));
     }
+
     private function calculateSubjectAverage($subjectGrades)
     {
-        $fifteenMinutes = array_filter($subjectGrades['fifteen_minutes'] ?? [], function($score) {
+        $fifteenMinutes = array_filter($subjectGrades['fifteen_minutes'] ?? [], function ($score) {
             return !is_null($score) && $score >= 0;
         });
 
@@ -230,6 +231,7 @@ class GradeController extends Controller
 
         return $weights > 0 ? round($total / $weights, 1) : 0;
     }
+
     public function exportTemplate(Request $request)
     {
         $request->validate([
@@ -312,7 +314,6 @@ class GradeController extends Controller
                 $teacherId,
                 $schoolId,
                 $subject,
-                $request->class_name
             );
 
             Excel::import($import, $request->file('grades_file'));
@@ -425,6 +426,7 @@ class GradeController extends Controller
 
         return response()->json($classes);
     }
+
 // Thêm vào GradeController.php
 
     public function homeroomGrades(Request $request)
@@ -453,7 +455,7 @@ class GradeController extends Controller
         $class = ClassModel::with('gradeLevel')->findOrFail($selectedClassId);
 
         // Lấy danh sách học sinh trong lớp
-        $students = User::whereHas('studentClasses', function($query) use ($selectedClassId, $selectedAcademicYearId) {
+        $students = User::whereHas('studentClasses', function ($query) use ($selectedClassId, $selectedAcademicYearId) {
             $query->where('student_classes.class_id', $selectedClassId)
                 ->where('student_classes.academic_year_id', $selectedAcademicYearId);
         })->orderBy('full_name')->get();
@@ -548,7 +550,7 @@ class GradeController extends Controller
         if (!is_numeric($averageScore)) return 'Chưa đủ điểm';
 
         // Đếm số môn dưới 5.0 (không tính môn GDCD, Thể dục, Âm nhạc, Mỹ thuật)
-        $failedSubjects = count(array_filter($subjectScores, function($score, $subjectId) {
+        $failedSubjects = count(array_filter($subjectScores, function ($score, $subjectId) {
             $excludedSubjects = ['GDCD', 'THEDUC', 'AMNHAC', 'MYTHUAT']; // Các môn không tính
             return is_numeric($score) && $score < 5.0 && !in_array($subjectId, $excludedSubjects);
         }, ARRAY_FILTER_USE_BOTH));

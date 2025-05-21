@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class Grade extends Model
 {
     protected $table = 'grades';
-    protected $fillable = [ 'teacher_id',
+    protected $fillable = ['teacher_id',
         'student_id',
         'subject_id',
         'class_id',
@@ -15,30 +15,44 @@ class Grade extends Model
         'semester_id',
         'test_type',
         'score',
-        'school_id'];
+        'school_id',
+        'text_value'];
 
-    public function student(){
+    public function student()
+    {
         return $this->belongsTo(User::class, 'student_id');
     }
-    public function teacher(){
+
+    public function teacher()
+    {
         return $this->belongsTo(User::class, 'teacher_id');
     }
-    public function subject(){
+
+    public function subject()
+    {
         return $this->belongsTo(Subject::class);
     }
-    public function class(){
+
+    public function class()
+    {
         return $this->belongsTo(ClassModel::class);
     }
-    public function academicYear(){
+
+    public function academicYear()
+    {
         return $this->belongsTo(AcademicYear::class);
     }
-    public function semester(){
+
+    public function semester()
+    {
         return $this->belongsTo(Semester::class);
     }
+
     public function teacherAssignments()
     {
         return $this->hasMany(TeacherAssignment::class, 'teacher_id');
     }
+
     // Thêm vào Grade model
     public static function validateGradeRequirements($subjectId, $studentId, $semesterId)
     {

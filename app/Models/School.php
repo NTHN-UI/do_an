@@ -74,26 +74,25 @@ class  School extends Model
     {
         static::created(function (School $school) {
             foreach (self::HIGH_SCHOOL_SUBJECTS as $name) {
-                // Xác định loại môn học
-                $type = in_array($name, [
-                    'Giáo dục thể chất',
-                    'Nghệ thuật',
-                    'Giáo dục quốc phòng và an ninh',
-                ]) ? 'pass_fail' : 'score';
-
-                $school->subjects()->create([
-                    'name' => $name,
-                    'type' => $type,
-                ]);
+                $school->subjects()->create(['name' => $name]);
             }
 
-            // Tạo khối
             $grades = GradeLevel::where('school_id', $school->id)->get();
+
             if ($grades->isEmpty()) {
                 GradeLevel::insert([
-                    ['grade_number' => 10, 'school_id' => $school->id],
-                    ['grade_number' => 11, 'school_id' => $school->id],
-                    ['grade_number' => 12, 'school_id' => $school->id],
+                    [
+                        'grade_number' => 10,
+                        'school_id' => $school->id,
+                    ],
+                    [
+                        'grade_number' => 11,
+                        'school_id' => $school->id,
+                    ],
+                    [
+                        'grade_number' => 12,
+                        'school_id' => $school->id,
+                    ]
                 ]);
             }
         });

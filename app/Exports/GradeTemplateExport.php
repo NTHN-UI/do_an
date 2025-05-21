@@ -139,26 +139,33 @@ class GradeTemplateSubjectSheet implements FromCollection, WithHeadings, WithTit
                 ['HỌC KỲ: ' . $this->semesterId],
                 ['MÔN HỌC: ' . $this->subject->name . $subjectTypeNote],
                 [''],
-                $isTextSubject
-                    ? [
-                    'Mã HS',
-                    'Họ và tên',
-                    'Đánh giá 1',
-                    'Đánh giá 2',
-                    'Đánh giá 3',
-                    'Đánh giá 4',
-                    'Đánh giá HK'
-                ]
-                    : [
-                    'Mã HS',
-                    'Họ và tên',
-                    'Điểm 15p lần 1',
-                    'Điểm 15p lần 2',
-                    'Điểm 15p lần 3',
-                    'Điểm 1 tiết',
-                    'Điểm học kỳ'
-                ]
-
+//                $isTextSubject
+//                    ? [
+//                    'Mã HS',
+//                    'Họ và tên',
+//                    'Đánh giá 1',
+//                    'Đánh giá 2',
+//                    'Đánh giá 3',
+//                    'Đánh giá 4',
+//                    'Đánh giá HK'
+//                ]
+//                    : [
+//                    'Mã HS',
+//                    'Họ và tên',
+//                    'Điểm 15p lần 1',
+//                    'Điểm 15p lần 2',
+//                    'Điểm 15p lần 3',
+//                    'Điểm 1 tiết',
+//                    'Điểm học kỳ'
+//                ]
+               [ 'Mã HS',
+                'Họ và tên',
+                'Điểm 15p lần 1' . ($isTextSubject ? ' (Đạt/CĐ)' : ''),
+                'Điểm 15p lần 2' . ($isTextSubject ? ' (Đạt/CĐ)' : ''),
+                'Điểm 15p lần 3' . ($isTextSubject ? ' (Đạt/CĐ)' : ''),
+                'Điểm 1 tiết' . ($isTextSubject ? ' (Đạt/CĐ)' : ''),
+                'Điểm học kỳ' . ($isTextSubject ? ' (Đạt/CĐ)' : '')
+                   ]
             ];
 
         }

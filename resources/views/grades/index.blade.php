@@ -151,24 +151,75 @@
                                         @foreach($subjectsTaught as $subject)
                                             @php
                                                 $subjectGrades = $grades[$student->id][$subject->id] ?? [];
+                                                $isSpecialSubject = in_array($subject->name, [
+                                                    'Giáo dục quốc phòng và an ninh',
+                                                    'Giáo dục thể chất',
+                                                    'Nghệ thuật'
+                                                ]);
                                             @endphp
+
                                             @if($selectedSemesterId == 0)
-                                                <td>{{ $grades[$student->id][$subject->id]['semester1_avg'] ?? '-' }}</td>
-                                                <td>{{ $grades[$student->id][$subject->id]['semester2_avg'] ?? '-' }}</td>
+                                                <!-- Hiển thị điểm cả năm -->
+                                                <td>
+                                                    @if($isSpecialSubject)
+                                                        {{ $grades[$student->id][$subject->id]['semester1_text'] ?? '-' }}
+                                                    @else
+                                                        {{ $grades[$student->id][$subject->id]['semester1_avg'] ?? '-' }}
+                                                    @endif
+                                                </td>
+                                                <td>
+                                                    @if($isSpecialSubject)
+                                                        {{ $grades[$student->id][$subject->id]['semester2_text'] ?? '-' }}
+                                                    @else
+                                                        {{ $grades[$student->id][$subject->id]['semester2_avg'] ?? '-' }}
+                                                    @endif
+                                                </td>
                                             @else
-                                                <td>{{ $subjectGrades['fifteen_minutes'][0] ?? '' }}</td>
-                                                <td>{{ $subjectGrades['fifteen_minutes'][1] ?? '' }}</td>
-                                                <td>{{ $subjectGrades['fifteen_minutes'][2] ?? '' }}</td>
-                                                <td>{{ $subjectGrades['one_period'] ?? '' }}</td>
-                                                <td>{{ $subjectGrades['semester'] ?? '' }}</td>
+                                                <!-- Hiển thị điểm học kỳ -->
+                                                <td>
+                                                    @if($isSpecialSubject)
+                                                        {{ $subjectGrades['fifteen_minutes'][0]->text_value ?? '' }}
+                                                    @else
+                                                        {{ $subjectGrades['fifteen_minutes'][0]->score ?? '' }}
+                                                    @endif
+                                                </td>
+                                                <td>
+                                                    @if($isSpecialSubject)
+                                                        {{ $subjectGrades['fifteen_minutes'][1]->text_value ?? '' }}
+                                                    @else
+                                                        {{ $subjectGrades['fifteen_minutes'][1]->score ?? '' }}
+                                                    @endif
+                                                </td>
+                                                <td>
+                                                    @if($isSpecialSubject)
+                                                        {{ $subjectGrades['fifteen_minutes'][2]->text_value ?? '' }}
+                                                    @else
+                                                        {{ $subjectGrades['fifteen_minutes'][2]->score ?? '' }}
+                                                    @endif
+                                                </td>
+                                                <td>
+                                                    @if($isSpecialSubject)
+                                                        {{ $subjectGrades['one_period'][0]->text_value ?? '' }}
+                                                    @else
+                                                        {{ $subjectGrades['one_period'][0]->score ?? '' }}
+                                                    @endif
+                                                </td>
+                                                <td>
+                                                    @if($isSpecialSubject)
+                                                        {{ $subjectGrades['semester'][0]->text_value ?? '' }}
+                                                    @else
+                                                        {{ $subjectGrades['semester'][0]->score ?? '' }}
+                                                    @endif
+                                                </td>
                                             @endif
                                         @endforeach
 
+                                        <!-- Điểm trung bình -->
                                         <td>
                                             @if($selectedSemesterId == 0)
-                                                {{ $grades[$student->id]['yearly_average'] ?? '' }}
+                                                {{ $grades[$student->id]['yearly_average'] ?? '-' }}
                                             @else
-                                                {{ $grades[$student->id]['semester_average'] ?? '' }}
+                                                {{ $grades[$student->id]['semester_average'] ?? '-' }}
                                             @endif
                                         </td>
                                     </tr>

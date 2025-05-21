@@ -49,7 +49,6 @@ class GradesImport implements ToCollection, WithHeadingRow, WithCalculatedFormul
 
         $isTextSubject = $this->currentSubject->is_text_based;
 
-
         foreach ($rows as $index => $row) {
             // Bước 1: Tìm cột chứa mã học sinh
             $studentCodeColumn = null;
@@ -108,20 +107,31 @@ class GradesImport implements ToCollection, WithHeadingRow, WithCalculatedFormul
         ];
     }
 
+    protected function processGrades($row, $studentId)
+    {
+        $isTextSubject = $this->currentSubject->is_text_based;
+
+        if ($isTextSubject) {
+            $this->processTextGrades($row, $studentId);
+        } else {
+            $this->processNumericGrades($row, $studentId);
+        }
+    }
 
     protected function processTextGrades($row, $studentId)
     {
         $grades = [
-            ['test_type' => 'fifteen_minutes', 'value' => $row->get('2') ?? null],
-            ['test_type' => 'fifteen_minutes', 'value' => $row->get('3') ?? null],
-            ['test_type' => 'one_period', 'value' => $row->get('4') ?? null],
-            ['test_type' => 'one_period', 'value' => $row->get('5') ?? null],
-            ['test_type' => 'semester', 'value' => $row->get('6') ?? null],
+            ['test_type' => 'fifteen_minutes', 'test_number' => 1, 'value' => $row->get('2') ?? null],
+            ['test_type' => 'fifteen_minutes', 'test_number' => 2, 'value' => $row->get('3') ?? null],
+            ['test_type' => 'fifteen_minutes', 'test_number' => 3, 'value' => $row->get('4') ?? null],
+            ['test_type' => 'one_period', 'test_number' => 1, 'value' => $row->get('5') ?? null],
+            ['test_type' => 'semester', 'test_number' => 1, 'value' => $row->get('6') ?? null],
         ];
 
         foreach ($grades as $grade) {
-            if (!empty($grade['value'])) {
-                $score = $grade['value'] === 'Đạt' ? 10 : 0;
+            $textValue = $this->normalizeTextGrade($grade['value']);
+
+            if ($textValue !== null) {
                 Grade::updateOrCreate(
                     [
                         'teacher_id' => $this->teacherId,
@@ -131,17 +141,67 @@ class GradesImport implements ToCollection, WithHeadingRow, WithCalculatedFormul
                         'academic_year_id' => $this->academicYearId,
                         'semester_id' => $this->semesterId,
                         'test_type' => $grade['test_type'],
+                        'test_number' => $grade['test_number'],
                         'school_id' => $this->schoolId,
                     ],
                     [
-                        'score' => $score,
+                        'text_value' => $textValue,
+                        'score' => null
                     ]
                 );
             }
         }
+        // Cập nhật điểm tổng kết (final) cho môn đặc biệt
+        $finalGrade = $this->calculateFinalTextGrade($grades);
+        Grade::updateOrCreate(
+            [
+                'teacher_id' => $this->teacherId,
+                'student_id' => $studentId,
+                'subject_id' => $this->currentSubject->id,
+                'class_id' => $this->classId,
+                'academic_year_id' => $this->academicYearId,
+                'semester_id' => $this->semesterId,
+                'test_type' => 'final',
+                'school_id' => $this->schoolId,
+            ],
+            [
+                'text_value' => $finalGrade,
+                'score' => null
+            ]
+        );
     }
 
-    protected $processedGrades = [];
+    private function normalizeTextGrade($value)
+    {
+        if ($value === null) {
+            return null;
+        }
+
+        $value = mb_strtolower(trim($value));
+
+        if (in_array($value, ['đạt', 'dat', 'd', 'đ'])) {
+            return 'Đạt';
+        }
+
+        if (in_array($value, ['chưa đạt', 'chua dat', 'không đạt', 'khong dat', 'cđ', 'kđ'])) {
+            return 'Chưa đạt';
+        }
+
+        return null;
+    }
+
+    private function calculateFinalTextGrade($grades)
+    {
+        foreach ($grades as $grade) {
+            if (!empty($grade['value'])) {
+                $textValue = $this->normalizeTextGrade($grade['value']);
+                if ($textValue === 'Chưa đạt') {
+                    return 'Chưa đạt';
+                }
+            }
+        }
+        return 'Đạt';
+    }
 
     public function getProcessedGrades()
     {
@@ -179,7 +239,9 @@ class GradesImport implements ToCollection, WithHeadingRow, WithCalculatedFormul
                         'test_number' => $grade['test_number'],
                         'school_id' => $this->schoolId,
                     ],
-                    ['score' => $grade['value']]
+                    ['score' => $grade['value'],
+                        'text_value' => null
+                    ]
                 );
 
                 // Chuẩn bị dữ liệu để tính điểm TB
@@ -204,12 +266,15 @@ class GradesImport implements ToCollection, WithHeadingRow, WithCalculatedFormul
                 'test_type' => 'final',
                 'school_id' => $this->schoolId,
             ],
-            ['score' => $semesterAvg]
+            ['score' => $semesterAvg,
+                'text_value' => null
+            ]
         );
     }
+
     private function calculateSemesterAverage($subjectGrades)
     {
-        $fifteenMinutes = array_filter($subjectGrades['fifteen_minutes'] ?? [], function($score) {
+        $fifteenMinutes = array_filter($subjectGrades['fifteen_minutes'] ?? [], function ($score) {
             return !is_null($score) && $score >= 0;
         });
 
