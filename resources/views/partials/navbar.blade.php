@@ -208,7 +208,18 @@
                             </ul>
                         </li>
                     @endif
-
+                    @if(Auth::user()->isHomeroomTeacher(session('academic_year_id')))
+                        <li>
+                            <a class="dropdown-item" href="{{ route('notifications.create') }}">
+                                <i class="fas fa-paper-plane me-2"></i> Gửi thông báo phụ huynh
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item" href="{{ route('notifications.homeroom') }}">
+                                <i class="fas fa-history me-2"></i> Lịch sử thông báo
+                            </a>
+                        </li>
+                    @endif
             @endif
         </ul>
         @if(Auth::check())
