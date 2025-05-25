@@ -227,8 +227,18 @@
                                 </li>
                             </ul>
                         </li>
-
-
+                    @endif
+                    @if(Auth::user()->isTeacher())
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                                <i class="fas fa-star me-1"></i> Quản lý đề thi
+                            </a>
+                            <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item" href="{{ route('grades.homeroom') }}">
+                                            <i class="fas fa-users me-2"></i> Đề thi
+                                        </a></li>
+                            </ul>
+                        </li>
                     @endif
             @endif
         </ul>

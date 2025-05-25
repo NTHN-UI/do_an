@@ -215,29 +215,42 @@ return new class extends Migration
                 $table->timestamps();
             });
 
-            Schema::create('exams', function (Blueprint $table) {
-                $table->id();
-                $table->string('title');
-                $table->text('description');
-                $table->enum('type', ['quiz', 'midterm', 'final']);
-                $table->foreignId('subject_id')->constrained('subjects');
-                $table->foreignId('teacher_id')->constrained('users');
-                $table->foreignId('class_id')->constrained('classes');
-                $table->foreignId('school_id')->constrained('schools')->onDelete('cascade');
-                $table->timestamps();
-            });
+        Schema::create('exam_types', function (Blueprint $table) {
+            $table->id();
+            $table->string('name'); // ví dụ: 15 phút, 1 tiết, học kỳ
+            $table->integer('duration'); // thời lượng (phút)
+            $table->integer('question_count'); // số câu hỏi mặc định
+            $table->timestamps();
+        });
 
-            Schema::create('student_exams', function (Blueprint $table) {
-                $table->id();
-                $table->foreignId('exam_id')->constrained('exams');
-                $table->foreignId('student_id')->constrained('users');
-                $table->string('answer_file_path');
-                $table->decimal('score', 5, 2)->nullable();
-                $table->text('feedback')->nullable();
-                $table->foreignId('school_id')->constrained('schools')->onDelete('cascade');
 
-                $table->timestamps();
-            });
+        Schema::create('exams', function (Blueprint $table) {
+            $table->id();
+            $table->string('title'); // tên đề thi
+            $table->foreignId('academic_year_id')->constrained('academic_years'); // năm học
+            $table->foreignId('semester_id')->constrained('semesters'); // học kỳ
+            $table->foreignId('teacher_id')->constrained('users'); // người ra đề
+            $table->foreignId('subject_id')->constrained('subjects'); // môn học
+            $table->foreignId('grade_level_id')->constrained('grade_levels'); // khối lớp
+            $table->foreignId('exam_type_id')->constrained('exam_types'); // loại đề thi
+            $table->timestamps();
+        });
+
+        Schema::create('questions', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('exam_id')->constrained('exams');
+            $table->text('content'); // nội dung câu hỏi
+            $table->timestamps();
+        });
+
+        Schema::create('options', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('question_id')->constrained('questions');
+            $table->string('content'); // nội dung đáp án
+            $table->boolean('is_correct')->default(false); // đúng/sai
+            $table->timestamps();
+        });
+
 
             Schema::create('grade_users', function (Blueprint $table) {
                 $table->id();
