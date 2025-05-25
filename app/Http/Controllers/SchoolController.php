@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\EmailSetting;
 use App\Models\School;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
 
 class SchoolController extends Controller
@@ -155,5 +157,59 @@ class SchoolController extends Controller
     public function destroy(School $school)
     {
 
+    }
+    public function emailSettings(School $school)
+    {
+        return view('schools.email-settings', [
+            'school' => $school,
+            'emailSettings' => $school->emailSettings ?? new EmailSetting()
+        ]);
+    }
+
+    public function updateEmailSettings(Request $request, School $school)
+    {
+        $validated = $request->validate([
+            'host' => 'required',
+            'port' => 'required|numeric',
+            'username' => 'required',
+            'password' => 'required',
+            'encryption' => 'nullable|in:tls,ssl',
+            'from_address' => 'required|email',
+            'from_name' => 'required',
+        ]);
+
+        $school->emailSettings()->updateOrCreate([], $validated);
+
+        return back()->with('success', 'Đã cập nhật cấu hình email');
+    }
+    // SchoolController.php
+    public function testEmailSettings(Request $request, School $school)
+    {
+        $this->authorize('update', $school);
+
+        try {
+            // Cấu hình tạm thời
+            config([
+                'mail.mailers.smtp.host' => $school->emailSettings->host,
+                'mail.mailers.smtp.port' => $school->emailSettings->port,
+                // ... các cấu hình khác
+            ]);
+
+            Mail::raw('Email kiểm tra từ hệ thống', function($message) use ($school) {
+                $message->to($school->emailSettings->from_address)
+                    ->subject('Kiểm tra cấu hình email - '.$school->name);
+            });
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Email test đã được gửi thành công!'
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Lỗi: '.$e->getMessage()
+            ], 500);
+        }
     }
 }

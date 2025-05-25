@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Middleware\AdminMiddleware;
 use App\Http\Controllers\AcademicYearController;
@@ -43,6 +44,12 @@ Route::middleware(['auth'])->group(function () {
         // routes/web.php
         Route::get('/districts/{province}', [SchoolController::class, 'getDistricts']);
         Route::resource('schools', SchoolController::class);
+        Route::prefix('schools/{school}')->group(function () {
+            Route::get('/email-settings', [SchoolController::class, 'emailSettings'])->name('schools.email-settings');
+            Route::put('/email-settings', [SchoolController::class, 'updateEmailSettings'])->name('schools.update-email-settings');
+            Route::post('/test-email-settings', [SchoolController::class, 'testEmailSettings'])->name('schools.test-email-settings');
+        });
+
 
         Route::resource('school_admins', SchoolAdminController::class);
     });
@@ -111,6 +118,18 @@ Route::middleware(['auth'])->group(function () {
             // API hỗ trợ
             Route::get('/get-semesters-by-year', [GradeController::class, 'getSemestersByYear'])->name('get_semesters_by_year');
             Route::get('/get-classes-by-year', [GradeController::class, 'getClassesByYear'])->name('get_classes_by_year');
+        });
+    });
+    Route::middleware('auth')->middleware([TeacherMiddleware::class])->group(function () {
+        // Thông báo giáo viên chủ nhiệm
+        Route::prefix('notifications')->group(function () {
+            Route::get('/create', [NotificationController::class, 'create'])->name('notifications.create');
+            Route::post('/', [NotificationController::class, 'store'])->name('notifications.store');
+            Route::get('/preview/{notification}', [NotificationController::class, 'preview'])->name('notifications.preview');
+            Route::post('/send/{notification}', [NotificationController::class, 'send'])->name('notifications.send');
+            Route::get('/history', [NotificationController::class, 'history'])->name('notifications.history');
+            Route::get('/notifications/templates/{template}', [NotificationController::class, 'getTemplateContent'])
+                ->name('notifications.template.content');
         });
     });
 

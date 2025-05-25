@@ -143,60 +143,109 @@ return new class extends Migration
 
                 $table->timestamps();
             });
-
-        Schema::create('notifications', function (Blueprint $table) {
+        Schema::create('email_settings', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('sender_id')->constrained('users')->onDelete('cascade');
-            $table->foreignId('receiver_id')->constrained('users')->onDelete('cascade');
-            $table->string('title');
-            $table->text('message');
-            $table->boolean('is_read')->default(false);
-            $table->timestamps();
-
-        });
-        Schema::create('materials', function (Blueprint $table) {
-            $table->id();
-            $table->string('title');
-            $table->text('description')->nullable();;
-            $table->string('file_path');
-            $table->foreignId('subject_id')->constrained('subjects');
-            $table->foreignId('teacher_id')->constrained('users');
-            $table->foreignId('school_id')->constrained('schools')->onDelete('cascade');
-
+            $table->unsignedBigInteger('school_id')->unique();
+            $table->string('host');
+            $table->integer('port');
+            $table->string('username');
+            $table->string('password');
+            $table->string('encryption')->nullable();
+            $table->string('from_address');
+            $table->string('from_name');
             $table->timestamps();
         });
 
-        Schema::create('exams', function (Blueprint $table) {
-            $table->id();
-            $table->string('title');
-            $table->text('description');
-            $table->enum('type', ['quiz', 'midterm', 'final']);
-            $table->foreignId('subject_id')->constrained('subjects');
-            $table->foreignId('teacher_id')->constrained('users');
-            $table->foreignId('class_id')->constrained('classes');
-            $table->foreignId('school_id')->constrained('schools')->onDelete('cascade');
-            $table->timestamps();
-        });
+            Schema::create('notification_templates', function (Blueprint $table) {
+                $table->id();
+                $table->string('name');
+                $table->string('type');
+                $table->string('subject_template');
+                $table->text('body_template');
+                $table->json('variables');
+                $table->foreignId('school_id')->constrained('schools')->onDelete('cascade');
+                $table->boolean('is_active')->default(true);
+                $table->timestamps();
+            });
 
-        Schema::create('student_exams', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('exam_id')->constrained('exams');
-            $table->foreignId('student_id')->constrained('users');
-            $table->string('answer_file_path');
-            $table->decimal('score', 5, 2)->nullable();
-            $table->text('feedback')->nullable();
-            $table->foreignId('school_id')->constrained('schools')->onDelete('cascade');
+            Schema::create('notifications', function (Blueprint $table) {
+                $table->id();
+                $table->foreignId('sender_id')->constrained('users')->onDelete('cascade');
+                $table->foreignId('class_id')->constrained('classes')->onDelete('cascade');
+                $table->foreignId('template_id')->nullable()->constrained('notification_templates')->onDelete('set null');
+                $table->foreignId('academic_year_id')->constrained('academic_years')->onDelete('cascade');
+                $table->string('subject');
+                $table->text('content');
+                $table->string('status')->default('draft');
+                $table->timestamp('sent_at')->nullable();
+                $table->integer('sent_count')->default(0);
+                $table->integer('failed_count')->default(0);
+                $table->timestamps();
+            });
 
-            $table->timestamps();
-        });
+            Schema::create('notification_recipients', function (Blueprint $table) {
+                $table->id();
+                $table->foreignId('notification_id')->constrained('notifications')->onDelete('cascade');
+                $table->foreignId('student_id')->constrained('users')->onDelete('cascade');
+                $table->string('guardian_email');
+                $table->boolean('is_sent')->default(false);
+                $table->timestamp('sent_at')->nullable();
+                $table->text('error_message')->nullable();
+                $table->timestamps();
+            });
 
-        Schema::create('grade_users', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
-            $table->foreignId('grade_id')->constrained('grade_levels')->onDelete('cascade');
-            $table->foreignId('school_id')->constrained('schools')->onDelete('cascade');
-            $table->foreignId('academic_year_id')->constrained('academic_years')->onDelete('cascade');
-        });
+            Schema::create('notification_attachments', function (Blueprint $table) {
+                $table->id();
+                $table->foreignId('notification_id')->constrained('notifications')->onDelete('cascade');
+                $table->string('file_name');
+                $table->string('file_path');
+                $table->string('mime_type');
+                $table->integer('size');
+                $table->timestamps();
+            });
+            Schema::create('materials', function (Blueprint $table) {
+                $table->id();
+                $table->string('title');
+                $table->text('description')->nullable();;
+                $table->string('file_path');
+                $table->foreignId('subject_id')->constrained('subjects');
+                $table->foreignId('teacher_id')->constrained('users');
+                $table->foreignId('school_id')->constrained('schools')->onDelete('cascade');
+
+                $table->timestamps();
+            });
+
+            Schema::create('exams', function (Blueprint $table) {
+                $table->id();
+                $table->string('title');
+                $table->text('description');
+                $table->enum('type', ['quiz', 'midterm', 'final']);
+                $table->foreignId('subject_id')->constrained('subjects');
+                $table->foreignId('teacher_id')->constrained('users');
+                $table->foreignId('class_id')->constrained('classes');
+                $table->foreignId('school_id')->constrained('schools')->onDelete('cascade');
+                $table->timestamps();
+            });
+
+            Schema::create('student_exams', function (Blueprint $table) {
+                $table->id();
+                $table->foreignId('exam_id')->constrained('exams');
+                $table->foreignId('student_id')->constrained('users');
+                $table->string('answer_file_path');
+                $table->decimal('score', 5, 2)->nullable();
+                $table->text('feedback')->nullable();
+                $table->foreignId('school_id')->constrained('schools')->onDelete('cascade');
+
+                $table->timestamps();
+            });
+
+            Schema::create('grade_users', function (Blueprint $table) {
+                $table->id();
+                $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
+                $table->foreignId('grade_id')->constrained('grade_levels')->onDelete('cascade');
+                $table->foreignId('school_id')->constrained('schools')->onDelete('cascade');
+                $table->foreignId('academic_year_id')->constrained('academic_years')->onDelete('cascade');
+            });
 
 
     }

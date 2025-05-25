@@ -49,9 +49,15 @@
                 </div>
             </div>
             <div class="mt-3 d-flex justify-content-end">
+                <a href="{{ route('schools.email-settings', $school) }}" class="btn btn-primary-color fw-bold me-2">
+                    <i class="fas fa-envelope"></i> Cấu hình Email
+                </a>
                 <a href="{{ route('schools.index', $school->id) }}" class="btn btn-primary-color fw-bold"> Đóng
                 </a>
+
             </div>
+
+
         </div>
     </div>
 @endsection

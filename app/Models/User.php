@@ -77,6 +77,11 @@ class User extends Authenticatable
     {
         return $this->role === self::ROLE_STUDENT;
     }
+    public function scopeWithGuardianInfo($query)
+    {
+        return $query->whereNotNull('guardian_email')
+            ->where('guardian_email', '!=', '');
+    }
     // Quan hệ với trường học
     public function school()
     {
@@ -140,7 +145,14 @@ class User extends Authenticatable
     {
         return $this->belongsTo(Subject::class);
     }
-    // App\Models\User.php
+
+    public function isHomeroomTeacherOfClass($classId)
+    {
+        return $this->teacherAssignments()
+            ->where('class_id', $classId)
+            ->where('is_homeroom', true)
+            ->exists();
+    }
     public function isHomeroomTeacher($academicYearId = null)
     {
         $query = $this->teacherAssignments()
@@ -149,8 +161,12 @@ class User extends Authenticatable
         if ($academicYearId) {
             $query->where('academic_year_id', $academicYearId);
         }
-
         return $query->exists();
+    }
+    public function taughtClasses()
+    {
+        return $this->belongsToMany(ClassModel::class, 'teacher_assignments')
+            ->withPivot(['subject_id', 'is_homeroom']);
     }
 
     protected function casts(): array

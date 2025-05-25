@@ -42,6 +42,17 @@ class TeacherAssignment extends Model
     {
         return $this->belongsTo(School::class);
     }
+    public function gradeLevel()
+    {
+        return $this->hasOneThrough(
+            GradeLevel::class,
+            ClassModel::class,
+            'id', // Foreign key on classes table
+            'id', // Foreign key on grade_levels table
+            'class_id', // Local key on teacher_assignments table
+            'grade_level_id' // Local key on classes table
+        );
+    }
     protected static function boot()
     {
         parent::boot();

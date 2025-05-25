@@ -41,4 +41,10 @@ class AcademicYear extends Model
     {
         return $this->hasMany(Grade::class);
     }
+    public function scopeCurrent($query)
+    {
+        $today = now()->format('Y-m-d');
+        return $query->where('start_date', '<=', $today)
+            ->where('end_date', '>=', $today);
+    }
 }

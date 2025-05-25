@@ -68,6 +68,10 @@ class  School extends Model
     {
         return $query->whereNull('deleted_at');
     }
+    public function emailSettings()
+    {
+        return $this->hasOne(EmailSetting::class);
+    }
 
     // Tự động tạo môn học khi tạo trường
     protected static function booted()

@@ -1,0 +1,105 @@
+<?php
+
+namespace App\Mail;
+
+use App\Models\Notification;
+use App\Models\User;
+use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Mail\Mailable;
+use Illuminate\Mail\Mailables\Attachment;
+use Illuminate\Mail\Mailables\Content;
+use Illuminate\Mail\Mailables\Envelope;
+use Illuminate\Queue\SerializesModels;
+use Illuminate\Mail\Mailables\Address;
+
+class ParentNotification extends Mailable
+{
+    use Queueable, SerializesModels;
+
+
+    public $notification;
+    public $student;
+    public $mailData;
+    public function __construct(Notification $notification, User $student)
+    {
+        $this->notification = $notification; // GÁN BIẾN VÀO THUỘC TÍNH PUBLIC
+        $this->student = $student;          // GÁN BIẾN VÀO THUỘC TÍNH PUBLIC
+
+        $this->mailData = [
+            'notification' => $notification,
+            'student' => $student,
+            // Đảm bảo truyền subject và content đã được thay thế biến vào view
+            'subject' => $this->replaceVariables($notification->subject, $notification, $student),
+            'content' => $this->replaceVariables($notification->content, $notification, $student)
+        ];
+    }
+    public function build()
+    {
+        return $this->view('notifications.parent_notification') // Đổi thành đường dẫn mới
+            ->subject($this->mailData['subject'])
+            ->with($this->mailData);
+    }
+
+    public function envelope(): Envelope
+    {
+        // Bây giờ bạn có thể truy cập $this->notification
+        return new Envelope(
+            subject: $this->mailData['subject'], // Lấy subject đã được thay thế biến
+            from: new Address(
+                $this->notification->class->school->emailSettings->from_address,
+                $this->notification->class->school->emailSettings->from_name
+            )
+        );
+    }
+
+
+    public function content(): Content
+    {
+        return new Content(
+            view: 'notifications.parent_notification',
+            with: [
+                'notification' => $this->notification,
+                'student' => $this->student,
+                'subject' => $this->mailData['subject'],
+                'content' => $this->mailData['content'] // Truyền content đã được xử lý
+            ]
+        );
+    }
+
+    protected function replaceVariables($text, $notification, $student)
+    {
+        $replacements = [
+            '{TEN_HOC_SINH}' => $student->full_name,
+            '{LOP}' => $notification->class->name,
+            '{GIAO_VIEN}' => $notification->sender->full_name,
+            '{NGAY}' => now()->format('d/m/Y'),
+            '{THANG}' => now()->format('m'),
+            '{NAM}' => now()->format('Y'),
+        ];
+
+        if (!empty($notification->custom_variables)) {
+            $customVars = json_decode($notification->custom_variables, true);
+            if (json_last_error() === JSON_ERROR_NONE) {
+                $replacements = array_merge($replacements, $customVars);
+            }
+        }
+
+        return str_replace(
+            array_keys($replacements),
+            array_values($replacements),
+            $text
+        );
+    }
+
+    /**
+     * Build the message.
+     *
+     * @return $this
+     */
+
+    /**
+     * Get the message envelope.
+     */
+
+}
