@@ -45,7 +45,7 @@ class AcademicYearController extends Controller
             'end_date.required' => 'Ngày kết thúc không được để trống',
             'end_date.after' => 'Ngày kết thúc phải sau ngày bắt đầu',
             'start_date.custom_start' => 'Năm học phải bắt đầu từ tháng 9',
-            'end_date.custom_end' =>'Năm học THPT phải kết thúc trước ngày 30/6',
+            'end_date.custom_end' => 'Năm học THPT phải kết thúc trước ngày 30/6',
             'end_date.min_duration' => 'Năm học phải kéo dài ít nhất 8 tháng'
         ];
 
@@ -54,7 +54,7 @@ class AcademicYearController extends Controller
                 'required',
                 'string',
                 'max:9',
-                'unique:academic_years,year,NULL,id,school_id,'.auth()->user()->school_id,
+                'unique:academic_years,year,NULL,id,school_id,' . auth()->user()->school_id,
                 'regex:/^\d{4}-\d{4}$/',
                 function ($attribute, $value, $fail) {
                     list($start, $end) = explode('-', $value);
@@ -71,7 +71,7 @@ class AcademicYearController extends Controller
                     if (preg_match('/^(\d{4})-(\d{4})$/', $request->year, $matches)) {
                         $startYear = $matches[1];
                         if ($inputDate->format('Y') != $startYear || $inputDate->format('m') != '09') {
-                            $fail('Năm học phải bắt đầu trong tháng 9 năm '.$startYear);
+                            $fail('Năm học phải bắt đầu trong tháng 9 năm ' . $startYear);
                         }
                     }
                 }
@@ -88,12 +88,12 @@ class AcademicYearController extends Controller
 
                         // Kiểm tra năm kết thúc phải là năm sau năm bắt đầu
                         if ($inputDate->format('Y') != $endYear) {
-                            $fail('Năm kết thúc phải là '.$endYear);
+                            $fail('Năm kết thúc phải là ' . $endYear);
                             return;
                         }
 
                         // Kiểm tra phải kết thúc trước 30/6
-                        $maxEndDate = date_create($endYear.'-06-30');
+                        $maxEndDate = date_create($endYear . '-06-30');
                         if ($inputDate > $maxEndDate) {
                             $fail('Năm học phải kết thúc trước ngày 30/06');
                             return;
@@ -102,7 +102,7 @@ class AcademicYearController extends Controller
                         // Kiểm tra thời lượng tối thiểu 8 tháng (chính xác hơn)
                         $minEndDate = (clone $startDate)->modify('+8 months');
                         if ($inputDate < $minEndDate) {
-                            $fail('Năm học phải kéo dài ít nhất 8 tháng (từ '.$startDate->format('d/m/Y').' đến '.$minEndDate->format('d/m/Y').')');
+                            $fail('Năm học phải kéo dài ít nhất 8 tháng (từ ' . $startDate->format('d/m/Y') . ' đến ' . $minEndDate->format('d/m/Y') . ')');
                         }
                     }
                 }
@@ -174,7 +174,7 @@ class AcademicYearController extends Controller
                 'required',
                 'string',
                 'max:9',
-                'unique:academic_years,year,'.$academicYear->id.',id,school_id,'.auth()->user()->school_id,
+                'unique:academic_years,year,' . $academicYear->id . ',id,school_id,' . auth()->user()->school_id,
                 'regex:/^\d{4}-\d{4}$/',
                 function ($attribute, $value, $fail) {
                     list($start, $end) = explode('-', $value);
@@ -191,7 +191,7 @@ class AcademicYearController extends Controller
                     if (preg_match('/^(\d{4})-(\d{4})$/', $request->year, $matches)) {
                         $startYear = $matches[1];
                         if ($inputDate->format('Y') != $startYear || $inputDate->format('m') != '09') {
-                            $fail('Năm học phải bắt đầu trong tháng 9 năm '.$startYear);
+                            $fail('Năm học phải bắt đầu trong tháng 9 năm ' . $startYear);
                         }
                     }
                 }
@@ -208,7 +208,7 @@ class AcademicYearController extends Controller
                         // Kiểm tra năm kết thúc phải là năm sau năm bắt đầu
                         $startDate = date_create($request->start_date);
                         if ($inputDate->format('Y') != $endYear) {
-                            $fail('Năm kết thúc phải là '.$endYear);
+                            $fail('Năm kết thúc phải là ' . $endYear);
                             return;
                         }
 

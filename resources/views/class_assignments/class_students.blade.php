@@ -131,7 +131,7 @@
                         <div class="mb-3">
                             <label for="target_academic_year_id" class="form-label">Năm học mới</label>
                             <input class="form-control" id="target_academic_year_id" name="target_academic_year_id"
-                                   value="{{ $nextYear->year ?? "Chưa có" }}">
+                                   value="{{ $nextYear->year ?? "Chưa có" }}" readonly>
                         </div>
 
                         <div class="mb-3">
@@ -162,7 +162,7 @@
 @push('scripts')
     <script>
         $(document).ready(function () {
-            const moveStudentModal = $('#moveStudentModal');
+            const moveStudentModal = $('#moveSelectedModal');
             const moveSelectedStudentsButton = $("#openMoveSelectedModal");
             const checkedAllElement = $("#checkedAll");
             const checkboxes = $('.student-checkbox');
@@ -179,6 +179,8 @@
                 updateBulkMoveButton();
             });
 
+            checkboxes.on('change', updateBulkMoveButton);
+
             moveSelectedStudentsButton.on('click', function () {
                 let selectedIds = [];
                 checkboxes.each(function () {
@@ -190,7 +192,7 @@
 
                 if (selectedIds.length === 0) {
                     alert('Vui lòng chọn ít nhất một học sinh để chuyển lớp.');
-                    $('#moveSelectedModal').modal('hide'); // Ngăn mở modal
+                    $('#moveSelectedModal').modal('hide');
                     return;
                 }
 
@@ -198,6 +200,7 @@
             });
 
             moveStudentModal.on('show.bs.modal', function (event) {
+                alert("Hello");
                 const button = $(event.relatedTarget); // Nút đã click
                 const form = $(this).find("form");
 

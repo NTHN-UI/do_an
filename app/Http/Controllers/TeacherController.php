@@ -31,7 +31,7 @@ class TeacherController extends Controller
                         ->orWhere('phone', 'like', "%$search%");
                 });
             })
-            ->orderBy('full_name')
+            ->latest('created_at')
             ->paginate(10);
 
         return view('teachers.index', compact('teachers', 'search'));

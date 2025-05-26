@@ -11,20 +11,20 @@
                         </h4>
                     </div>
                     <div class="card-body">
-                        <form action="{{ route('materials.update', $material) }}" method="POST" enctype="multipart/form-data">
+                        <form action="{{ route('documents.update', $document) }}" method="POST" enctype="multipart/form-data">
                             @csrf
                             @method('PUT')
 
                             <div class="mb-3">
                                 <label for="title" class="form-label">Tiêu đề</label>
                                 <input type="text" class="form-control" id="title" name="title"
-                                       value="{{ old('title', $material->title) }}" required>
+                                       value="{{ old('title', $document->title) }}" required>
                             </div>
 
                             <div class="mb-3">
                                 <label for="description" class="form-label">Mô tả</label>
                                 <textarea class="form-control" id="description" name="description"
-                                          rows="3">{{ old('description', $material->description) }}</textarea>
+                                          rows="3">{{ old('description', $document->description) }}</textarea>
                             </div>
 
                             <div class="mb-3">
@@ -32,7 +32,7 @@
                                 <select class="form-select" id="subject_id" name="subject_id" required>
                                     @foreach($subjects as $subject)
                                         <option value="{{ $subject->id }}"
-                                            {{ $material->subject_id == $subject->id ? 'selected' : '' }}>
+                                            {{ $document->subject_id == $subject->id ? 'selected' : '' }}>
                                             {{ $subject->name }}
                                         </option>
                                     @endforeach
@@ -43,13 +43,13 @@
                                 <label for="file" class="form-label">File tài liệu (Để trống nếu không đổi)</label>
                                 <div class="card bg-light p-3 mb-2">
                                     <i class="fas fa-file-alt me-2"></i>
-                                    {{ basename($material->file_path) }}
+                                    {{ basename($document->file_path) }}
                                 </div>
                                 <input type="file" class="form-control" id="file" name="file">
                             </div>
 
                             <div class="d-flex justify-content-between">
-                                <a href="{{ route('materials.index') }}"
+                                <a href="{{ route('documents.index') }}"
                                    class="btn btn-outline-secondary">
                                     <i class="fas fa-times me-1"></i> Hủy bỏ
                                 </a>

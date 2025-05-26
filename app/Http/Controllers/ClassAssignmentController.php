@@ -204,28 +204,7 @@ class ClassAssignmentController extends Controller
 
             // Tạo thông báo chi tiết
             $message = "Đã phân công $totalStudents học sinh vào $classCount lớp ";
-            $message .= $isGrade10 ? "theo điểm đầu vào:<br><br>" : "theo thứ tự tên:<br><br>";
-
-            foreach ($classes as $class) {
-                $students = $assignmentDetails[$class->id] ?? [];
-                $message .= "<strong>{$class->name}</strong> (" . count($students) . " học sinh):<br>";
-
-                // Sắp xếp lại để hiển thị
-                if ($isGrade10) {
-                    usort($students, function ($a, $b) {
-                        return $b['score'] <=> $a['score'];
-                    });
-
-                    foreach ($students as $student) {
-                        $message .= "- {$student['name']} (Điểm: {$student['score']})<br>";
-                    }
-                } else {
-                    foreach ($students as $student) {
-                        $message .= "- {$student['name']}<br>";
-                    }
-                }
-                $message .= "<br>";
-            }
+            $message .= $isGrade10 ? "theo điểm đầu vào:" : "theo thứ tự tên:";
 
             return redirect()
                 ->route('class_assignments.index', ['academic_year_id' => $academicYearId])

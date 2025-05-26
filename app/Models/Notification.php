@@ -30,6 +30,7 @@ class Notification extends Model
     protected $casts = [
         'sent_at' => 'datetime',
     ];
+
     public function setContentAttribute($value)
     {
         $this->attributes['content'] = $value;
@@ -39,6 +40,7 @@ class Notification extends Model
     {
         return $value;
     }
+
     public function sender()
     {
         return $this->belongsTo(User::class, 'sender_id');

@@ -21,26 +21,32 @@ class AcademicYear extends Model
         'start_date' => 'date',
         'end_date' => 'date',
     ];
+
     public function semesters()
     {
         return $this->hasMany(Semester::class);
     }
+
     public function classes()
     {
         return $this->hasMany(ClassModel::class);
     }
+
     public function studentClasses()
     {
         return $this->hasMany(StudentClass::class);
     }
+
     public function teacherAssignments()
     {
         return $this->hasMany(TeacherAssignment::class);
     }
+
     public function grades()
     {
         return $this->hasMany(Grade::class);
     }
+
     public function scopeCurrent($query)
     {
         $today = now()->format('Y-m-d');

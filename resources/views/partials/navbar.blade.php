@@ -186,7 +186,7 @@
                             <i class="fas fa-book me-1"></i> Tài liệu học tập
                         </a>
                         <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="{{ route('materials.index') }}"><i
+                            <li><a class="dropdown-item" href="{{ route('documents.index') }}"><i
                                         class="fas fa-file-download me-2"></i> Tài liệu học tập</a></li>
                         </ul>
                     </li>

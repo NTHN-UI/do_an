@@ -8,7 +8,7 @@
                     <div class="card-header bg-white border-0 pb-0">
                         <nav aria-label="breadcrumb">
                             <ol class="breadcrumb bg-transparent p-0 mb-3">
-                                <li class="breadcrumb-item"><a href="{{ route('materials.index') }}">Tài liệu</a></li>
+                                <li class="breadcrumb-item"><a href="{{ route('documents.index') }}">Tài liệu</a></li>
                                 <li class="breadcrumb-item active" aria-current="page">Chi tiết</li>
                             </ol>
                         </nav>
@@ -17,12 +17,12 @@
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-start mb-4">
                             <div>
-                                <h2 class="fw-bold mb-2">{{ $material->title }}</h2>
+                                <h2 class="fw-bold mb-2">{{ $document->title }}</h2>
                                 <div class="d-flex align-items-center text-muted mb-3">
                                     <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill me-3">
-                                        {{ $material->subject->name }}
+                                        {{ $document->subject->name }}
                                     </span>
-                                    <span><i class="fas fa-user-tie me-1"></i> {{ $material->teacher->full_name }}</span>
+                                    <span><i class="fas fa-user-tie me-1"></i> {{ $document->teacher->full_name }}</span>
                                 </div>
                             </div>
                             @if(Auth::user()->isStudent())
@@ -32,7 +32,7 @@
                                 </button>
 
                                 <ul class="dropdown-menu dropdown-menu-end">
-                                    <li><a class="dropdown-item" href="{{ route('materials.download', $material) }}">
+                                    <li><a class="dropdown-item" href="{{ route('documents.download', $document) }}">
                                             <i class="fas fa-download me-2"></i>Tải xuống
                                         </a></li>
                                 </ul>
@@ -48,15 +48,15 @@
                                         <i class="fas fa-file-alt text-primary fs-4"></i>
                                     </div>
                                     <div class="flex-grow-1">
-                                        <h6 class="mb-1">{{ pathinfo($material->file_path, PATHINFO_BASENAME) }}</h6>
+                                        <h6 class="mb-1">{{ pathinfo($document->file_path, PATHINFO_BASENAME) }}</h6>
                                         <p class="text-muted small mb-0">
-                                            Định dạng: .{{ pathinfo($material->file_path, PATHINFO_EXTENSION) }} |
-                                            Tải lên: {{ $material->created_at->format('d/m/Y H:i') }}
+                                            Định dạng: .{{ pathinfo($document->file_path, PATHINFO_EXTENSION) }} |
+                                            Tải lên: {{ $document->created_at->format('d/m/Y H:i') }}
                                         </p>
                                     </div>
                                     @if(Auth::user()->isStudent())
 
-                                    <a href="{{ route('materials.download', $material) }}"
+                                    <a href="{{ route('documents.download', $document) }}"
                                        class="btn btn-primary rounded-pill px-3">
                                         <i class="fas fa-download me-1"></i> Tải xuống
                                     </a>
@@ -66,11 +66,11 @@
                         </div>
 
                         <!-- Mô tả -->
-                        @if($material->description)
+                        @if($document->description)
                             <div class="mb-4">
                                 <h5 class="mb-3">Mô tả tài liệu</h5>
                                 <div class="p-3 bg-light rounded">
-                                    {!! nl2br(e($material->description)) !!}
+                                    {!! nl2br(e($document->description)) !!}
                                 </div>
                             </div>
                         @endif
@@ -87,17 +87,17 @@
                                             <li class="mb-2">
                                                 <i class="fas fa-calendar-alt me-2 text-muted"></i>
                                                 <strong>Ngày tải lên:</strong>
-                                                {{ $material->created_at->format('d/m/Y') }}
+                                                {{ $document->created_at->format('d/m/Y') }}
                                             </li>
                                             <li class="mb-2">
                                                 <i class="fas fa-user-edit me-2 text-muted"></i>
                                                 <strong>Cập nhật lần cuối:</strong>
-                                                {{ $material->updated_at->diffForHumans() }}
+                                                {{ $document->updated_at->diffForHumans() }}
                                             </li>
                                             <li>
                                                 <i class="fas fa-file-signature me-2 text-muted"></i>
                                                 <strong>Định dạng:</strong>
-                                                .{{ pathinfo($material->file_path, PATHINFO_EXTENSION) }}
+                                                .{{ pathinfo($document->file_path, PATHINFO_EXTENSION) }}
                                             </li>
                                         </ul>
                                     </div>
@@ -114,8 +114,8 @@
                                                 <i class="fas fa-user text-primary"></i>
                                             </div>
                                             <div>
-                                                <h6 class="mb-0">{{ $material->teacher->full_name }}</h6>
-                                                <p class="text-muted small mb-0">{{ $material->teacher->email }}</p>
+                                                <h6 class="mb-0">{{ $document->teacher->full_name }}</h6>
+                                                <p class="text-muted small mb-0">{{ $document->teacher->email }}</p>
                                             </div>
                                         </div>
                                     </div>
@@ -125,7 +125,7 @@
                     </div>
 
                     <div class="card-footer bg-white border-0 d-flex justify-content-between pt-0">
-                        <a href="{{ route('materials.index') }}" class="btn btn-outline-secondary rounded-pill px-4">
+                        <a href="{{ route('documents.index') }}" class="btn btn-outline-secondary rounded-pill px-4">
                             <i class="fas fa-arrow-left me-2"></i>Quay lại danh sách
                         </a>
                         <div class="btn-group">

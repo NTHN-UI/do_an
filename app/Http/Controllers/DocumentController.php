@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Material;
+use App\Models\Document;
 use App\Models\Subject;
 use App\Models\TeacherAssignment;
 use App\Models\User;
@@ -10,7 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 
-class MaterialController extends Controller
+class DocumentController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -23,7 +23,7 @@ class MaterialController extends Controller
         $teacherId = $request->input('teacher_id');
 
         // Lấy tất cả tài liệu thuộc trường hiện tại
-        $materials = Material::whereHas('teacher', function($query) {
+        $documents = Document::whereHas('teacher', function($query) {
             $query->where('school_id', Auth::user()->school_id);
         });
 
@@ -34,7 +34,7 @@ class MaterialController extends Controller
 
         // GIÁO VIÊN: chỉ xem tài liệu của mình
         if (Auth::user()->isTeacher()) {
-            $materials = $materials->where('teacher_id', Auth::id());
+            $documents = $documents->where('teacher_id', Auth::id());
 
             // Chỉ hiển thị môn học mà giáo viên này dạy
             $subjects = Subject::whereIn('id',
@@ -52,7 +52,7 @@ class MaterialController extends Controller
                 ->pluck('teacher_id')
                 ->unique();
 
-            $materials = $materials->whereIn('teacher_id', $allowedTeacherIds);
+            $documents = $documents->whereIn('teacher_id', $allowedTeacherIds);
 
             // Lọc danh sách giáo viên chỉ hiển thị những người dạy học sinh này
             $teachers = $teachers->whereIn('id', $allowedTeacherIds);
@@ -65,7 +65,7 @@ class MaterialController extends Controller
         }
 
         // Áp dụng filter chung
-        $materials = $materials->with(['subject', 'teacher'])
+        $documents = $documents->with(['subject', 'teacher'])
             ->when($search, function($query, $search) {
                 return $query->where('title', 'like', "%$search%");
             })
@@ -78,7 +78,7 @@ class MaterialController extends Controller
             ->orderBy('created_at', 'desc')
             ->paginate(10);
 
-        return view('materials.index', compact('materials', 'subjects', 'teachers', 'search', 'subjectId', 'teacherId'));
+        return view('documents.index', compact('documents', 'subjects', 'teachers', 'search', 'subjectId', 'teacherId'));
     }
 
     /**
@@ -94,7 +94,7 @@ class MaterialController extends Controller
             )->get()
             : Subject::where('school_id', Auth::user()->school_id)->get();
 
-        return view('materials.create', compact('subjects'));
+        return view('documents.create', compact('subjects'));
     }
 
     /**
@@ -127,9 +127,9 @@ class MaterialController extends Controller
             ]
         ]);
 
-        $filePath = $request->file('file')->store('materials');
+        $filePath = $request->file('file')->store('documents');
 
-        Material::create([
+        Document::create([
             'title' => $request->title,
             'description' => $request->description,
             'file_path' => $filePath,
@@ -137,20 +137,20 @@ class MaterialController extends Controller
             'teacher_id' => Auth::id()
         ]);
 
-        return redirect()->route('materials.index')->with('success', 'Tài liệu đã được tải lên thành công!');
+        return redirect()->route('documents.index')->with('success', 'Tài liệu đã được tải lên thành công!');
     }
     /**
      * Display the specified resource.
      */
-    public function show(Material $material)
+    public function show(Document $document)
     {
-        return view('materials.show', compact('material'));
+        return view('documents.show', compact('document'));
     }
 
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Material $material)
+    public function edit(Document $document)
     {
 
         // Giáo viên chỉ được chọn môn học mình dạy
@@ -161,14 +161,14 @@ class MaterialController extends Controller
             )->get()
             : Subject::where('school_id', Auth::user()->school_id)->get();
 
-        return view('materials.edit', compact('material', 'subjects'));
+        return view('documents.edit', compact('document', 'subjects'));
     }
 
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Material $material)
+    public function update(Request $request, Document $document)
     {
         $request->validate([
             'title' => 'required|string|max:255',
@@ -186,29 +186,29 @@ class MaterialController extends Controller
         $data = $request->only(['title', 'description', 'subject_id']);
 
         if ($request->hasFile('file')) {
-            Storage::delete($material->file_path);
-            $data['file_path'] = $request->file('file')->store('materials');
+            Storage::delete($document->file_path);
+            $data['file_path'] = $request->file('file')->store('documents');
         }
 
-        $material->update($data);
+        $document->update($data);
 
-        return redirect()->route('materials.index')->with('success', 'Cập nhật tài liệu thành công!');
+        return redirect()->route('documents.index')->with('success', 'Cập nhật tài liệu thành công!');
 
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Material $material)
+    public function destroy(Document $document)
     {
-        Storage::delete($material->file_path);
-        $material->delete();
+        Storage::delete($document->file_path);
+        $document->delete();
 
-        return redirect()->route('materials.index')->with('success', 'Tài liệu đã được xóa!');
+        return redirect()->route('documents.index')->with('success', 'Tài liệu đã được xóa!');
     }
-    public function download(Material $material)
+    public function download(Document $document)
     {
-        return Storage::download($material->file_path, $material->title);
+        return Storage::download($document->file_path, $document->title);
 
     }
 

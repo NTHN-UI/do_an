@@ -18,7 +18,8 @@
 
             <div class="form-group">
                 <label>Ngày bắt đầu</label>
-                <input type="date" name="start_date" class="form-control @error('start_date') is-invalid @enderror" value="{{ old('start_date') }}">
+                <input type="date" name="start_date" class="form-control @error('start_date') is-invalid @enderror"
+                       value="{{ old('start_date') }}">
                 @error('start_date')
                 <div class="invalid-feedback">{{ $message }}</div>
                 @enderror
@@ -26,7 +27,8 @@
 
             <div class="form-group">
                 <label>Ngày kết thúc</label>
-                <input type="date" name="end_date" class="form-control @error('end_date') is-invalid @enderror" value="{{old('end_date')}}">
+                <input type="date" name="end_date" class="form-control @error('end_date') is-invalid @enderror"
+                       value="{{old('end_date')}}">
                 @error('end_date')
                 <div class="invalid-feedback">{{ $message }}</div>
                 @enderror

@@ -12,7 +12,7 @@
                     </div>
 
                     <div class="card-body">
-                        <form action="{{ route('materials.store') }}" method="POST" enctype="multipart/form-data">
+                        <form action="{{ route('documents.store') }}" method="POST" enctype="multipart/form-data">
                             @csrf
 
                             <div class="mb-3">
@@ -63,7 +63,7 @@
                             </div>
 
                             <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                                <a href="{{ route('materials.index') }}" class="btn btn-secondary me-md-2">
+                                <a href="{{ route('documents.index') }}" class="btn btn-secondary me-md-2">
                                     <i class="fas fa-times me-1"></i> Hủy bỏ
                                 </a>
                                 <button type="submit" class="btn btn-primary">

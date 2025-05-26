@@ -35,6 +35,7 @@ class ClassController extends Controller
                 return $query->where('academic_year_id', $selectedYearId);
             })
             ->with(['gradeLevel', 'academicYear'])
+            ->orderBy('name')
             ->paginate(10);
 
         return view('classes.index', compact('classes', 'academicYears', 'selectedYearId'));

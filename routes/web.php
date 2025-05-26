@@ -9,7 +9,7 @@ use App\Http\Controllers\ClassAssignmentController;
 use App\Http\Controllers\ClassController;
 use App\Http\Controllers\GradeController;
 use App\Http\Controllers\GradeLevelController;
-use App\Http\Controllers\MaterialController;
+use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\SchoolAdminController;
 use App\Http\Controllers\SchoolController;
 use App\Http\Controllers\SemesterController;
@@ -92,19 +92,19 @@ Route::middleware(['auth'])->group(function () {
 
 
     Route::middleware(['auth'])->group(function () {
-        // Nhóm route cho tài liệu (materials)
-        Route::prefix('materials')->group(function () {
-            Route::get('/', [MaterialController::class, 'index'])->name('materials.index');
-            Route::get('/{material}/download', [MaterialController::class, 'download'])->name('materials.download');
+        // Nhóm route cho tài liệu (documents)
+        Route::prefix('documents')->group(function () {
+            Route::get('/', [DocumentController::class, 'index'])->name('documents.index');
+            Route::get('/{document}/download', [DocumentController::class, 'download'])->name('documents.download');
 
             Route::middleware([TeacherMiddleware::class])->group(function () {
-                Route::get('/create', [MaterialController::class, 'create'])->name('materials.create');
-                Route::post('/', [MaterialController::class, 'store'])->name('materials.store');
-                Route::get('/{material}/edit', [MaterialController::class, 'edit'])->name('materials.edit');
-                Route::put('/{material}', [MaterialController::class, 'update'])->name('materials.update');
-                Route::delete('/{material}', [MaterialController::class, 'destroy'])->name('materials.destroy');
+                Route::get('/create', [DocumentController::class, 'create'])->name('documents.create');
+                Route::post('/', [DocumentController::class, 'store'])->name('documents.store');
+                Route::get('/{document}/edit', [DocumentController::class, 'edit'])->name('documents.edit');
+                Route::put('/{document}', [DocumentController::class, 'update'])->name('documents.update');
+                Route::delete('/{document}', [DocumentController::class, 'destroy'])->name('documents.destroy');
             });
-            Route::get('/{material}', [MaterialController::class, 'show'])->name('materials.show');
+            Route::get('/{document}', [DocumentController::class, 'show'])->name('documents.show');
 
         });
 
@@ -122,14 +122,14 @@ Route::middleware(['auth'])->group(function () {
     });
     Route::middleware('auth')->middleware([TeacherMiddleware::class])->group(function () {
         // Thông báo giáo viên chủ nhiệm
-        Route::prefix('notifications')->group(function () {
-            Route::get('/create', [NotificationController::class, 'create'])->name('notifications.create');
-            Route::post('/', [NotificationController::class, 'store'])->name('notifications.store');
-            Route::get('/preview/{notification}', [NotificationController::class, 'preview'])->name('notifications.preview');
-            Route::post('/send/{notification}', [NotificationController::class, 'send'])->name('notifications.send');
-            Route::get('/history', [NotificationController::class, 'history'])->name('notifications.history');
-            Route::get('/notifications/templates/{template}', [NotificationController::class, 'getTemplateContent'])
-                ->name('notifications.template.content');
+        Route::prefix('notifications')->name('notifications.')->controller(NotificationController::class)->group(function () {
+            Route::get('/create', 'create')->name('create');
+            Route::post('/', 'store')->name('store');
+            Route::get('/preview/{notification}', 'preview')->name('preview');
+            Route::post('/send/{notification}', 'send')->name('send');
+            Route::get('/history', 'history')->name('history');
+            Route::get('/templates/{template}', 'getTemplateContent')
+                ->name('template.content');
         });
     });
 

@@ -130,16 +130,6 @@
                     const selectedOption = this.options[this.selectedIndex];
                     document.getElementById('subject').value = selectedOption.dataset.subject;
                     document.getElementById('content').value = selectedOption.dataset.content;
-
-                    // Show toast notification
-                    Toastify({
-                        text: "Đã tải template thành công! Bạn có thể chỉnh sửa nội dung",
-                        duration: 3000,
-                        close: true,
-                        gravity: "top",
-                        position: "right",
-                        backgroundColor: "#4CAF50",
-                    }).showToast();
                 }
             });
         });

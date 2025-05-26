@@ -12,18 +12,22 @@
             background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
             min-height: 100vh;
         }
+
         .login-card {
             border-radius: 15px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
         }
+
         .login-header {
             background: #013066;
             border-radius: 15px 15px 0 0 !important;
         }
+
         .input-group-text {
             background-color: transparent;
             border-right: none;
         }
+
         /*.form-control {
             border-left: none;
             padding-left: 0;
@@ -31,6 +35,7 @@
         .toggle-password {
             cursor: pointer;
         }
+
         .invalid-feedback {
             display: block;
         }
@@ -104,7 +109,7 @@
                 </div>
             </div>
 
-            <div class="text-center mt-4 small text-primary-color" >
+            <div class="text-center mt-4 small text-primary-color">
                 © <span id="currentYear"></span> Hệ thống Quản lý Trường học
             </div>
         </div>
@@ -117,8 +122,8 @@
     document.getElementById('currentYear').textContent = new Date().getFullYear();
 
     // Toggle hiển thị mật khẩu
-    document.querySelectorAll('.toggle-password').forEach(function(element) {
-        element.addEventListener('click', function() {
+    document.querySelectorAll('.toggle-password').forEach(function (element) {
+        element.addEventListener('click', function () {
             const passwordInput = this.closest('.input-group').querySelector('input');
             const icon = this.querySelector('i');
 
@@ -132,12 +137,13 @@
         });
     });
 
-    document.querySelector('.needs-validation').addEventListener('submit', function(event) {
+    document.querySelector('.needs-validation').addEventListener('submit', function (event) {
         if (!this.checkValidity()) {
             event.preventDefault();
             event.stopPropagation();
         }
-        this.classList.add('invalid-feedback');
+
+        this.classList.add('was-validated'); // ✔️ Bootstrap dùng class này để hiển thị validate
     }, false);
 </script>
 </body>

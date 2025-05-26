@@ -16,10 +16,12 @@
                 <form method="GET" action="{{ route('class_assignments.index') }}" class="row g-3">
                     <div class="col-md-5">
                         <label for="academic_year_id" class="form-label">Năm học</label>
-                        <select name="academic_year_id" id="academic_year_id" class="form-select" onchange="this.form.submit()">
+                        <select name="academic_year_id" id="academic_year_id" class="form-select"
+                                onchange="this.form.submit()">
                             <option value="">-- Chọn năm học --</option>
                             @foreach($academicYears as $year)
-                                <option value="{{ $year->id }}" {{ $selectedAcademicYear == $year->id ? 'selected' : '' }}>
+                                <option
+                                    value="{{ $year->id }}" {{ $selectedAcademicYear == $year->id ? 'selected' : '' }}>
                                     {{ $year->year }}
                                 </option>
                             @endforeach

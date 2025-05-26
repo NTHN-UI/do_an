@@ -36,6 +36,7 @@ class NotificationController extends Controller
             ->where('end_date', '>=', now())
             ->firstOrFail();
 
+
         // Lấy lớp chủ nhiệm HIỆN TẠI với tên lớp
         $homeroomClass = $teacher->homeroomClasses()
             ->where('academic_year_id', $currentYear->id)
@@ -43,6 +44,7 @@ class NotificationController extends Controller
                 $query->select('id', 'name');
             }])
             ->first();
+
 
         if (!$homeroomClass) {
             return redirect()->back()

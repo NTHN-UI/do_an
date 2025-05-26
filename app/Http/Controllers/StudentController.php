@@ -49,6 +49,7 @@ class StudentController extends Controller
 
             $students = $query->select('users.*')
                 ->with(['school:id,name'])
+                ->latest('created_at')
                 ->paginate(10)
                 ->appends($request->except('page')); // Thêm dòng này để giữ bộ lọc
 
@@ -89,6 +90,7 @@ class StudentController extends Controller
             });
 
         $students = $query->with(['school', 'studentClasses.gradeLevel'])
+            ->latest('created_at')
             ->paginate(10)
             ->appends($request->except('page'));
 
