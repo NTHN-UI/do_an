@@ -11,12 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('grades', function (Blueprint $table) {
-            // Cho phép null cho score
-            $table->decimal('score', 5, 2)->nullable()->change();
 
-            // Thêm text_value sau cột score
-            $table->string('text_value')->nullable()->after('score');
+        Schema::create('questions', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('exam_id')->constrained('exams');
+            $table->text('content'); // nội dung câu hỏi
+            $table->timestamps();
         });
     }
 
@@ -25,6 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        //
+        Schema::dropIfExists('questions');
     }
 };

@@ -3,7 +3,7 @@
 @section('content')
     <div class="container">
         <div class="d-flex justify-content-between align-items-center mb-4">
-            <h3>Danh sách học sinh lớp {{ $class->name }} - Năm học {{ $academicYear->year }}</h3>
+            <h3>Danh sách học sinh {{ $class->name }} - Năm học {{ $academicYear->year }}</h3>
         </div>
 
         <div class="card">
@@ -131,7 +131,7 @@
                         <div class="mb-3">
                             <label for="target_academic_year_id" class="form-label">Năm học mới</label>
                             <input class="form-control" id="target_academic_year_id" name="target_academic_year_id"
-                                   value="{{ $nextYear->year }}">
+                                   value="{{ $nextYear->year ?? "Chưa có" }}">
                         </div>
 
                         <div class="mb-3">

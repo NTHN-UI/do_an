@@ -11,8 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('grades', function (Blueprint $table) {
-            $table->unsignedTinyInteger('test_number')->nullable()->after('test_type');
+        Schema::create('exam_types', function (Blueprint $table) {
+            $table->id();
+            $table->string('name');
+            $table->integer('duration');
+            $table->integer('question_count');
+            $table->timestamps();
         });
     }
 
@@ -21,8 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('grades', function (Blueprint $table) {
-            //
-        });
+        Schema::dropIfExists('exam_types');
     }
 };

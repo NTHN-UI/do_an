@@ -220,6 +220,7 @@
                                                     $hasSpecialSubjects = false;
                                                     $numericAverage = 0;
                                                     $numericCount = 0;
+                                                    $hasAnyGrade = false;
 
                                                     foreach($subjectsTaught as $subject) {
                                                         $subjectData = $grades[$student->id][$subject->id] ?? [];
@@ -228,36 +229,35 @@
                                                         if ($subjectData['is_special'] ?? false) {
                                                             $hasSpecialSubjects = true;
                                                             $semesterValue = $subjectData['semester']->text_value ?? '';
+                                                            if ($semesterValue !== '') {
+                                                                $hasAnyGrade = true;
+                                                            }
                                                             if ($semesterValue !== 'Đạt') {
                                                                 $allSubjectsPassed = false;
                                                             }
                                                         }
                                                         // Xử lý môn thường
                                                         else {
-                                                            $subjectAvg = $subjectData['average'] ?? 0;
-                                                            if ($subjectAvg > 0) {
+                                                            $subjectAvg = $subjectData['average'] ?? null;
+                                                            if ($subjectAvg !== null && $subjectAvg > 0) {
                                                                 $numericAverage += $subjectAvg;
                                                                 $numericCount++;
+                                                                $hasAnyGrade = true;
                                                             }
                                                         }
                                                     }
 
-                                                    // Nếu có môn đặc biệt và có môn chưa đạt
-                                                    if ($hasSpecialSubjects && !$allSubjectsPassed) {
-                                                        echo 'Chưa đạt';
-                                                    }
-                                                    // Nếu tất cả môn đặc biệt đều đạt hoặc không có môn đặc biệt
-                                                    else {
-                                                        // Nếu có môn thường
-                                                        if ($numericCount > 0) {
-                                                            echo round($numericAverage / $numericCount, 1);
-                                                        }
-                                                        // Nếu chỉ có môn đặc biệt và tất cả đều đạt
-                                                        else {
-                                                            echo 'Đạt';
-                                                        }
-                                                    }
-                                                @endphp
+                                                   if (!$hasAnyGrade) {
+                                                    echo '';
+                                                } elseif ($hasSpecialSubjects) {
+                                                    // Only show Đạt/Chưa đạt for special subjects
+                                                    echo $allSubjectsPassed ? 'Đạt' : 'Chưa đạt';
+                                                } elseif ($numericCount > 0) {
+                                                    echo round($numericAverage / $numericCount, 1);
+                                                } else {
+                                                    echo '';
+                                                }
+                                                                                            @endphp
                                             @endif
                                         </td>
                                     </tr>
