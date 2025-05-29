@@ -25,14 +25,12 @@ class ExamController extends Controller
             'teacher_id' => 'required|integer|exists:users,id',
             'subject_id' => 'required|integer|exists:subjects,id',
             'grade_level_id' => 'required|integer|exists:grade_levels,id',
-            'exam_type_id' => 'required|integer|exists:exam_types,id',
             'questions' => 'required|array|min:1',
             'questions.*.content' => 'required|string',
             'questions.*.options' => 'required|array|size:4',
             'questions.*.options.*.option_text' => 'required|string',
             'questions.*.options.*.is_correct' => 'required|boolean',
         ]);
-
         DB::beginTransaction();
         try {
             $exam = Exam::create($validated);

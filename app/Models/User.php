@@ -168,6 +168,10 @@ class User extends Authenticatable
         return $this->belongsToMany(ClassModel::class, 'teacher_assignments')
             ->withPivot(['subject_id', 'is_homeroom']);
     }
+    public function documents()
+    {
+        return $this->hasMany(Document::class, 'teacher_id', 'id');
+    }
 
     protected function casts(): array
     {
@@ -178,7 +182,12 @@ class User extends Authenticatable
             'is_active' => 'boolean'
         ];
     }
-
-    // Accessors
-
+    public function getAveragesByYear($academicYearId)
+    {
+        return $this->gradesGiven()
+            ->where('academic_year_id', $academicYearId)
+            ->selectRaw('AVG(score) as average_score, subject_id')
+            ->groupBy('subject_id')
+            ->get();
+    }
 }

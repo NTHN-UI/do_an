@@ -1,9 +1,67 @@
 @extends('layouts.app')
 
 @section('content')
+    <style>
+        .container {
+            border-radius: 12px;
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            overflow-x: auto;
+        }
+
+        .card {
+            border-radius: 0.5rem;
+        }
+
+        .card-body {
+            position: relative;
+            overflow: visible !important;
+        }
+
+        .table {
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .table-hover tbody tr:hover {
+            background-color: rgba(0, 123, 255, 0.08);
+            transition: background-color 0.3s ease-in-out;
+        }
+
+        .table-responsive {
+            overflow: visible !important;
+        }
+
+        .table-responsive .dropdown-menu {
+            position: fixed !important;
+            z-index: 1000 !important;
+            min-width: 90px;
+        }
+
+        .table-responsive .show > .dropdown-menu {
+            display: block !important;
+        }
+
+        th {
+            font-weight: 500;
+        }
+
+        .dropdown-item:active,
+        .dropdown-item:focus {
+            background-color: #013066 !important;
+            color: white !important;
+        }
+
+        .pagination .page-item.active .page-link {
+            background-color: var(--primary-color);
+            color: var(--bs-white);
+            border-color: var(--primary-color);
+        }
+
+        </style>
     <div class="container">
-        <h2>Quản lý Phân công giảng dạy</h2>
-        <div class="d-flex justify-content-end align-items-center mb-4">
+        <h3 class="mb-3 text-primary-color">Danh sách lớp học</h3>
+        <div class="mb-3 d-flex justify-content-end align-items-center">
             <div>
                 <a href="{{ route('teachers.index') }}?assign=1" class="btn btn-primary-color">Thêm phân công
                 </a>
@@ -76,11 +134,11 @@
         </div>
 
         <!-- Danh sách phân công -->
-        <div class="card shadow-sm">
-            <div class="card-body">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body p-0">
                 <div class="table-responsive">
-                    <table class="table table-hover table-striped">
-                        <thead class="table-light">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-secondary text-center">
                         <tr>
                             <th>STT</th>
                             <th>Giáo viên</th>
@@ -88,12 +146,12 @@
                             <th>Môn học</th>
                             <th>Vai trò</th>
                             <th>Năm học</th>
-                            <th>Thao tác</th>
+                            <th class="text-end pe-4" style="width: 50px;"></th>
                         </tr>
                         </thead>
                         <tbody>
                         @foreach($assignments as $index => $assignment)
-                            <tr>
+                            <tr class="text-center">
                                 <td>{{ $index + 1 }}</td>
                                 <td>{{ $assignment->teacher->full_name }}</td>
                                 <td>{{ $assignment->class->gradeLevel->grade_number }}
@@ -104,25 +162,36 @@
                                         class="badge bg-primary-color">{{ $assignment->is_homeroom ? "Giáo viên chủ nhiệm" : "Giáo viên bộ môn" }}</span>
                                 </td>
                                 <td>{{ $assignment->academicYear->year }}</td>
-                                <td>
-                                    <div class="d-flex gap-2">
-                                        <a href="{{ route('teacher_assignments.show', $assignment) }}"
-                                           class="btn btn-sm btn-info">
-                                            <i class="fas fa-eye"></i>
-                                        </a>
-                                        <a href="{{ route('teacher_assignments.edit', $assignment) }}"
-                                           class="btn btn-sm btn-warning">
-                                            <i class="fas fa-edit"></i>
-                                        </a>
-                                        <form action="{{ route('teacher_assignments.destroy', $assignment) }}"
-                                              method="POST" class="delete-form">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="btn btn-sm btn-danger"
-                                                    onclick="return confirm('Bạn chắc chắn muốn xóa giáo viên này?')">
-                                                <i class="fas fa-trash"></i>
-                                            </button>
-                                        </form>
+                                <td class="text-end pe-4">
+                                    <div class="dropdown">
+                                        <button class="btn btn-sm" type="button" data-bs-toggle="dropdown"
+                                                aria-expanded="false">
+                                            <i class="fas fa-ellipsis-v text-muted"></i>
+                                        </button>
+                                        <ul class="dropdown-menu dropdown-menu-end shadow-sm rounded-3 border-0">
+                                            <li>
+                                                <a class="dropdown-item px-3 py-2"
+                                                   href="{{ route('teacher_assignments.show', $assignment->id) }}">
+                                                    Xem
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <a class="dropdown-item px-3 py-2"
+                                                   href="{{ route('teacher_assignments.edit', $assignment->id) }}">
+                                                    Sửa
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <form action="{{ route('teacher_assignments.destroy', $assignment->id) }}" method="POST">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" class="dropdown-item px-3 py-2 "
+                                                            onclick="return confirm('Bạn có chắc muốn xóa?')">
+                                                        Xóa
+                                                    </button>
+                                                </form>
+                                            </li>
+                                        </ul>
                                     </div>
                                 </td>
                             </tr>
@@ -135,10 +204,13 @@
                         Không có phân công nào được tìm thấy.
                     </div>
                 @endif
-
-                <div class="d-flex justify-content-center mt-3">
-                    {{ $assignments->links() }}
-                </div>
+                    @if($assignments->lastPage() > 1)
+                        <div class="card-footer border-0 bg-transparent" id="pagination-container">
+                            <nav aria-label="page navigation">
+                                {{ $assignments->links('pagination::bootstrap-5') }}
+                            </nav>
+                        </div>
+                    @endif
             </div>
         </div>
     </div>

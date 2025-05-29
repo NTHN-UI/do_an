@@ -22,9 +22,8 @@ return new class extends Migration
             $table->foreignId('school_id')->nullable()->constrained('schools')->onDelete('cascade');
             $table->enum('test_type', ['fifteen_minutes', 'one_period', 'semester', 'final']);
             $table->unsignedTinyInteger('test_number')->nullable();
-            $table->decimal('score', 5, 2)->nullable()->change();
+            $table->decimal('score', 5, 2)->nullable();
             $table->string('text_value')->nullable();
-
             $table->timestamps();
         });
     }

@@ -1,56 +1,58 @@
 @extends('layouts.app')
 
 @section('content')
-    <style>
-        .container-fluid {
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
-            padding: 20px;
-        }
-
-        .loading-spinner {
-            display: none;
-            text-align: center;
-            padding: 20px;
-        }
-    </style>
     <div class="container-fluid">
-        <div class="d-flex align-items-center mb-4">
-            <a href="{{ url()->previous() }}" class="btn btn-back me-3" title="Quay lại">
-                <i class="fas fa-arrow-left"></i>
-            </a>
-            <h4 class="mb-0">Quản lý điểm học sinh</h4>
+        <!-- Header Section -->
+        <div class="d-flex align-items-center justify-content-between mb-4 p-3 bg-white rounded shadow-sm">
+            <div class="d-flex align-items-center">
+                <a href="{{ url()->previous() }}" class="btn btn-outline-primary me-3 rounded-circle" title="Quay lại">
+                    <i class="fas fa-arrow-left"></i>
+                </a>
+                <div>
+                    <h2 class="mb-0 text-primary-color fw-bold">
+                        <i class="fas fa-chart-line me-2"></i>Quản lý điểm học sinh
+                    </h2>
+                    <small class="text-muted">Theo dõi và quản lý kết quả học tập</small>
+                </div>
+            </div>
         </div>
-        <div class="card shadow mb-4">
-            <div class="card-body">
+
+        <!-- Filter Section -->
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-header bg-primary-color text-white py-3">
+                <h5 class="mb-0 fw-bold">
+                    <i class="fas fa-filter me-2"></i>Bộ lọc dữ liệu
+                </h5>
+            </div>
+            <div class="card-body p-4">
                 <form method="GET" action="{{ route('grades.index') }}" id="filter-form">
-                    <div class="row">
-                        <div class="col-md-4">
+                    <div class="row g-4">
+                        <div class="col-lg-4 col-md-6">
                             <div class="form-group">
-                                <label for="academic_year_id">Năm học *</label>
-                                <select class="form-control" id="academic_year_id" name="academic_year_id" required>
-                                    <option value="" disabled>-- Chọn năm học --</option>
+                                <label for="academic_year_id" class="form-label fw-semibold text-primary-color">
+                                    <i class="fas fa-calendar-alt me-1"></i>Năm học *
+                                </label>
+                                <select class="form-select form-select-lg border-2" id="academic_year_id" name="academic_year_id" required>
+                                    <option value="">-- Chọn năm học --</option>
                                     @foreach($academicYears as $year)
-                                        <option
-                                            value="{{ $year->id }}" {{ $selectedAcademicYearId == $year->id ? 'selected' : '' }}>
-                                            {{ $year->year }} ({{ $year->start_date->format('d/m/Y') }}
-                                            - {{ $year->end_date->format('d/m/Y') }})
+                                        <option value="{{ $year->id }}" {{ $selectedAcademicYearId == $year->id ? 'selected' : '' }}>
+                                            {{ $year->year }} ({{ $year->start_date->format('d/m/Y') }} - {{ $year->end_date->format('d/m/Y') }})
                                         </option>
                                     @endforeach
                                 </select>
                             </div>
                         </div>
 
-                        <div class="col-md-4">
+                        <div class="col-lg-4 col-md-6">
                             <div class="form-group">
-                                <label for="class_id">Lớp học *</label>
-                                <select class="form-control" id="class_id" name="class_id" required>
-                                    <option value="" disabled>-- Chọn lớp --</option>
+                                <label for="class_id" class="form-label fw-semibold text-primary-color">
+                                    <i class="fas fa-users me-1"></i>Lớp học *
+                                </label>
+                                <select class="form-select form-select-lg border-2" id="class_id" name="class_id" required>
+                                    <option value="">-- Chọn lớp --</option>
                                     @foreach($assignedClasses as $classId => $assignments)
                                         @php $class = $assignments->first()->class; @endphp
-                                        <option
-                                            value="{{ $class->id }}" {{ $selectedClassId == $class->id ? 'selected' : '' }}>
+                                        <option value="{{ $class->id }}" {{ $selectedClassId == $class->id ? 'selected' : '' }}>
                                             {{ $class->name }}
                                         </option>
                                     @endforeach
@@ -58,14 +60,15 @@
                             </div>
                         </div>
 
-                        <div class="col-md-4">
+                        <div class="col-lg-4 col-md-12">
                             <div class="form-group">
-                                <label for="semester_id">Học kỳ *</label>
-                                <select class="form-control" id="semester_id" name="semester_id" required>
-                                    <option value="" disabled>-- Chọn học kỳ --</option>
+                                <label for="semester_id" class="form-label fw-semibold text-primary-color">
+                                    <i class="fas fa-book me-1"></i>Học kỳ *
+                                </label>
+                                <select class="form-select form-select-lg border-2" id="semester_id" name="semester_id" required>
+                                    <option value="">-- Chọn học kỳ --</option>
                                     @foreach($semesters as $semester)
-                                        <option
-                                            value="{{ $semester->id }}" {{ $selectedSemesterId == $semester->id ? 'selected' : '' }}>
+                                        <option value="{{ $semester->id }}" {{ $selectedSemesterId == $semester->id ? 'selected' : '' }}>
                                             {{ $semester->name }}
                                         </option>
                                     @endforeach
@@ -74,20 +77,19 @@
                         </div>
                     </div>
 
-
-                    <div class="d-flex justify-content-end mt-3">
+                    <div class="d-flex justify-content-end mt-4">
                         @if($selectedAcademicYearId && $selectedClassId && $selectedSemesterId)
                             <a href="{{ route('grades.exportTemplate', [
-            'academic_year_id' => $selectedAcademicYearId,
-            'class_id' => $selectedClassId,
-            'semester_id' => $selectedSemesterId
-        ]) }}" class="btn btn-success" id="btn-download">
-                                <i class="fas fa-download"></i> Tải file mẫu
+                                'academic_year_id' => $selectedAcademicYearId,
+                                'class_id' => $selectedClassId,
+                                'semester_id' => $selectedSemesterId
+                            ]) }}" class="btn btn-primary-color btn-lg px-4" id="btn-download">
+                                <i class="fas fa-download me-2"></i>Tải file mẫu
                             </a>
                         @else
-                            <button class="btn btn-success" disabled
+                            <button class="btn btn-outline-secondary btn-lg px-4" disabled
                                     title="Vui lòng chọn đầy đủ năm học, lớp và học kỳ">
-                                <i class="fas fa-download"></i> Tải file mẫu
+                                <i class="fas fa-download me-2"></i>Tải file mẫu
                             </button>
                         @endif
                     </div>
@@ -95,31 +97,45 @@
             </div>
         </div>
 
+        <!-- Grades Table Section -->
         <div id="grades-container">
             @if($selectedClassId && $selectedSemesterId !== null)
-                <div class="card shadow mb-4">
-                    <div class="card-header py-3 d-flex justify-content-between align-items-center">
-                        <h6 class="m-0 font-weight-bold text-primary">Danh sách điểm học sinh</h6>
-                        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#importModal">
-                            <i class="fas fa-upload"></i> Import điểm
+                <div class="card shadow-sm border-0">
+                    <div class="card-header bg-light py-3 d-flex justify-content-between align-items-center">
+                        <div>
+                            <h5 class="mb-0 text-primary-color fw-bold">
+                                <i class="fas fa-table me-2"></i>Bảng điểm học sinh
+                            </h5>
+                            <small class="text-muted">Dữ liệu được cập nhật theo thời gian thực</small>
+                        </div>
+                        <button type="button" class="btn btn-primary-color btn-lg px-4" data-bs-toggle="modal" data-bs-target="#importModal">
+                            <i class="fas fa-upload me-2"></i>Import điểm
                         </button>
                     </div>
-                    <div class="card-body">
-                        <div class="table-responsive">
-                            <table class="table table-bordered" id="dataTable">
-                                <thead>
+                    <div class="card-body p-0">
+                        <div class="table-responsive" style="max-height: 600px;">
+                            <table class="table table-hover table-striped mb-0" id="dataTable">
+                                <thead class="bg-primary-color text-white sticky-top">
                                 <tr>
-                                    <th rowspan="2">Mã HS</th>
-                                    <th rowspan="2">Họ và tên</th>
+                                    <th rowspan="2" class="text-center align-middle">
+                                        <i class="fas fa-id-card me-1"></i>Mã HS
+                                    </th>
+                                    <th rowspan="2" class="text-center align-middle">
+                                        <i class="fas fa-user me-1"></i>Họ và tên
+                                    </th>
                                     @foreach($subjectsTaught as $subject)
                                         @if($selectedSemesterId == 0)
-                                            <th colspan="2" class="text-center">{{ $subject->name }}</th>
+                                            <th colspan="2" class="text-center">
+                                                <i class="fas fa-book me-1"></i>{{ $subject->name }}
+                                            </th>
                                         @else
-                                            <th colspan="5" class="text-center">{{ $subject->name }}</th>
+                                            <th colspan="5" class="text-center">
+                                                <i class="fas fa-book me-1"></i>{{ $subject->name }}
+                                            </th>
                                         @endif
                                     @endforeach
-
-                                    <th rowspan="2">
+                                    <th rowspan="2" class="text-center align-middle">
+                                        <i class="fas fa-chart-bar me-1"></i>
                                         @if($selectedSemesterId == 0)
                                             Điểm TB cả năm
                                         @else
@@ -130,14 +146,14 @@
                                 <tr>
                                     @foreach($subjectsTaught as $subject)
                                         @if($selectedSemesterId == 0)
-                                            <th>HK1</th>
-                                            <th>HK2</th>
+                                            <th class="text-center">HK1</th>
+                                            <th class="text-center">HK2</th>
                                         @else
-                                            <th>15p 1</th>
-                                            <th>15p 2</th>
-                                            <th>15p 3</th>
-                                            <th>1 tiết</th>
-                                            <th>Cuối kỳ</th>
+                                            <th class="text-center">15p 1</th>
+                                            <th class="text-center">15p 2</th>
+                                            <th class="text-center">15p 3</th>
+                                            <th class="text-center">1 tiết</th>
+                                            <th class="text-center">Cuối kỳ</th>
                                         @endif
                                     @endforeach
                                 </tr>
@@ -145,8 +161,8 @@
                                 <tbody>
                                 @foreach($students as $student)
                                     <tr>
-                                        <td>{{ $student->id }}</td>
-                                        <td>{{ $student->full_name }}</td>
+                                        <td class="text-center fw-semibold">{{ $student->id }}</td>
+                                        <td class="fw-semibold text-primary-color">{{ $student->full_name }}</td>
 
                                         @foreach($subjectsTaught as $subject)
                                             @php
@@ -156,51 +172,55 @@
 
                                             @if($selectedSemesterId == 0)
                                                 <!-- Hiển thị điểm cả năm -->
-                                                <td>
+                                                <td class="text-center">
                                                     @if($isSpecialSubject)
-                                                        {{ $subjectData['semester1_text'] ?? '-' }}
+                                                        <span class="badge {{ ($subjectData['semester1_text'] ?? '-') == 'Đạt' ? 'bg-success' : 'bg-warning' }}">
+                                                                {{ $subjectData['semester1_text'] ?? '-' }}
+                                                            </span>
                                                     @else
-                                                        {{ $subjectData['semester1_avg'] ?? '-' }}
+                                                        <span class="badge bg-info">{{ $subjectData['semester1_avg'] ?? '-' }}</span>
                                                     @endif
                                                 </td>
-                                                <td>
+                                                <td class="text-center">
                                                     @if($isSpecialSubject)
-                                                        {{ $subjectData['semester2_text'] ?? '-' }}
+                                                        <span class="badge {{ ($subjectData['semester2_text'] ?? '-') == 'Đạt' ? 'bg-success' : 'bg-warning' }}">
+                                                                {{ $subjectData['semester2_text'] ?? '-' }}
+                                                            </span>
                                                     @else
-                                                        {{ $subjectData['semester2_avg'] ?? '-' }}
+                                                        <span class="badge bg-info">{{ $subjectData['semester2_avg'] ?? '-' }}</span>
                                                     @endif
                                                 </td>
                                             @else
                                                 <!-- Hiển thị điểm học kỳ -->
-                                                <td>
+                                                <td class="text-center">
                                                     @if($isSpecialSubject)
                                                         {{ $subjectData['fifteen_minutes'][0]->text_value ?? '' }}
                                                     @else
                                                         {{ $subjectData['fifteen_minutes'][0]->score ?? '' }}
                                                     @endif
                                                 </td>
-                                                <td>
+                                                <td class="text-center">
                                                     @if($isSpecialSubject)
                                                         {{ $subjectData['fifteen_minutes'][1]->text_value ?? '' }}
                                                     @else
                                                         {{ $subjectData['fifteen_minutes'][1]->score ?? '' }}
                                                     @endif
                                                 </td>
-                                                <td>
+                                                <td class="text-center">
                                                     @if($isSpecialSubject)
                                                         {{ $subjectData['fifteen_minutes'][2]->text_value ?? '' }}
                                                     @else
                                                         {{ $subjectData['fifteen_minutes'][2]->score ?? '' }}
                                                     @endif
                                                 </td>
-                                                <td>
+                                                <td class="text-center">
                                                     @if($isSpecialSubject)
                                                         {{ $subjectData['one_period']->text_value ?? '' }}
                                                     @else
                                                         {{ $subjectData['one_period']->score ?? '' }}
                                                     @endif
                                                 </td>
-                                                <td>
+                                                <td class="text-center">
                                                     @if($isSpecialSubject)
                                                         {{ $subjectData['semester']->text_value ?? '' }}
                                                     @else
@@ -211,9 +231,9 @@
                                         @endforeach
 
                                         <!-- Điểm trung bình -->
-                                        <td>
+                                        <td class="text-center fw-bold">
                                             @if($selectedSemesterId == 0)
-                                                {{ $grades[$student->id]['yearly_average'] ?? '-' }}
+                                                <span class="badge bg-primary-color fs-6">{{ $grades[$student->id]['yearly_average'] ?? '-' }}</span>
                                             @else
                                                 @php
                                                     $allSubjectsPassed = true;
@@ -247,17 +267,19 @@
                                                         }
                                                     }
 
-                                                   if (!$hasAnyGrade) {
-                                                    echo '';
-                                                } elseif ($hasSpecialSubjects) {
-                                                    // Only show Đạt/Chưa đạt for special subjects
-                                                    echo $allSubjectsPassed ? 'Đạt' : 'Chưa đạt';
-                                                } elseif ($numericCount > 0) {
-                                                    echo round($numericAverage / $numericCount, 1);
-                                                } else {
-                                                    echo '';
-                                                }
-                                                                                            @endphp
+                                                    if (!$hasAnyGrade) {
+                                                        echo '<span class="text-muted">-</span>';
+                                                    } elseif ($hasSpecialSubjects) {
+                                                        $result = $allSubjectsPassed ? 'Đạt' : 'Chưa đạt';
+                                                        $badgeClass = $allSubjectsPassed ? 'bg-success' : 'bg-danger';
+                                                        echo "<span class='badge $badgeClass fs-6'>$result</span>";
+                                                    } elseif ($numericCount > 0) {
+                                                        $avg = round($numericAverage / $numericCount, 1);
+                                                        echo "<span class='badge bg-primary-color fs-6'>$avg</span>";
+                                                    } else {
+                                                        echo '<span class="text-muted">-</span>';
+                                                    }
+                                                @endphp
                                             @endif
                                         </td>
                                     </tr>
@@ -269,29 +291,48 @@
                 </div>
             @endif
         </div>
+    </div>
 
-    <!-- Import Modal -->
+    <!-- Enhanced Import Modal -->
     <div class="modal fade" id="importModal" tabindex="-1" aria-labelledby="importModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h1 class="modal-title fs-5" id="importModalLabel">Modal title</h1>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header bg-primary-color text-white">
+                    <h5 class="modal-title fw-bold" id="importModalLabel">
+                        <i class="fas fa-upload me-2"></i>Import điểm từ file Excel
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="modal-body">
+                <div class="modal-body p-4">
+                    <div class="alert alert-info border-0" role="alert">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>Lưu ý:</strong> Chỉ chấp nhận file Excel (.xlsx, .xls) theo mẫu đã tải về từ hệ thống.
+                    </div>
+
                     <div class="form-group">
-                        <div class="custom-file">
-                            <input type="file" class="custom-file-input" id="fileInput" name="file"
+                        <label for="fileInput" class="form-label fw-semibold text-primary-color">
+                            <i class="fas fa-file-excel me-1"></i>Chọn file Excel
+                        </label>
+                        <div class="input-group">
+                            <input type="file" class="form-control form-control-lg border-2" id="fileInput" name="file"
                                    accept=".xlsx,.xls" required>
+                            <span class="input-group-text bg-light">
+                                <i class="fas fa-file-excel text-success"></i>
+                            </span>
                         </div>
-                        <small class="form-text text-muted">
-                            Chỉ chấp nhận file Excel (.xlsx, .xls) theo mẫu đã tải về
-                        </small>
+                        <div class="form-text text-muted mt-2">
+                            <i class="fas fa-exclamation-triangle me-1"></i>
+                            Đảm bảo file Excel tuân theo đúng format mẫu để tránh lỗi khi import.
+                        </div>
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
-                    <button type="button" class="btn btn-primary">Lưu</button>
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-outline-secondary px-4" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-2"></i>Hủy bỏ
+                    </button>
+                    <button type="button" class="btn btn-primary-color px-4">
+                        <i class="fas fa-check me-2"></i>Xác nhận Import
+                    </button>
                 </div>
             </div>
         </div>
@@ -307,14 +348,16 @@
             const semesterId = $('#semester_id').val();
 
             if (academicYear && classId && semesterId) {
-                $('#btn-download').prop('disabled', false).removeAttr('title');
+                $('#btn-download').removeClass('btn-outline-secondary').addClass('btn-primary-color')
+                    .prop('disabled', false).removeAttr('title');
 
                 // Cập nhật link download
                 const downloadUrl = "{{ route('grades.exportTemplate') }}" +
                     `?academic_year_id=${academicYear}&class_id=${classId}&semester_id=${semesterId}`;
                 $('#btn-download').attr('href', downloadUrl);
             } else {
-                $('#btn-download').prop('disabled', true)
+                $('#btn-download').removeClass('btn-primary-color').addClass('btn-outline-secondary')
+                    .prop('disabled', true)
                     .attr('title', 'Vui lòng chọn đầy đủ năm học, lớp và học kỳ');
             }
         }
@@ -335,8 +378,8 @@
                 var academicYearId = $(this).val();
 
                 if (!academicYearId) {
-                    $('#class_id').empty().append('<option value="" >-- Chọn lớp --</option>');
-                    $('#semester_id').empty().append('<option value="" >-- Chọn học kỳ --</option>');
+                    $('#class_id').empty().append('<option value="">-- Chọn lớp --</option>');
+                    $('#semester_id').empty().append('<option value="">-- Chọn học kỳ --</option>');
                     return;
                 }
 
@@ -345,7 +388,7 @@
                     method: 'GET',
                     data: {academic_year_id: academicYearId},
                     success: function (data) {
-                        var $classSelect = $('#class_id').empty().append('<option value="" >-- Chọn lớp --</option>');
+                        var $classSelect = $('#class_id').empty().append('<option value="">-- Chọn lớp --</option>');
 
                         if (data && data.length > 0) {
                             $(data).each(function (index, value) {
@@ -353,7 +396,6 @@
                                 $classSelect.append(html);
                             });
                         }
-
                     }
                 });
 
@@ -363,7 +405,7 @@
                     method: 'GET',
                     data: {academic_year_id: academicYearId},
                     success: function (data) {
-                        var $semesterSelect = $('#semester_id').empty().append('<option value="" >-- Chọn học kỳ --</option>');
+                        var $semesterSelect = $('#semester_id').empty().append('<option value="">-- Chọn học kỳ --</option>');
 
                         if (data && data.length > 0) {
                             $(data).each(function (index, value) {
@@ -377,20 +419,18 @@
                 });
             });
 
-            // Xử lý hiển thị tên file khi chọn (di chuyển ra ngoài sự kiện change năm học)
+            // Xử lý hiển thị tên file khi chọn
             $('#fileInput').on('change', function () {
                 let fileName = $(this).val().split('\\').pop();
-                $(this).next('.custom-file-label').addClass("selected").html(fileName);
+                if (fileName) {
+                    $(this).addClass('is-valid');
+                } else {
+                    $(this).removeClass('is-valid');
+                }
             });
 
-            //
-            // // Reset form khi modal đóng
-            // $('#importModal').on('hidden.bs.modal', function () {
-            //     $('#importForm')[0].reset();
-            //     $('#fileInput').next('.custom-file-label').removeClass("selected").html('Chọn file Excel');
-            // });
-            // Thêm vào file scripts
-            $('#importModal').on('click', '.btn-primary', function() {
+            // Xử lý import điểm
+            $('#importModal').on('click', '.btn-primary-color', function() {
                 const fileInput = $('#fileInput')[0];
                 const file = fileInput.files[0];
 
@@ -400,7 +440,7 @@
                 }
 
                 // Hiển thị loading
-                $('.loading-spinner').show();
+                $(this).html('<i class="fas fa-spinner fa-spin me-2"></i>Đang xử lý...').prop('disabled', true);
 
                 const formData = new FormData();
                 formData.append('grades_file', file);
@@ -408,8 +448,7 @@
                 formData.append('semester_id', $('#semester_id').val());
                 formData.append('academic_year_id', $('#academic_year_id').val());
                 formData.append('subject_name', '{{ $subjectsTaught->first()?->name }}');
-                formData.append('class_name', $('#class_id option:selected').text()); // Thêm tên lớp để kiểm tra
-
+                formData.append('class_name', $('#class_id option:selected').text());
                 formData.append("_token", window.csrfToken);
 
                 $.ajax({
@@ -423,17 +462,16 @@
                     },
                     success: function(response) {
                         $('#importModal').modal('hide');
-                        // Reload lại bảng điểm sau khi import thành công
-                        // $('#filter-form').submit();
+                        location.reload(); // Reload trang để hiển thị dữ liệu mới
                     },
                     error: function(xhr) {
                         alert('Lỗi khi import: ' + xhr.responseJSON.message);
                     },
                     complete: function() {
-                        $('.loading-spinner').hide();
+                        $('#importModal .btn-primary-color').html('<i class="fas fa-check me-2"></i>Xác nhận Import').prop('disabled', false);
                     }
                 });
             });
-        })
+        });
     </script>
 @endpush

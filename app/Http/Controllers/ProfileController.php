@@ -16,7 +16,7 @@ class ProfileController extends Controller
     /**
      * Display the user's profile form.
      */
-    public function show()
+    public function index()
     {
         $user = Auth::user();
         return view('profile.show', compact('user'));
@@ -78,6 +78,6 @@ class ProfileController extends Controller
             }
         }
 
-        return redirect()->route('profile.show')
+        return redirect()->route('profile.index')
             ->with('success', 'Cập nhật hồ sơ thành công!');
     }}

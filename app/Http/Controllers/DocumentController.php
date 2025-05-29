@@ -23,7 +23,7 @@ class DocumentController extends Controller
         $teacherId = $request->input('teacher_id');
 
         // Lấy tất cả tài liệu thuộc trường hiện tại
-        $documents = Document::whereHas('teacher', function($query) {
+        $documents = Document::whereHas('teacher', function ($query) {
             $query->where('school_id', Auth::user()->school_id);
         });
 
@@ -41,8 +41,7 @@ class DocumentController extends Controller
                 TeacherAssignment::where('teacher_id', Auth::id())
                     ->pluck('subject_id')
             )->get();
-        }
-        // HỌC SINH: chỉ xem tài liệu của giáo viên dạy lớp mình
+        } // HỌC SINH: chỉ xem tài liệu của giáo viên dạy lớp mình
         elseif (Auth::user()->isStudent()) {
             // Lấy danh sách lớp học của học sinh
             $studentClassIds = Auth::user()->studentClasses()->pluck('class_id');
@@ -58,21 +57,20 @@ class DocumentController extends Controller
             $teachers = $teachers->whereIn('id', $allowedTeacherIds);
 
             $subjects = Subject::all();
-        }
-        // ADMIN: xem tất cả tài liệu trong trường
+        } // ADMIN: xem tất cả tài liệu trong trường
         else {
             $subjects = Subject::all();
         }
 
         // Áp dụng filter chung
         $documents = $documents->with(['subject', 'teacher'])
-            ->when($search, function($query, $search) {
+            ->when($search, function ($query, $search) {
                 return $query->where('title', 'like', "%$search%");
             })
-            ->when($subjectId, function($query, $subjectId) {
+            ->when($subjectId, function ($query, $subjectId) {
                 return $query->where('subject_id', $subjectId);
             })
-            ->when($teacherId, function($query, $teacherId) {
+            ->when($teacherId, function ($query, $teacherId) {
                 return $query->where('teacher_id', $teacherId);
             })
             ->orderBy('created_at', 'desc')
@@ -134,11 +132,13 @@ class DocumentController extends Controller
             'description' => $request->description,
             'file_path' => $filePath,
             'subject_id' => $request->subject_id,
+            'school_id' => Auth::user()->school_id,
             'teacher_id' => Auth::id()
         ]);
 
         return redirect()->route('documents.index')->with('success', 'Tài liệu đã được tải lên thành công!');
     }
+
     /**
      * Display the specified resource.
      */
@@ -206,6 +206,7 @@ class DocumentController extends Controller
 
         return redirect()->route('documents.index')->with('success', 'Tài liệu đã được xóa!');
     }
+
     public function download(Document $document)
     {
         return Storage::download($document->file_path, $document->title);

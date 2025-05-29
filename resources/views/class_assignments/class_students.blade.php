@@ -8,8 +8,8 @@
 
         <div class="card">
             <div class="card-header">
-                <button id="openMoveSelectedModal" class="btn btn-success" disabled data-bs-toggle="modal"
-                        data-bs-target="#moveSelectedModal">
+                <button id="advanceClassButton" class="btn btn-success" disabled data-bs-toggle="modal"
+                        data-bs-target="#advanceClassModal">
                     <i class="fas fa-level-up-alt me-1"></i> Chuyển lớp (lên khối)
                 </button>
             </div>
@@ -51,7 +51,7 @@
 
                                     <button class="btn btn-primary btn-sm"
                                             data-bs-toggle="modal"
-                                            data-bs-target="#moveStudentModal"
+                                            data-bs-target="#changeClassStudentModal"
                                             data-student-id="{{ $student->id }}"
                                             data-student-name="{{ $student->full_name }}">
                                         <i class="fas fa-exchange-alt me-1"></i>Chuyển lớp
@@ -74,7 +74,7 @@
         </div>
     </div>
 
-    <div class="modal fade" id="moveStudentModal" tabindex="-1" aria-labelledby="moveStudentModalLabel"
+    <div class="modal fade" id="changeClassStudentModal" tabindex="-1" aria-labelledby="changeClassStudentModalLabel"
          aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -84,7 +84,7 @@
                     <input type="hidden" name="current_class_id" value="{{ $class->id }}">
 
                     <div class="modal-header">
-                        <h5 class="modal-title" id="moveStudentModalLabel">Chuyển học sinh sang lớp khác</h5>
+                        <h5 class="modal-title" id="changeClassStudentModalLabel">Chuyển học sinh sang lớp khác</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
@@ -113,24 +113,24 @@
         </div>
     </div>
 
-    <div class="modal fade" id="moveSelectedModal" tabindex="-1" aria-labelledby="moveSelectedModalLabel"
+    <div class="modal fade" id="advanceClassModal" tabindex="-1" aria-labelledby="advanceClassModalLabel"
          aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
-                <form id="moveSelectedForm" method="POST">
+                <form id="advanceClassForm" method="POST" action="{{ route('class_assignments.advance_class') }}">
                     @csrf
                     <input type="hidden" name="current_class_id" value="{{ $class->id }}">
                     <input type="hidden" name="selected_student_ids" id="selected_student_ids">
 
                     <div class="modal-header">
-                        <h5 class="modal-title" id="moveSelectedModalLabel">Chuyển lớp các học sinh đã chọn</h5>
+                        <h5 class="modal-title" id="advanceClassModalLabel">Chuyển lớp các học sinh đã chọn</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                     </div>
 
                     <div class="modal-body">
                         <div class="mb-3">
-                            <label for="target_academic_year_id" class="form-label">Năm học mới</label>
-                            <input class="form-control" id="target_academic_year_id" name="target_academic_year_id"
+                            <label for="target_academic_year" class="form-label">Năm học mới</label>
+                            <input class="form-control" id="target_academic_year" name="target_academic_year"
                                    value="{{ $nextYear->year ?? "Chưa có" }}" readonly>
                         </div>
 
@@ -162,14 +162,16 @@
 @push('scripts')
     <script>
         $(document).ready(function () {
-            const moveStudentModal = $('#moveSelectedModal');
-            const moveSelectedStudentsButton = $("#openMoveSelectedModal");
+            const changeClassStudentModal = $('#changeClassStudentModal');
+
+            const advanceClassButton = $("#advanceClassButton");
+
             const checkedAllElement = $("#checkedAll");
             const checkboxes = $('.student-checkbox');
 
             function updateBulkMoveButton() {
                 const checkedCount = checkboxes.filter(':checked').length;
-                moveSelectedStudentsButton.prop('disabled', checkedCount === 0);
+                advanceClassButton.prop('disabled', checkedCount === 0);
             }
 
             checkedAllElement.on('click', function () {
@@ -181,7 +183,7 @@
 
             checkboxes.on('change', updateBulkMoveButton);
 
-            moveSelectedStudentsButton.on('click', function () {
+            advanceClassButton.on('click', function () {
                 let selectedIds = [];
                 checkboxes.each(function () {
                     if ($(this).prop('checked'))
@@ -192,24 +194,26 @@
 
                 if (selectedIds.length === 0) {
                     alert('Vui lòng chọn ít nhất một học sinh để chuyển lớp.');
-                    $('#moveSelectedModal').modal('hide');
+                    $('#advanceClassModal').modal('hide');
                     return;
                 }
 
                 $('#selected_student_ids').val(selectedIds.join(','));
             });
 
-            moveStudentModal.on('show.bs.modal', function (event) {
-                alert("Hello");
+            changeClassStudentModal.on('show.bs.modal', function (event) {
                 const button = $(event.relatedTarget); // Nút đã click
                 const form = $(this).find("form");
 
                 const studentId = button.data('student-id');
                 const studentName = button.data('student-name');
-                form.attr('action', `/class_assignments/move_student/${studentId}`);
+                form.attr('action', `/class_assignments/change_class/${studentId}`);
                 $('#student_id').val(studentId);
                 $('#student_name_display').text(studentName);
             });
+
+            $("#advanceClassForm").on("submit", function(event){
+            })
         })
     </script>
 @endpush

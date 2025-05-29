@@ -234,7 +234,7 @@
                                 <i class="fas fa-star me-1"></i> Quản lý đề thi
                             </a>
                             <ul class="dropdown-menu">
-                                    <li><a class="dropdown-item" href="{{ route('grades.homeroom') }}">
+                                    <li><a class="dropdown-item" href="{{ route('exams.index') }}">
                                             <i class="fas fa-users me-2"></i> Đề thi
                                         </a></li>
                             </ul>
@@ -278,7 +278,7 @@
                     </a>
                     <ul class="dropdown-menu dropdown-menu-end">
                         <li>
-                            <a class="dropdown-item" href="{{ route('profile.show') }}">
+                            <a class="dropdown-item" href="{{ route('profile.index') }}">
                                 <i class="fas fa-user me-2"></i> Hồ sơ cá nhân
                             </a>
                         </li>

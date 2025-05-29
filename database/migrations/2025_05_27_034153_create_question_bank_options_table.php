@@ -11,11 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-
-        Schema::create('questions', function (Blueprint $table) {
+        Schema::create('question_bank_options', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('exam_id')->constrained('exams');
-            $table->text('content'); // nội dung câu hỏi
+            $table->foreignId('question_bank_id')->constrained('question_banks')->onDelete('cascade');
+            $table->text('content');
+            $table->boolean('is_correct')->default(false);
+            $table->integer('order')->default(0);
             $table->timestamps();
         });
     }
@@ -25,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('questions');
+        Schema::dropIfExists('question_bank_options');
     }
 };

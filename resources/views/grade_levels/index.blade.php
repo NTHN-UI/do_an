@@ -1,29 +1,76 @@
 @extends('layouts.app')
 
 @section('content')
+    <style>
+        .container {
+            border-radius: 12px;
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            overflow-x: auto;
+        }
+
+        .card {
+            border-radius: 0.5rem;
+        }
+
+        .card-body {
+            position: relative;
+            overflow: visible !important;
+        }
+
+        .table {
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .table-hover tbody tr:hover {
+            background-color: rgba(0, 123, 255, 0.08);
+            transition: background-color 0.3s ease-in-out;
+        }
+
+        .table-responsive {
+            overflow: visible !important;
+        }
+
+        .table-responsive .dropdown-menu {
+            position: fixed !important;
+            z-index: 1000 !important;
+            min-width: 90px;
+        }
+
+        .table-responsive .show > .dropdown-menu {
+            display: block !important;
+        }
+
+        th {
+            font-weight: 500;
+        }
+
+        .dropdown-item:active,
+        .dropdown-item:focus {
+            background-color: #013066 !important;
+            color: white !important;
+        }
+    </style>
     <div class="container">
-        <div class="row justify-content-center">
-            <h3 class="mb-0">Danh Sách Khối Học</h3>
-            <div class="col-md-12">
-                <div class="card">
-
-                    <div class="card-body">
-
-                        <div class="table-responsive">
-                            <table class="table table-bordered table-striped table-hover">
-                                <thead class="thead-dark">
+        <h3 class="mb-3 text-primary-color">Danh sách lớp học</h3>
+        <div class="card border-0 shadow-sm">
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-secondary text-center">
                                 <tr>
                                     <th >ID</th>
                                     <th >Khối</th>
                                     <th>Trường</th>
                                     <th >Địa chỉ</th>
                                     <th >Số lớp</th>
-                                    <th >Thao tác</th>
+                                    <th class="text-end pe-4" style="width: 50px;"></th>
                                 </tr>
                                 </thead>
                                 <tbody>
                                 @forelse ($gradeLevels as $gradeLevel)
-                                    <tr>
+                                    <tr class="text-center">
                                         <td>{{ $gradeLevel->id }}</td>
                                         <td>
                                             <span class="badge text-dark p-2">
@@ -37,13 +84,20 @@
                                                 {{ $gradeLevel->classes_count ?? $gradeLevel->classes->count() }}
                                             </span>
                                         </td>
-                                        <td>
-                                            <div class="d-flex justify-content-around">
-                                                <a href="{{ route('grade_levels.show', $gradeLevel->id) }}"
-                                                   class="btn btn-sm btn-info" title="Xem chi tiết">
-                                                    Xem
-                                                </a>
-
+                                        <td class="text-end pe-4">
+                                            <div class="dropdown">
+                                                <button class="btn btn-sm" type="button" data-bs-toggle="dropdown"
+                                                        aria-expanded="false">
+                                                    <i class="fas fa-ellipsis-v text-muted"></i>
+                                                </button>
+                                                <ul class="dropdown-menu dropdown-menu-end shadow-sm rounded-3 border-0">
+                                                    <li>
+                                                        <a class="dropdown-item px-3 py-2"
+                                                           href="{{ route('grade_levels.show', $gradeLevel->id) }}">
+                                                            Xem
+                                                        </a>
+                                                    </li>
+                                                </ul>
                                             </div>
                                         </td>
                                     </tr>

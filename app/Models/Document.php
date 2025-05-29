@@ -15,6 +15,7 @@ class Document extends Model
         'file_path',
         'subject_id',
         'teacher_id',
+        'school_id'
     ];
     // Quan hệ với môn học
     public function subject()

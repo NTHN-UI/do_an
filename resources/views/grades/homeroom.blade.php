@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
-    <div class="container-fluid">
+    <div class="container">
         <div class="d-flex align-items-center mb-4">
             <h4 class="mb-0">Quản lý điểm lớp chủ nhiệm</h4>
         </div>
@@ -10,7 +10,7 @@
             <div class="card-body">
                 <form method="GET" action="{{ route('grades.homeroom') }}">
                     <div class="row">
-                        <div class="col-md-6">
+                        <div class="col-md-4">
                             <div class="form-group">
                                 <label for="academic_year_id">Năm học</label>
                                 <select class="form-control" id="academic_year_id" name="academic_year_id">
@@ -24,7 +24,7 @@
                             </div>
                         </div>
 
-                        <div class="col-md-6">
+                        <div class="col-md-4">
                             <div class="form-group">
                                 <label for="class_id">Lớp chủ nhiệm</label>
                                 <select class="form-control" id="class_id" name="class_id">
@@ -37,12 +37,7 @@
                                 </select>
                             </div>
                         </div>
-                    </div>
 
-                    <div class="d-flex justify-content-end mt-3">
-                        <button type="submit" class="btn btn-primary">
-                            <i class="fas fa-filter"></i> Lọc dữ liệu
-                        </button>
                     </div>
                 </form>
             </div>
@@ -51,7 +46,7 @@
         @if($students->isNotEmpty())
             <div class="card shadow mb-4">
                 <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">
+                    <h6 class="m-0 font-weight-bold text-primary-color">
                         Bảng điểm lớp {{ $class->name }} - Năm học {{ $homeroomClasses->firstWhere('academic_year_id', $selectedAcademicYearId)->academicYear->year }}
                     </h6>
                 </div>

@@ -265,7 +265,7 @@ class ClassAssignmentController extends Controller
     }
 
     // Chuyển học sinh sang lớp khác
-    public function moveStudent(Request $request, string $id)
+    public function changeClassStudent(Request $request, string $id)
     {
         $student = User::find($id);
         if (auth()->user()->role !== 'school_admin' && $student->school_id !== auth()->user()->school_id) {
@@ -302,6 +302,37 @@ class ClassAssignmentController extends Controller
             DB::rollBack();
             Log::error('Move student error: ' . $e->getMessage());
             return back()->with('error', 'Đã xảy ra lỗi khi chuyển lớp: ' . $e->getMessage());
+        }
+    }
+
+    public function advanceClassStudents(Request $request)
+    {
+        try {
+            $currentClassId = $request->input('current_class_id');
+            $targetClassId = $request->input('target_class_id');
+            $targetYear = $request->input('target_academic_year_id');
+            $selectedStudents = $request->input('selected_student_ids');
+            $selectedStudentsId = [explode(',', $selectedStudents)];
+
+            $targetYearId = AcademicYear::where('year', $targetYear)
+                ->where('school_id', auth()->user()->school_id)
+                ->value('id');
+
+            foreach($selectedStudentsId as $id){
+                $student = User::find($id);
+                Log::info("Du lieu:", [$student]);
+                Log::info("Diem trung binh cua: " . $student->getAveragesByYear($targetYearId));
+            }
+
+            // Những học sinh chưa đủ điều kiện lên lớp
+
+
+            // Những học sinh đủ điều kiện
+
+            return redirect()->back();
+        } catch (\Exception $ex) {
+            Log::error("Error in ClassAssignmentController@advanceClassStudents: " . $ex->getMessage());
+            return response()->json("Lỗi khi lên lớp chp học sinh: " . $ex->getMessage(), 500);
         }
     }
 }

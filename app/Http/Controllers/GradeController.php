@@ -395,13 +395,6 @@ class GradeController extends Controller
         $schoolId = Auth::user()->school_id;
 
         try {
-            // Kiểm tra giáo viên có được phân công lớp này không
-            $assignment = TeacherAssignment::where('teacher_id', $teacherId)
-                ->where('class_id', $request->class_id)
-                ->where('academic_year_id', $request->academic_year_id)
-                ->where('school_id', $schoolId)
-                ->firstOrFail();
-
             // Tìm môn học theo tên
             $subject = Subject::where('name', $request->subject_name)
                 ->where('school_id', $schoolId)
@@ -420,6 +413,7 @@ class GradeController extends Controller
 
             return response()->json(['success' => true, 'message' => 'Nhập điểm thành công!']);
         } catch (\Exception $e) {
+            Log::error("Error in GradeController@import: " . $e->getMessage());
             return response()->json([
                 'success' => false,
                 'message' => 'Lỗi khi nhập điểm: ' . $e->getMessage()
