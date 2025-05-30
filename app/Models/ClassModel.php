@@ -57,5 +57,9 @@ class ClassModel extends Model
     {
         return $this->hasMany(TeacherAssignment::class, 'class_id');
     }
+    public function assignments()
+    {
+        return $this->morphMany(ExamAssignment::class, 'assignable');
+    }
 
 }

@@ -1,10 +1,12 @@
 <?php
 
 use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\ExamAssignmentController;
 use App\Http\Controllers\ExamController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\QuestionBankController;
+use App\Http\Controllers\StudentExamController;
 use App\Http\Middleware\AdminMiddleware;
 use App\Http\Controllers\AcademicYearController;
 use App\Http\Controllers\ClassAssignmentController;
@@ -64,6 +66,7 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/export-template', 'exportTemplate')->name('export.template');
             Route::get('/export', 'export')->name('export');
             Route::post('/get-by-grades', 'getStudentsByGrade')->name('getStudentsByGrade');
+
         });
 
         Route::get('/teachers/{teacher}/assignments/create', [TeacherAssignmentController::class, 'create'])
@@ -138,7 +141,7 @@ Route::middleware(['auth'])->group(function () {
             Route::post('/{exam}/publish', [ExamController::class, 'publish'])
                 ->name('exams.publish');
 
-            // Xem trước đề thi
+
 
             // Xuất đề thi ra Word
             Route::get('/{exam}/export-word', [ExamController::class, 'exportWord'])
@@ -148,7 +151,28 @@ Route::middleware(['auth'])->group(function () {
         });
         Route::get('/get-semesters-by-year', [ExamController::class, 'getSemestersByYear']);
 
+        Route::prefix('exam_assignments')->name('exam_assignments.')->group(function () {
+            // Tạo form giao đề
+            Route::get('/', [ExamAssignmentController::class, 'index'])
+                ->name('index');
+
+            Route::get('/create/{exam}', [ExamAssignmentController::class, 'create'])
+                ->name('create');
+
+            // Lưu thông tin giao đề
+            Route::post('/store/{exam}', [ExamAssignmentController::class, 'store'])
+                ->name('store');
+
+        });
     });
+    Route::middleware(['auth'])->prefix('student_exams')->name('student_exams.')->group(function() {
+        Route::get('/assigned-exams', [StudentExamController::class, 'assignedExams'])->name('assigned_exams');
+        Route::get('/', [StudentExamController::class, 'index'])->name('index');
+        Route::get('/{assignment}', [StudentExamController::class, 'show'])->name('show');
+        Route::post('/{assignment}/submit', [StudentExamController::class, 'submit'])->name('submit');
+        Route::get('/{assignment}/result', [StudentExamController::class, 'result'])->name('result');
+    });
+
 
 
 

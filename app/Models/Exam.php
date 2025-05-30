@@ -62,6 +62,14 @@ class Exam extends Model
     {
         return $this->duration_override ?? $this->examType->duration;
     }
+    public function getDefaultDuration()
+    {
+        return match($this->test_type) {
+            'fifteen_minutes' => 15,  // 15 phút cho đề 15 phút
+            'one_period' => 45,       // 45 phút cho đề 1 tiết
+            default => 60,             // Mặc định 60 phút
+        };
+    }
 
     public function scopePublished($query)
     {

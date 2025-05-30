@@ -237,7 +237,18 @@
                                     <li><a class="dropdown-item" href="{{ route('exams.index') }}">
                                             <i class="fas fa-users me-2"></i> Đề thi
                                         </a></li>
+                                <li>
+                                    <a class="dropdown-item" href="{{ route('exam_assignments.index') }}">
+                                        <i class="fas fa-tasks me-2"></i> Đề thi đã giao
+                                    </a>
+                                </li>
                             </ul>
+                        </li>
+                    @elseif(Auth::user()->isStudent())
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ route('student_exams.assigned_exams') }}">
+                                <i class="fas fa-list-check me-1"></i> Nhận đề
+                            </a>
                         </li>
                     @endif
             @endif

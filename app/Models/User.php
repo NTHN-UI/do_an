@@ -172,7 +172,15 @@ class User extends Authenticatable
     {
         return $this->hasMany(Document::class, 'teacher_id', 'id');
     }
+    public function examAssignments()
+    {
+        return $this->hasMany(ExamAssignment::class, 'student_id');
+    }
 
+    public function submissions()
+    {
+        return $this->hasMany(ExamSubmission::class, 'student_id');
+    }
     protected function casts(): array
     {
         return [

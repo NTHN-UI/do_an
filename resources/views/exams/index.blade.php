@@ -74,6 +74,11 @@
                                         <a href="{{ route('exams.edit', $exam->id) }}" class="btn btn-primary" title="Sửa">
                                             <i class="fas fa-edit"></i>
                                         </a>
+                                        @if($exam->is_published)
+                                            <a href="{{ route('exam_assignments.create', ['exam' => $exam->id]) }}" class="btn btn-success">
+                                                <i class="fas fa-paper-plane"></i> Giao đề cho lớp
+                                            </a>
+                                        @endif
                                         <form action="{{ route('exams.destroy', $exam->id) }}" method="POST" onsubmit="return confirm('Bạn chắc chắn muốn xóa đề thi này?');">
                                             @csrf
                                             @method('DELETE')

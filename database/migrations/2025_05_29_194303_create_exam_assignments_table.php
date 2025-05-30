@@ -13,8 +13,15 @@ return new class extends Migration
     {
         Schema::create('exam_assignments', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('exam_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('class_id')->constrained()->cascadeOnDelete();
+            $table->dateTime('start_time');
+            $table->dateTime('end_time');
+            $table->boolean('shuffle_questions')->default(false);
+            $table->boolean('shuffle_options')->default(false);
             $table->timestamps();
         });
+
     }
 
     /**
