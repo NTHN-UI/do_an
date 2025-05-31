@@ -1,18 +1,9 @@
 @extends('layouts.app')
 
 @section('content')
-    <style>
-        .container {
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
-            padding: 20px;
-            overflow-x: auto;
-        }
-    </style>
-    <div class="container">
+    <div class="container rounded-3 shadow p-4">
         <div class="d-flex align-items-center mb-4">
-            <a href="{{ route('classes.index') }}" class="btn btn-back me-3 text-primary-color"  title="Quay lại">
+            <a href="{{ url()->previous() }}" class="btn text-primary-color btn-sm me-3" title="Quay lại">
                 <i class="fas fa-arrow-left"></i>
             </a>
             <h4 class="mb-0 text-primary-color">Thêm mới lớp học</h4>

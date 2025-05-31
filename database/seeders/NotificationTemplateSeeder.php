@@ -33,7 +33,7 @@ Trân trọng,
 {GIAO_VIEN} - Giáo viên chủ nhiệm lớp {LOP}",
                 'variables' => json_encode(['{TEN_HOC_SINH}', '{LOP}', '{GIAO_VIEN}', '{THANG}']),
                 'school_id' => 1,
-                'is_active' => true
+                'is_active' => truexam
             ],
             [
                 'name' => 'Thông báo họp phụ huynh',

@@ -23,8 +23,7 @@ class GradesImport implements ToCollection, WithCalculatedFormulas // Đã bỏ 
     protected $currentSubject;
 
     protected $importedStudentIds = [];
-    protected $headerRowIndex = 0; // Để xác định dòng tiêu đề dữ liệu học sinh
-
+    protected $headerRowIndex = 0;
     public function __construct($classId, $semesterId, $academicYearId, $teacherId, $schoolId, $currentSubject = null)
     {
         $this->classId = $classId;

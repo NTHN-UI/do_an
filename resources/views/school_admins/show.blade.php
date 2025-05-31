@@ -22,7 +22,7 @@
 
     <div class="container">
         <div class="d-flex align-items-center mb-4">
-            <a href="{{ url()->previous() }}" class="btn btn-primary-color btn-sm me-3"title="Quay lại">
+            <a href="{{ url()->previous() }}" class="btn btn-primary-color btn-sm me-3" title="Quay lại">
                 <i class="fas fa-arrow-left"></i>
             </a>
             <h4 class="mb-0 text-primary-color">Thông tin Admin Trường</h4>

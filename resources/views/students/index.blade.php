@@ -117,7 +117,7 @@
 
             <div>
                 <!-- Import Button -->
-                <button class="btn btn-success me-2 action-btn" onclick="$('#real-import-btn').click()"
+                <button class="btn btn-primary-color me-2 action-btn" onclick="$('#real-import-btn').click()"
                         {{ !$academicYearId ? 'disabled' : '' }}
                         title="{{ !$academicYearId ? 'Vui lòng chọn năm học trước' : 'Import học sinh' }}">
                     <i class="fas fa-file-import me-1"></i> Import

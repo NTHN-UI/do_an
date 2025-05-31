@@ -1,38 +1,36 @@
 @extends('layouts.app')
 
 @section('content')
-    <div class="container">
-        <h2>Thông tin năm học</h2>
+    <div class="container rounded-3 shadow p-4">
+        <div class="d-flex align-items-center mb-4">
+            <a href="{{ url()->previous() }}" class="btn text-primary-color btn-sm me-3" title="Quay lại">
+                <i class="fas fa-arrow-left"></i>
+            </a>
+            <h4 class="mb-0 text-primary-color">Xem thông tin năm học</h4>
+        </div>
+        <div class="card-body">
+            <div class="row mb-4">
+                <div class="col-md-12">
+                    <dl class="row">
+                        <dt class="col-sm-4">ID:</dt>
+                        <dd class="col-sm-8">{{ $academicYear->id }}</dd>
 
-        <div class="card">
-            <div class="card-body">
-                <table class="table">
-                    <tr>
-                        <th>ID:</th>
-                        <td>{{ $academicYear->id }}</td>
-                    </tr>
-                    <tr>
-                        <th>Năm học:</th>
-                        <td>{{ $academicYear->year }}</td>
-                    </tr>
-                    <tr>
-                        <th>Ngày bắt đầu:</th>
-                        <td>{{ $academicYear->start_date->format('d/m/Y') }}</td>
-                    </tr>
-                    <tr>
-                        <th>Ngày kết thúc:</th>
-                        <td>{{ $academicYear->end_date->format('d/m/Y') }}</td>
-                    </tr>
-                </table>
+                        <dt class="col-sm-4">Năm học:</dt>
+                        <dd class="col-sm-8">{{ $academicYear->year }}</dd>
 
-                <div class="mt-3">
-                    <a href="{{ route('academic_years.edit', $academicYear->id) }}" class="btn btn-primary">
-                        <i class="fas fa-edit"></i> Sửa
-                    </a>
-                    <a href="{{ route('academic_years.index') }}" class="btn btn-secondary">
-                        <i class="fas fa-arrow-left"></i> Quay lại
-                    </a>
+                        <dt class="col-sm-4">Ngày bắt đầu:</dt>
+                        <dd class="col-sm-8">{{ $academicYear->start_date->format('d/m/Y') }}</dd>
+
+                        <dt class="col-sm-4">Ngày kết thúc:</dt>
+                        <dd class="col-sm-8">{{ $academicYear->end_date->format('d/m/Y') }}</dd>
+                    </dl>
                 </div>
+            </div>
+            <div class="mt-3 d-flex justify-content-end">
+
+                <a href="{{ route('academic_years.index') }}" class="btn btn-primary-color me-2">
+                    Đóng
+                </a>
             </div>
         </div>
     </div>

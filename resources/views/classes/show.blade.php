@@ -1,25 +1,16 @@
 @extends('layouts.app')
 
 @section('content')
-    <style>
-        .container {
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
-            padding: 20px;
-            overflow-x: auto;
-        }
-    </style>
-    <div class="container">
+    <div class="container rounded-3 shadow p-4">
         <div class="d-flex align-items-center mb-4">
-            <a href="{{ route('classes.index') }}" class="btn btn-primary-color btn-back me-3"  title="Quay lại">
+            <a href="{{ url()->previous() }}" class="btn text-primary-color btn-sm me-3" title="Quay lại">
                 <i class="fas fa-arrow-left"></i>
             </a>
             <h4 class="mb-0 text-primary-color">Xem thông tin lớp học</h4>
         </div>
         <div class="card-body">
             <div class="row mb-4">
-                <div class="col-md-6">
+                <div class="col-md-12">
                     <dl class="row">
                         <dt class="col-sm-4">Tên lớp:</dt>
                         <dd class="col-sm-8">{{ $class->name }}</dd>
@@ -29,10 +20,7 @@
 
                         <dt class="col-sm-4">Khối:</dt>
                         <dd class="col-sm-8">Khối {{ $class->gradeLevel->grade_number }}</dd>
-                    </dl>
-                </div>
-                <div class="col-md-6">
-                    <dl class="row">
+
                         <dt class="col-sm-4">Năm học:</dt>
                         <dd class="col-sm-8">{{ $class->academicYear->year }}</dd>
 

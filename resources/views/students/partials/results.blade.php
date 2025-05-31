@@ -7,7 +7,7 @@
         <td>{{ $student->school->name ?? 'N/A' }}</td>
         <td class="text-center">
             <span
-                class="badge rounded-pill {{ $student->is_active ? 'bg-success' : 'bg-secondary' }}">
+                class="badge rounded-pill {{ $student->is_active ? 'bg-primary-color' : 'bg-primary-color' }}">
                 {{ $student->is_active ? 'Hoạt động' : 'Ngừng' }}
             </span>
         </td>

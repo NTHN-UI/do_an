@@ -2,50 +2,11 @@
 
 @section('content')
     <style>
-        .container {
-            border-radius: 12px;
-            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
-            padding: 20px;
-            overflow-x: auto;
-        }
-
-        .card {
-            border-radius: 0.5rem;
-        }
-
-        .card-body {
-            position: relative;
-            overflow: visible !important;
-        }
-
-        .table {
-            border-radius: 10px;
-            overflow: hidden;
-        }
-
-        .table-hover tbody tr:hover {
-            background-color: rgba(0, 123, 255, 0.08);
-            transition: background-color 0.3s ease-in-out;
-        }
-
-        .table-responsive {
-            overflow: visible !important;
-        }
-
         .table-responsive .dropdown-menu {
             position: fixed !important;
             z-index: 1000 !important;
             min-width: 90px;
         }
-
-        .table-responsive .show > .dropdown-menu {
-            display: block !important;
-        }
-
-        th {
-            font-weight: 500;
-        }
-
         .dropdown-item:active,
         .dropdown-item:focus {
             background-color: #013066 !important;
@@ -53,10 +14,10 @@
         }
     </style>
 
-    <div class="container">
+    <div class="container rounded-3 shadow p-4">
         <h3 class="mb-3 text-primary-color">Danh sách lớp học</h3>
         <div class="mb-3 d-flex justify-content-end align-items-center">
-            <form method="GET" action="{{ route('classes.index') }}">
+            <form method="GET" action="{{ route('classes.index') }}" class="me-2">
                 <div class="input-group">
                     <select name="academic_year_id" class="form-select" onchange="this.form.submit()">
                         <option value="">-- Chọn năm học --</option>
@@ -66,17 +27,16 @@
                             </option>
                         @endforeach
                     </select>
-                    <a href="{{ route('classes.create') }}" class="btn btn-primary-color">
-                        Thêm mới
-                    </a>
                 </div>
             </form>
+            <a href="{{ route('classes.create') }}" class="btn btn-primary-color">
+                Thêm mới
+            </a>
         </div>
-
-        <div class="card border-0 shadow-sm">
+        <div class="card border-0 shadow-sm rounded-2">
             <div class="card-body p-0">
                 <div class="table-responsive">
-                    <table class="table table-hover mb-0">
+                    <table class="table table-hover mb-0 rounded-3 overflow-hidden">
                         <thead class="table-secondary text-center">
                         <tr>
                             <th>ID</th>
@@ -128,7 +88,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="6" class="text-center">Không có dữ liệu</td>
+                                <td colspan="5" class="text-center">Không có dữ liệu</td>
                             </tr>
                         @endforelse
                         </tbody>

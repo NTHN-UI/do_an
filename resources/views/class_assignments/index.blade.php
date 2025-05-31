@@ -5,7 +5,7 @@
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h3>Quản lý phân lớp học sinh</h3>
             <div>
-                <a href="{{ route('class_assignments.auto_assign') }}" class="btn btn-primary">
+                <a href="{{ route('class_assignments.auto_assign') }}" class="btn btn-primary-color">
                     <i class="fas fa-magic me-2"></i>Phân công tự động
                 </a>
             </div>
@@ -61,13 +61,13 @@
                                     @endif
                                 </td>
                                 <td>
-                                        <span class="badge bg-primary rounded-pill">
+                                        <span class="badge bg-primary-color rounded-pill">
                                             {{ $class->students_count ?: '0' }}
                                         </span>
                                 </td>
                                 <td>
                                     <a href="{{ route('class_assignments.show', ['class' => $class, 'academic_year_id' => $selectedAcademicYear]) }}"
-                                       class="btn btn-sm btn-outline-primary">
+                                       class="btn btn-sm btn-primary-color">
                                         Xem học sinh
                                     </a>
                                 </td>
