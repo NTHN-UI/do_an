@@ -87,7 +87,13 @@ class User extends Authenticatable
     {
         return $this->belongsTo(School::class);
     }
-
+// User.php
+    public function academicYears()
+    {
+        return $this->belongsToMany(AcademicYear::class, 'student_classes', 'user_id', 'academic_year_id')
+            ->distinct()
+            ->orderBy('start_date', 'desc');
+    }
     public function students()
     {
         return $this->belongsToMany(User::class, 'student_classes', 'class_id', 'user_id')
@@ -102,7 +108,7 @@ class User extends Authenticatable
     {
         return $this->belongsToMany(ClassModel::class, 'student_classes', 'user_id', 'class_id')
             ->withPivot('academic_year_id')
-            ->with('gradeLevel');
+            ->withTimestamps();
     }
     public function assignments()
     {
@@ -197,5 +203,11 @@ class User extends Authenticatable
             ->selectRaw('AVG(score) as average_score, subject_id')
             ->groupBy('subject_id')
             ->get();
+    }
+    public function getClassForYear($academicYearId)
+    {
+        return $this->studentClasses()
+            ->wherePivot('academic_year_id', $academicYearId)
+            ->first();
     }
 }

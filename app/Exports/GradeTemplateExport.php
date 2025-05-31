@@ -130,43 +130,24 @@ class GradeTemplateSubjectSheet implements FromCollection, WithHeadings, WithTit
     public function headings(): array
     {
         $isTextSubject = in_array($this->subject->name, $this->textBasedSubjects);
-        $subjectTypeNote = $isTextSubject ? ' (Nhập "Đạt" hoặc "Chưa đạt")' : ' (Nhập điểm số 0-10)';
 
 
-            return [
-                ['THÔNG TIN LỚP: ' . $this->class->name . ' (Mã: ' . $this->class->id . ')'],
-                ['NĂM HỌC: ' . $this->academicYearId],
-                ['HỌC KỲ: ' . $this->semesterId],
-                ['MÔN HỌC: ' . $this->subject->name . $subjectTypeNote],
-                [''],
-//                $isTextSubject
-//                    ? [
-//                    'Mã HS',
-//                    'Họ và tên',
-//                    'Đánh giá 1',
-//                    'Đánh giá 2',
-//                    'Đánh giá 3',
-//                    'Đánh giá 4',
-//                    'Đánh giá HK'
-//                ]
-//                    : [
-//                    'Mã HS',
-//                    'Họ và tên',
-//                    'Điểm 15p lần 1',
-//                    'Điểm 15p lần 2',
-//                    'Điểm 15p lần 3',
-//                    'Điểm 1 tiết',
-//                    'Điểm học kỳ'
-//                ]
-               [ 'Mã HS',
+        return [
+            ['THÔNG TIN LỚP: ' . $this->class->name . ' (Mã: ' . $this->class->id . ')'],
+            ['NĂM HỌC: ' . $this->academicYearId],
+            ['HỌC KỲ: ' . $this->semesterId],
+            ['MÔN HỌC: ' . $this->subject->name . ' (Mã: ' . $this->subject->id . ')'],
+            [''],
+            [
+                'Mã HS',
                 'Họ và tên',
                 'Điểm 15p lần 1' . ($isTextSubject ? ' (Đạt/CĐ)' : ''),
                 'Điểm 15p lần 2' . ($isTextSubject ? ' (Đạt/CĐ)' : ''),
                 'Điểm 15p lần 3' . ($isTextSubject ? ' (Đạt/CĐ)' : ''),
                 'Điểm 1 tiết' . ($isTextSubject ? ' (Đạt/CĐ)' : ''),
                 'Điểm học kỳ' . ($isTextSubject ? ' (Đạt/CĐ)' : '')
-                   ]
-            ];
+            ]
+        ];
 
         }
 

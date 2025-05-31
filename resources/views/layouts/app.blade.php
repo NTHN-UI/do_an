@@ -43,7 +43,10 @@
 
 <div class="content">
     <main>
+        <div id="app-alert-container" class="position-fixed top-0 start-50 translate-middle-x p-3" style="z-index: 1060;"></div>
+
     </main>@yield('content')
+
     @if(session('success'))
         <div class="toast text-white border-0 position-fixed"
              style="background-color:#013066;top: 5rem; right: 1rem; max-width: 235px; z-index: 9999;"

@@ -7,6 +7,7 @@ use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\QuestionBankController;
 use App\Http\Controllers\StudentExamController;
+use App\Http\Controllers\StudentGradeController;
 use App\Http\Middleware\AdminMiddleware;
 use App\Http\Controllers\AcademicYearController;
 use App\Http\Controllers\ClassAssignmentController;
@@ -172,6 +173,10 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/{assignment}/submit', [StudentExamController::class, 'submit'])->name('submit');
         Route::get('/{assignment}/result', [StudentExamController::class, 'result'])->name('result');
     });
+    // routes/web.php
+    Route::middleware(['auth'])->group(function () {
+        Route::get('/student_grades', [StudentGradeController::class, 'index'])->name('student_grades');
+        Route::get('/student_grades/detail/{academic_year_id}/{semester_id}', [StudentGradeController::class, 'detail'])->name('student_grades.detail');    });
 
 
 

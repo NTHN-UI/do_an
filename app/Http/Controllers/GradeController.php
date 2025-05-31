@@ -12,6 +12,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use Maatwebsite\Excel\Concerns\WithMultipleSheets;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\GradeTemplateExport;
 use App\Imports\GradesImport;
@@ -379,8 +380,7 @@ class GradeController extends Controller
         ), $fileName);
     }
 
-    public
-    function import(Request $request)
+    public function import(Request $request)
     {
         $request->validate([
             'class_id' => 'required|exists:classes,id,school_id,' . auth()->user()->school_id,
@@ -388,7 +388,6 @@ class GradeController extends Controller
             'academic_year_id' => 'required|exists:academic_years,id,school_id,' . auth()->user()->school_id,
             'grades_file' => 'required|file|mimes:xlsx,xls,csv',
             'subject_name' => 'required|string',
-            'class_name' => 'required|string' // Thêm validation cho tên lớp
         ]);
 
         $teacherId = Auth::id();
@@ -400,23 +399,62 @@ class GradeController extends Controller
                 ->where('school_id', $schoolId)
                 ->firstOrFail();
 
+            // Khởi tạo importer với đầy đủ tham số
             $import = new GradesImport(
                 $request->class_id,
                 $request->semester_id,
                 $request->academic_year_id,
                 $teacherId,
                 $schoolId,
-                $subject,
+                $subject, // Truyền subject vào constructor
             );
 
-            Excel::import($import, $request->file('grades_file'));
+            $assignment = TeacherAssignment::where('teacher_id', $teacherId)
+                ->where('class_id', $request->class_id)
+                ->where('academic_year_id', $request->academic_year_id)
+                ->where('subject_id', $subject->id)
+                ->where('school_id', $schoolId)
+                ->first();
 
-            return response()->json(['success' => true, 'message' => 'Nhập điểm thành công!']);
+            if (!$assignment) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Bạn không được phân công dạy môn này trong lớp này'
+                ], 403);
+            }
+
+            $file = $request->file('grades_file');
+
+            // Sử dụng WithMultipleSheets để kiểm soát sheet nào được import
+            $import = new class(
+                $request->class_id,
+                $request->semester_id,
+                $request->academic_year_id,
+                Auth::id(),
+                Auth::user()->school_id,
+                $subject
+            ) extends GradesImport implements WithMultipleSheets {
+
+                public function sheets(): array
+                {
+                    return [
+                        1 => $this, // Chỉ import sheet thứ 2 (sheet môn học)
+                    ];
+                }
+            };
+
+            Excel::import($import, $file);
+
+            return response()->json(['success' => true, 'message' => 'Import thành công']);
+
         } catch (\Exception $e) {
-            Log::error("Error in GradeController@import: " . $e->getMessage());
+            $errorMessage = str_contains($e->getMessage(), 'HƯỚNG DẪN')
+                ? "BẠN ĐANG CHỌN NHẦM SHEET HƯỚNG DẪN. VUI LÒNG:<br>1. Mở file Excel<br>2. Chọn sheet có tên môn học ở dưới cùng<br>3. Thực hiện import lại"
+                : $e->getMessage();
+
             return response()->json([
                 'success' => false,
-                'message' => 'Lỗi khi nhập điểm: ' . $e->getMessage()
+                'message' => $errorMessage
             ], 500);
         }
     }

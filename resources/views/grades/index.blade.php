@@ -304,9 +304,21 @@
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body p-4">
-                    <div class="alert alert-info border-0" role="alert">
-                        <i class="fas fa-info-circle me-2"></i>
-                        <strong>Lưu ý:</strong> Chỉ chấp nhận file Excel (.xlsx, .xls) theo mẫu đã tải về từ hệ thống.
+                    <div class="alert alert-warning border-0 mb-4">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <strong>Lưu ý quan trọng:</strong> File Excel phải đúng với lớp, môn học và học kỳ đã chọn.
+                        Hệ thống sẽ kiểm tra và từ chối nếu không khớp.
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Thông tin import:</label>
+                        <div class="card bg-light">
+                            <div class="card-body">
+                                <p><strong>Lớp:</strong> {{ $selectedClass->name ?? '' }}</p>
+                                <p><strong>Môn học:</strong> {{ $subjectsTaught->first()->name ?? '' }}</p>
+                                <p><strong>Học kỳ:</strong> {{ $semesters->firstWhere('id', $selectedSemesterId)->name ?? '' }}</p>
+                                <p><strong>Năm học:</strong> {{ $academicYears->firstWhere('id', $selectedAcademicYearId)->name ?? '' }}</p>
+                            </div>
+                        </div>
                     </div>
 
                     <div class="form-group">
@@ -432,27 +444,31 @@
             // Xử lý import điểm
             $('#importModal').on('click', '.btn-primary-color', function() {
                 const fileInput = $('#fileInput')[0];
-                const file = fileInput.files[0];
 
-                if (!file) {
-                    alert('Vui lòng chọn file Excel để import');
+                if (!fileInput.files || !fileInput.files[0]) {
+                    showAlert('danger', 'Vui lòng chọn file Excel để import');
                     return;
                 }
 
-                // Hiển thị loading
-                $(this).html('<i class="fas fa-spinner fa-spin me-2"></i>Đang xử lý...').prop('disabled', true);
+                // Check file extension
+                const fileName = fileInput.files[0].name;
+                if (!fileName.match(/\.(xlsx|xls|csv)$/i)) {
+                    showAlert('danger', 'Chỉ chấp nhận file Excel (.xlsx, .xls) hoặc CSV');
+                    return;
+                }
 
                 const formData = new FormData();
+                const file = fileInput.files[0]; // Lấy file đã chọn
                 formData.append('grades_file', file);
                 formData.append('class_id', $('#class_id').val());
                 formData.append('semester_id', $('#semester_id').val());
                 formData.append('academic_year_id', $('#academic_year_id').val());
                 formData.append('subject_name', '{{ $subjectsTaught->first()?->name }}');
-                formData.append('class_name', $('#class_id option:selected').text());
+                formData.append('class_name', '{{ $selectedClass->name ?? '' }}'); // Thêm class_name
                 formData.append("_token", window.csrfToken);
 
                 $.ajax({
-                    url: '{{ route("grades.import") }}',
+                    url: '{{ route('grades.import') }}',
                     method: 'POST',
                     data: formData,
                     processData: false,
@@ -460,17 +476,43 @@
                     headers: {
                         'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                     },
+                    beforeSend: function() {
+                        $('.btn-primary-color', $('#importModal')).prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Đang import...');
+                    },
                     success: function(response) {
+                        showAlert('success', response.message);
                         $('#importModal').modal('hide');
-                        location.reload(); // Reload trang để hiển thị dữ liệu mới
+                        window.location.reload(); // Tải lại trang để thấy điểm mới
                     },
                     error: function(xhr) {
-                        alert('Lỗi khi import: ' + xhr.responseJSON.message);
+                        let errorMessage = 'Đã xảy ra lỗi không xác định.';
+                        if (xhr.responseJSON && xhr.responseJSON.message) {
+                            errorMessage = xhr.responseJSON.message;
+                        } else if (xhr.responseText) {
+                            errorMessage = xhr.responseText;
+                        }
+                        showAlert('danger', errorMessage);
                     },
                     complete: function() {
-                        $('#importModal .btn-primary-color').html('<i class="fas fa-check me-2"></i>Xác nhận Import').prop('disabled', false);
+                        $('.btn-primary-color', $('#importModal')).prop('disabled', false).html('<i class="fas fa-check me-2"></i>Xác nhận Import');
                     }
                 });
+                function showAlert(type, message) {
+                    const alertContainer = $('#app-alert-container');
+                    if (alertContainer.length === 0) {
+                        $('body').prepend('<div id="app-alert-container" class="position-fixed top-0 start-50 translate-middle-x p-3" style="z-index: 1060;"></div>');
+                    }
+                    const alertHtml = `
+        <div class="alert alert-${type} alert-dismissible fade show" role="alert">
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    `;
+                    $('#app-alert-container').append(alertHtml);
+                    setTimeout(() => {
+                        $('#app-alert-container').find('.alert').first().alert('close');
+                    }, 5000);
+                }
             });
         });
     </script>

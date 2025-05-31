@@ -53,4 +53,5 @@ class AcademicYear extends Model
         return $query->where('start_date', '<=', $today)
             ->where('end_date', '>=', $today);
     }
+
 }
