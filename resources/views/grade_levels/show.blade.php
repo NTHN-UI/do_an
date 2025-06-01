@@ -1,104 +1,90 @@
 @extends('layouts.app')
 
 @section('content')
-    <div class="container">
-        <div class="row justify-content-center">
-            <div class="col-md-12">
-                <div class="card">
-                    <div class="card-header d-flex justify-content-between align-items-center">
-                        <h4>Chi tiết Khối {{ $gradeLevel->grade_number }}</h4>
-                        <a href="{{ route('grade_levels.index') }}" class="btn btn-sm btn-secondary">
-                            <i class="fas fa-arrow-left"></i> Quay lại
-                        </a>
-                    </div>
-
-                    <div class="card-body">
-                        <div class="row mb-4">
-                            <div class="col-md-4">
-                                <div class="info-box">
-                                    <span class="info-box-icon bg-info"><i class="fas fa-layer-group"></i></span>
-                                    <div class="info-box-content">
-                                        <span class="info-box-text">Tổng số lớp</span>
-                                        <span class="info-box-number">{{ $gradeLevel->classes->count() }}</span>
-                                    </div>
-                                </div>
+    <style>
+        .info-box {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 18px 16px;
+            margin-bottom: 18px;
+            box-shadow: 0 2px 8px rgba(1,48,102,0.07);
+            display: flex;
+            align-items: center;
+        }
+        .info-box-icon {
+            font-size: 2rem;
+            margin-right: 16px;
+            color: #fff;
+            border-radius: 50%;
+            width: 48px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .bg-info { background: #0dcaf0 !important; }
+        .bg-success { background: #198754 !important; }
+        .class-card {
+            transition: all 0.3s;
+            background: #fff;
+            border: 1px solid #e3e6f0;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(1,48,102,0.04);
+        }
+        .class-card:hover {
+            transform: translateY(-3px) scale(1.03);
+            box-shadow: 0 6px 16px rgba(1,48,102,0.12);
+        }
+    </style>
+    <div class="container rounded-3 shadow p-4">
+        <div class="d-flex align-items-center mb-4">
+            <a href="{{ url()->previous() }}" class="btn text-primary-color btn-sm me-3" title="Quay lại">
+                <i class="fas fa-arrow-left"></i>
+            </a>
+            <h3 class="mb-0 text-primary-color">Chi tiết Khối {{ $gradeLevel->grade_number }}</h3>
+        </div>
+        <div class="card border-0 shadow-sm rounded-2">
+            <div class="card-body p-0">
+                <div class="accordion" id="classesAccordion">
+                    @foreach($groupedClasses as $yearId => $classes)
+                        @php $academicYear = $classes->first()->academicYear; @endphp
+                        <div class="card mb-2">
+                            <div class="card-header" id="heading{{ $yearId }}">
+                                <h2 class="mb-0">
+                                    <button class="btn btn-link text-primary-color fw-bold" style="text-decoration: none;"
+                                            type="button" data-bs-toggle="collapse"
+                                            data-bs-target="#collapse{{ $yearId }}"
+                                            aria-expanded="true" aria-controls="collapse{{ $yearId }}">
+                                        {{ $academicYear->year }} ({{ $classes->count() }} lớp)
+                                    </button>
+                                </h2>
                             </div>
-                            <div class="col-md-4">
-                                <div class="info-box">
-                                    <span class="info-box-icon bg-success"><i class="fas fa-calendar-alt"></i></span>
-                                    <div class="info-box-content">
-                                        <span class="info-box-text">Năm học hiện tại</span>
-                                        <span class="info-box-number">{{ $currentYear->year ?? '--' }}</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                            <div id="collapse{{ $yearId }}" class="collapse show"
+                                 aria-labelledby="heading{{ $yearId }}" data-bs-parent="#classesAccordion">
+                                <div class="card-body">
+                                    <div class="row">
+                                        @foreach($classes as $class)
+                                            <div class="col-md-3 mb-3">
+                                                <div class="class-card p-3 text-center">
+                                                    <h5 class="fw-bold">{{ $class->name }}</h5>
+                                                    <div class="text-muted small mb-2">
+                                                        Sĩ số:{{ $class->students_count ?: '0' }}
 
-                        <div class="accordion" id="classesAccordion">
-                            @foreach($groupedClasses as $yearId => $classes)
-                                @php $academicYear = $classes->first()->academicYear; @endphp
-                                <div class="card">
-                                    <div class="card-header" id="heading{{ $yearId }}">
-                                        <h2 class="mb-0">
-                                            <button class="btn btn-link" type="button" data-toggle="collapse"
-                                                    data-target="#collapse{{ $yearId }}"
-                                                    aria-expanded="true" aria-controls="collapse{{ $yearId }}">
-                                                {{ $academicYear->year }} ({{ $classes->count() }} lớp)
-                                            </button>
-                                        </h2>
-                                    </div>
-
-                                    <div id="collapse{{ $yearId }}" class="collapse show"
-                                         aria-labelledby="heading{{ $yearId }}" data-parent="#classesAccordion">
-                                        <div class="card-body">
-                                            <div class="row">
-                                                @foreach($classes as $class)
-                                                    <div class="col-md-3 mb-3">
-                                                        <div class="class-card p-3 border rounded text-center">
-                                                            <h5>{{ $class->name }}</h5>
-                                                            <div class="text-muted small">
-                                                                Sĩ số: {{ $class->students_count ?? 0 }}
-                                                            </div>
-                                                            <a href="{{ route('classes.show', $class->id) }}"
-                                                               class="btn btn-sm btn-outline-primary mt-2">
-                                                                Xem chi tiết
-                                                            </a>
-                                                        </div>
                                                     </div>
-                                                @endforeach
+                                                    <a href="{{ route('class_assignments.show', $class->id) }}"
+                                                       class="btn btn-sm btn-primary-color mt-2">
+                                                        Xem chi tiết
+                                                    </a>
+                                                </div>
                                             </div>
-                                        </div>
+                                        @endforeach
                                     </div>
                                 </div>
-                            @endforeach
+                            </div>
                         </div>
-
-                        <div class="mt-4">
-                            <a href="{{ route('classes.create', ['grade_level_id' => $gradeLevel->id]) }}"
-                               class="btn btn-primary">
-                                <i class="fas fa-plus"></i> Thêm lớp mới
-                            </a>
-                        </div>
-                    </div>
+                    @endforeach
                 </div>
             </div>
         </div>
     </div>
-@endsection
-
-@section('styles')
-    <style>
-        .info-box {
-            background: #f8f9fa;
-            border-radius: 5px;
-            padding: 10px;
-        }
-        .class-card {
-            transition: all 0.3s;
-        }
-        .class-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-        }
-    </style>
 @endsection

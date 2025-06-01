@@ -170,27 +170,27 @@
                                                 $isSpecialSubject = $subjectData['is_special'] ?? false;
                                             @endphp
 
-                                            @if($selectedSemesterId == 0)
-                                                <!-- Hiển thị điểm cả năm -->
-                                                <td class="text-center">
-                                                    @if($isSpecialSubject)
-                                                        <span class="badge {{ ($subjectData['semester1_text'] ?? '-') == 'Đạt' ? 'bg-success' : 'bg-warning' }}">
-                                                                {{ $subjectData['semester1_text'] ?? '-' }}
-                                                            </span>
-                                                    @else
-                                                        <span class="badge bg-info">{{ $subjectData['semester1_avg'] ?? '-' }}</span>
-                                                    @endif
-                                                </td>
-                                                <td class="text-center">
-                                                    @if($isSpecialSubject)
-                                                        <span class="badge {{ ($subjectData['semester2_text'] ?? '-') == 'Đạt' ? 'bg-success' : 'bg-warning' }}">
-                                                                {{ $subjectData['semester2_text'] ?? '-' }}
-                                                            </span>
-                                                    @else
-                                                        <span class="badge bg-info">{{ $subjectData['semester2_avg'] ?? '-' }}</span>
-                                                    @endif
-                                                </td>
-                                            @else
+                                                @if($selectedSemesterId == 0)
+                                                    <!-- Hiển thị điểm cả năm -->
+                                                    <td class="text-center">
+                                                        @if($isSpecialSubject)
+                                                            <span class="badge {{ ($subjectData['semester1_text'] ?? '-') == 'Đạt' ? 'bg-success' : 'bg-warning' }}">
+                {{ $subjectData['semester1_text'] ?? '-' }}
+            </span>
+                                                        @else
+                                                            <span class="badge bg-info">{{ $subjectData['semester1_avg'] ?? '-' }}</span>
+                                                        @endif
+                                                    </td>
+                                                    <td class="text-center">
+                                                        @if($isSpecialSubject)
+                                                            <span class="badge {{ ($subjectData['semester2_text'] ?? '-') == 'Đạt' ? 'bg-success' : 'bg-warning' }}">
+                {{ $subjectData['semester2_text'] ?? '-' }}
+            </span>
+                                                        @else
+                                                            <span class="badge bg-info">{{ $subjectData['semester2_avg'] ?? '-' }}</span>
+                                                        @endif
+                                                    </td>
+                                                @else
                                                 <!-- Hiển thị điểm học kỳ -->
                                                 <td class="text-center">
                                                     @if($isSpecialSubject)
@@ -232,55 +232,67 @@
 
                                         <!-- Điểm trung bình -->
                                         <td class="text-center fw-bold">
-                                            @if($selectedSemesterId == 0)
-                                                <span class="badge bg-primary-color fs-6">{{ $grades[$student->id]['yearly_average'] ?? '-' }}</span>
-                                            @else
-                                                @php
-                                                    $allSubjectsPassed = true;
-                                                    $hasSpecialSubjects = false;
-                                                    $numericAverage = 0;
-                                                    $numericCount = 0;
-                                                    $hasAnyGrade = false;
+                                            @php
+                                                $allSubjectsPassed = true;
+                                                $hasSpecialSubjects = false;
+                                                $numericAverage = 0;
+                                                $numericCount = 0;
+                                                $hasAnyGrade = false;
 
-                                                    foreach($subjectsTaught as $subject) {
-                                                        $subjectData = $grades[$student->id][$subject->id] ?? [];
+                                                foreach($subjectsTaught as $subject) {
+                                                    $subjectData = $grades[$student->id][$subject->id] ?? [];
 
-                                                        // Xử lý môn đặc biệt
-                                                        if ($subjectData['is_special'] ?? false) {
-                                                            $hasSpecialSubjects = true;
-                                                            $semesterValue = $subjectData['semester']->text_value ?? '';
-                                                            if ($semesterValue !== '') {
-                                                                $hasAnyGrade = true;
-                                                            }
-                                                            if ($semesterValue !== 'Đạt') {
-                                                                $allSubjectsPassed = false;
-                                                            }
+                                                    // Xử lý môn đặc biệt
+                                                    if ($subjectData['is_special'] ?? false) {
+                                                        $hasSpecialSubjects = true;
+
+                                                        if ($selectedSemesterId == 0) {
+                                                            // Xem điểm cả năm: lấy kết quả HK2
+                                                            $resultValue = $subjectData['semester2_text'] ?? 'Chưa đạt';
+                                                        } else {
+                                                            // Xem điểm học kỳ: lấy kết quả học kỳ hiện tại
+                                                            $resultValue = $subjectData['semester']->text_value ?? '';
                                                         }
-                                                        // Xử lý môn thường
-                                                        else {
+
+                                                        if ($resultValue !== '') {
+                                                            $hasAnyGrade = true;
+                                                        }
+                                                        if ($resultValue !== 'Đạt') {
+                                                            $allSubjectsPassed = false;
+                                                        }
+                                                    }
+                                                    // Xử lý môn thường
+                                                    else {
+                                                        if ($selectedSemesterId == 0) {
+                                                            // Điểm cả năm: (HK1 + 2*HK2)/3
                                                             $subjectAvg = $subjectData['average'] ?? null;
-                                                            if ($subjectAvg !== null && $subjectAvg > 0) {
-                                                                $numericAverage += $subjectAvg;
-                                                                $numericCount++;
-                                                                $hasAnyGrade = true;
-                                                            }
+                                                        } else {
+                                                            // Điểm học kỳ: lấy điểm TB học kỳ
+                                                            $subjectAvg = $subjectData['average'] ?? null;
+                                                        }
+
+                                                        if ($subjectAvg !== null && $subjectAvg > 0) {
+                                                            $numericAverage += $subjectAvg;
+                                                            $numericCount++;
+                                                            $hasAnyGrade = true;
                                                         }
                                                     }
+                                                }
 
-                                                    if (!$hasAnyGrade) {
-                                                        echo '<span class="text-muted">-</span>';
-                                                    } elseif ($hasSpecialSubjects) {
-                                                        $result = $allSubjectsPassed ? 'Đạt' : 'Chưa đạt';
-                                                        $badgeClass = $allSubjectsPassed ? 'bg-success' : 'bg-danger';
-                                                        echo "<span class='badge $badgeClass fs-6'>$result</span>";
-                                                    } elseif ($numericCount > 0) {
-                                                        $avg = round($numericAverage / $numericCount, 1);
-                                                        echo "<span class='badge bg-primary-color fs-6'>$avg</span>";
-                                                    } else {
-                                                        echo '<span class="text-muted">-</span>';
-                                                    }
-                                                @endphp
-                                            @endif
+                                                // Hiển thị kết quả
+                                                if (!$hasAnyGrade) {
+                                                    echo '<span class="text-muted">-</span>';
+                                                } elseif ($hasSpecialSubjects) {
+                                                    $result = $allSubjectsPassed ? 'Đạt' : 'Chưa đạt';
+                                                    $badgeClass = $allSubjectsPassed ? 'bg-success' : 'bg-danger';
+                                                    echo "<span class='badge $badgeClass fs-6'>$result</span>";
+                                                } elseif ($numericCount > 0) {
+                                                    $avg = round($numericAverage / $numericCount, 1);
+                                                    echo "<span class='badge bg-primary-color fs-6'>$avg</span>";
+                                                } else {
+                                                    echo '<span class="text-muted">-</span>';
+                                                }
+                                            @endphp
                                         </td>
                                     </tr>
                                 @endforeach

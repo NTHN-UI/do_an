@@ -1,4 +1,3 @@
-@php use Illuminate\Support\Facades\Auth; @endphp
 @extends('layouts.app')
 
 @section('content')

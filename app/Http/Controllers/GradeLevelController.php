@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ClassModel;
 use App\Models\GradeLevel;
 use App\Models\School;
 use Illuminate\Http\Request;
@@ -93,6 +94,8 @@ class GradeLevelController extends Controller
      */
     public function show($id)
     {
+
+
         $gradeLevel = GradeLevel::where('school_id', auth()->user()->school_id)
             ->with(['classes' => function($query) {
                 $query->with('academicYear')
@@ -102,8 +105,11 @@ class GradeLevelController extends Controller
             ->findOrFail($id);
 
         // Nhóm lớp theo năm học
-        $groupedClasses = $gradeLevel->classes->groupBy('academic_year_id');
-
+        $groupedClasses = ClassModel::with('academicYear')
+            ->withCount('students')
+            ->where('grade_level_id', $gradeLevel->id)
+            ->get()
+            ->groupBy('academic_year_id');
         return view('grade_levels.show', compact('gradeLevel', 'groupedClasses'));
     }
 

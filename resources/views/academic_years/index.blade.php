@@ -12,6 +12,11 @@
             background-color: #013066;
             color: white;
         }
+        .pagination .page-item.active .page-link {
+            background-color: var(--primary-color);
+            color: var(--bs-white);
+            border-color: var(--primary-color);
+        }
     </style>
     <div class="container  rounded-3 shadow p-4">
         <h3 class="mb-3 text-primary-color">Danh sách năm học</h3>

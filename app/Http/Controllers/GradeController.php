@@ -113,19 +113,37 @@ class GradeController extends Controller
                         $subjectCount = 0;
 
                         foreach ($subjectsTaught as $subject) {
-                            // Lấy điểm TB đã lưu
-                            $semester1Avg = $semester1Avgs[$student->id][$subject->id][0]->score ?? 0;
-                            $semester2Avg = $semester2Avgs[$student->id][$subject->id][0]->score ?? 0;
+                            $isSpecialSubject = in_array($subject->name, [
+                                'Giáo dục quốc phòng và an ninh',
+                                'Giáo dục thể chất',
+                                'Nghệ thuật'
+                            ]);
 
-                            $grades[$student->id][$subject->id]['semester1_avg'] = $semester1Avg;
-                            $grades[$student->id][$subject->id]['semester2_avg'] = $semester2Avg;
+                            if ($isSpecialSubject) {
+                                // For special subjects, just copy semester 2 result
+                                $semester2Result = $semester2Avgs[$student->id][$subject->id][0]->text_value ?? null;
 
-                            $yearlyAverage = ($semester1Avg + $semester2Avg * 2) / 3;
-                            $grades[$student->id][$subject->id]['average'] = round($yearlyAverage, 1);
+                                $grades[$student->id][$subject->id] = [
+                                    'semester1_text' => $semester1Avgs[$student->id][$subject->id][0]->text_value ?? '-',
+                                    'semester2_text' => $semester2Result ?? '-',
+                                    'is_special' => true,
+                                    'yearly_result' => $semester2Result ?? 'Chưa đạt' // Default to "Chưa đạt" if no result
+                                ];
+                            } else {
+                                // For regular subjects, calculate averages as before
+                                $semester1Avg = $semester1Avgs[$student->id][$subject->id][0]->score ?? 0;
+                                $semester2Avg = $semester2Avgs[$student->id][$subject->id][0]->score ?? 0;
 
-                            if ($yearlyAverage > 0) {
-                                $totalScore += $yearlyAverage;
-                                $subjectCount++;
+                                $grades[$student->id][$subject->id]['semester1_avg'] = $semester1Avg;
+                                $grades[$student->id][$subject->id]['semester2_avg'] = $semester2Avg;
+
+                                $yearlyAverage = ($semester1Avg + $semester2Avg * 2) / 3;
+                                $grades[$student->id][$subject->id]['average'] = round($yearlyAverage, 1);
+
+                                if ($yearlyAverage > 0) {
+                                    $totalScore += $yearlyAverage;
+                                    $subjectCount++;
+                                }
                             }
                         }
 

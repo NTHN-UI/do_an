@@ -23,10 +23,8 @@ class ClassAssignmentController extends Controller
             ->orderBy('start_date', 'desc')
             ->get();
 
-        // Lấy năm học được chọn (nếu không có thì lấy năm học hiện tại)
         $selectedAcademicYear = $request->input('academic_year_id');
 
-        // Lấy danh sách lớp với số học sinh theo năm học
         $classes = ClassModel::withCount(['students' => function ($query) use ($selectedAcademicYear) {
             $query->where('student_classes.academic_year_id', $selectedAcademicYear);
         }])
@@ -109,7 +107,6 @@ class ClassAssignmentController extends Controller
         return view('class_assignments.auto_assign', compact('gradeLevels', 'academicYears', 'currentAcademicYear'));
     }
 
-    // Xử lý phân công tự động
     public function autoAssign(Request $request)
     {
         $request->validate([
@@ -127,7 +124,6 @@ class ClassAssignmentController extends Controller
             $gradeLevel = GradeLevel::find($gradeLevelId);
             $isGrade10 = $gradeLevel && $gradeLevel->grade_number == 10;
 
-            // Lấy tất cả học sinh chưa phân lớp trong khối và năm học này
             $unassignedStudents = User::where('role', User::ROLE_STUDENT)
                 ->where('school_id', auth()->user()->school_id)
                 ->whereHas('studentGrades', function ($query) use ($gradeLevelId, $academicYearId) {
@@ -195,8 +191,6 @@ class ClassAssignmentController extends Controller
                     'score' => $isGrade10 ? $student->entry_score : null
                 ];
             }
-
-
             // Thực hiện insert hàng loạt
             StudentClass::insert($assignments);
 
@@ -263,7 +257,6 @@ class ClassAssignmentController extends Controller
             'targetClasses'
         ));
     }
-
     // Chuyển học sinh sang lớp khác
     public function changeClassStudent(Request $request, string $id)
     {
@@ -280,7 +273,6 @@ class ClassAssignmentController extends Controller
 
         try {
             DB::beginTransaction();
-
             // Xóa khỏi lớp cũ
             StudentClass::where('user_id', $student->id)
                 ->where('class_id', $request->current_class_id)
@@ -323,11 +315,6 @@ class ClassAssignmentController extends Controller
                 Log::info("Du lieu:", [$student]);
                 Log::info("Diem trung binh cua: " . $student->getAveragesByYear($targetYearId));
             }
-
-            // Những học sinh chưa đủ điều kiện lên lớp
-
-
-            // Những học sinh đủ điều kiện
 
             return redirect()->back();
         } catch (\Exception $ex) {

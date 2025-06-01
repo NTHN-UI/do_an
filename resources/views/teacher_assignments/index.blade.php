@@ -2,65 +2,25 @@
 
 @section('content')
     <style>
-        .container {
-            border-radius: 12px;
-            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
-            padding: 20px;
-            overflow-x: auto;
-        }
-
-        .card {
-            border-radius: 0.5rem;
-        }
-
-        .card-body {
-            position: relative;
-            overflow: visible !important;
-        }
-
-        .table {
-            border-radius: 10px;
-            overflow: hidden;
-        }
-
-        .table-hover tbody tr:hover {
-            background-color: rgba(0, 123, 255, 0.08);
-            transition: background-color 0.3s ease-in-out;
-        }
-
-        .table-responsive {
-            overflow: visible !important;
-        }
-
         .table-responsive .dropdown-menu {
             position: fixed !important;
             z-index: 1000 !important;
             min-width: 90px;
         }
-
-        .table-responsive .show > .dropdown-menu {
-            display: block !important;
-        }
-
-        th {
-            font-weight: 500;
-        }
-
         .dropdown-item:active,
         .dropdown-item:focus {
             background-color: #013066 !important;
             color: white !important;
         }
-
         .pagination .page-item.active .page-link {
             background-color: var(--primary-color);
             color: var(--bs-white);
             border-color: var(--primary-color);
         }
+    </style>
 
-        </style>
-    <div class="container">
-        <h3 class="mb-3 text-primary-color">Danh sách lớp học</h3>
+    <div class="container rounded-3 shadow p-4">
+        <h3 class="mb-3 text-primary-color">Danh sách phân công</h3>
         <div class="mb-3 d-flex justify-content-end align-items-center">
             <div>
                 <a href="{{ route('teachers.index') }}?assign=1" class="btn btn-primary-color">Thêm phân công
@@ -134,10 +94,10 @@
         </div>
 
         <!-- Danh sách phân công -->
-        <div class="card border-0 shadow-sm">
+        <div class="card border-0 shadow-sm rounded-2">
             <div class="card-body p-0">
                 <div class="table-responsive">
-                    <table class="table table-hover mb-0">
+                    <table class="table table-hover mb-0 rounded-3 overflow-hidden">
                         <thead class="table-secondary text-center">
                         <tr>
                             <th>STT</th>
@@ -204,17 +164,16 @@
                         Không có phân công nào được tìm thấy.
                     </div>
                 @endif
-                    @if($assignments->lastPage() > 1)
-                        <div class="card-footer border-0 bg-transparent" id="pagination-container">
-                            <nav aria-label="page navigation">
-                                {{ $assignments->links('pagination::bootstrap-5') }}
-                            </nav>
-                        </div>
-                    @endif
+                @if($assignments->lastPage() > 1)
+                    <div class="card-footer border-0 bg-transparent" id="pagination-container">
+                        <nav aria-label="page navigation">
+                            {{ $assignments->links('pagination::bootstrap-5') }}
+                        </nav>
+                    </div>
+                @endif
             </div>
         </div>
     </div>
-
 @endsection
 
 @push('scripts')
@@ -296,54 +255,6 @@
                 });
             });
         });
-        {{--// Xử lý khi năm học thay đổi--}}
-        {{--$('#academic-year-filter').change(function() {--}}
-        {{--    const academicYearId = $(this).val();--}}
-
-        {{--    // Gọi API lấy danh sách lớp theo năm học--}}
-        {{--    if (academicYearId) {--}}
-        {{--        $.ajax({--}}
-        {{--            url: '{{ route("teacher_assignments.getClassesByAcademicYear") }}',--}}
-        {{--            method: 'GET',--}}
-        {{--            data: {--}}
-        {{--                academic_year_id: academicYearId--}}
-        {{--            },--}}
-        {{--            success: function(response) {--}}
-        {{--                // Cập nhật dropdown lớp--}}
-        {{--                const classFilter = $('#class-filter');--}}
-        {{--                classFilter.empty();--}}
-        {{--                classFilter.append('<option value="">-- Tất cả lớp --</option>');--}}
-
-        {{--                response.forEach(function(classItem) {--}}
-        {{--                    classFilter.append(--}}
-        {{--                        `<option value="${classItem.id}">--}}
-        {{--                            ${classItem.grade_level.grade_number} - ${classItem.name}--}}
-        {{--                        </option>`--}}
-        {{--                    );--}}
-        {{--                });--}}
-        {{--            },--}}
-        {{--            error: function(xhr) {--}}
-        {{--                console.error('Error fetching classes:', xhr.responseText);--}}
-        {{--            }--}}
-        {{--        });--}}
-        {{--    } else {--}}
-        {{--        // Nếu chọn "Tất cả năm" thì reset dropdown lớp--}}
-        {{--        const classFilter = $('#class-filter');--}}
-        {{--        classFilter.empty();--}}
-        {{--        classFilter.append('<option value="">-- Tất cả lớp --</option>');--}}
-
-        {{--        // Thêm tất cả lớp (nếu cần)--}}
-        {{--        @foreach($allClasses as $class)--}}
-        {{--        classFilter.append(--}}
-        {{--            `<option value="{{ $class->id }}" {{ request('class_id') == $class->id ? 'selected' : '' }}>--}}
-        {{--                    {{ $class->gradeLevel->grade_number }} - {{ $class->name }}--}}
-        {{--            </option>`--}}
-        {{--        );--}}
-        {{--        @endforeach--}}
-        {{--    }--}}
-        {{--});--}}
-
-
     </script>
 @endpush
 
