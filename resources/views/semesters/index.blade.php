@@ -54,7 +54,7 @@
                     <th>Ngày bắt đầu</th>
                     <th>Ngày kết thúc</th>
                     <th>Hiện tại</th>
-                    <th class="text-end pe-4" style="width: 50px;"></th>
+                    <th>Thao tác</th>
                 </tr>
                 </thead>
                 <tbody>
@@ -65,7 +65,7 @@
                         <td>{{ $semester->start_date->format('d/m/Y') }}</td>
                         <td>{{ $semester->end_date->format('d/m/Y') }}</td>
                         <td>{{ $semester->is_current ? '✓' : '' }}</td>
-                        <td class="text-end pe-4">
+                        <td>
                             <div class="dropdown">
                                 <button class="btn btn-sm" type="button" data-bs-toggle="dropdown"
                                         aria-expanded="false">

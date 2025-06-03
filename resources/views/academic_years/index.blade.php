@@ -35,7 +35,7 @@
                             <th>Năm học</th>
                             <th>Ngày bắt đầu</th>
                             <th>Ngày kết thúc</th>
-                            <th class="text-end pe-4" style="width: 50px;"></th>
+                            <th>Thao tác</th>
                         </tr>
                         </thead>
                         <tbody>
@@ -45,7 +45,7 @@
                                 <td>{{ $year->year }}</td>
                                 <td>{{ $year->start_date->format('d/m/Y') }}</td>
                                 <td>{{ $year->end_date->format('d/m/Y') }}</td>
-                                <td class="text-end pe-4">
+                                <td>
                                     <div class="dropdown">
                                         <button class="btn btn-sm" type="button" data-bs-toggle="dropdown"
                                                 aria-expanded="false">

@@ -15,8 +15,8 @@
 
                 <div class="form-group">
                     <label for="name">Tên học kỳ <span class="text-danger">*</span></label>
-                    <input type="text" class="form-control @error('name') is-invalid @enderror"
-                           id="name" name="name" value="{{ old('name') }}" >
+                    <input type="text" name="name" class="form-control @error('name') is-invalid @enderror"
+                           value="{{ old('name') }}">
                     @error('name')
                     <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
@@ -24,8 +24,9 @@
 
                         <div class="form-group">
                             <label for="start_date">Ngày bắt đầu <span class="text-danger">*</span></label>
-                            <input type="date" class="form-control @error('start_date') is-invalid @enderror"
-                                   id="start_date" name="start_date" value="{{ old('start_date') }}">
+                            <input type="date" name="start_date"
+                                   class="form-control @error('start_date') is-invalid @enderror"
+                                   value="{{ old('start_date') }}" >
                             @error('start_date')
                             <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
@@ -33,13 +34,13 @@
 
                         <div class="form-group">
                             <label for="end_date">Ngày kết thúc <span class="text-danger">*</span></label>
-                            <input type="date" class="form-control @error('end_date') is-invalid @enderror"
-                                   id="end_date" name="end_date" value="{{ old('end_date') }}">
+                            <input type="date" name="end_date"
+                                   class="form-control @error('end_date') is-invalid @enderror"
+                                   value="{{ old('end_date') }}" >
                             @error('end_date')
                             <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
-                </div>
 
                 <div class="form-group form-check mt-3">
                     <input type="hidden" name="is_current" value="0">

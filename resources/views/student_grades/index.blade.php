@@ -40,12 +40,12 @@
                             <ul class="nav nav-tabs" id="semesterTabs" role="tablist">
                                 <li class="nav-item" role="presentation">
                                     <button class="nav-link active" id="semester1-tab" data-bs-toggle="tab" data-bs-target="#semester1" type="button" role="tab" aria-controls="semester1" aria-selected="true">
-                                        Học kỳ 1
+                                        Học kỳ I
                                     </button>
                                 </li>
                                 <li class="nav-item" role="presentation">
                                     <button class="nav-link" id="semester2-tab" data-bs-toggle="tab" data-bs-target="#semester2" type="button" role="tab" aria-controls="semester2" aria-selected="false">
-                                        Học kỳ 2
+                                        Học kỳ II
                                     </button>
                                 </li>
                                 <li class="nav-item" role="presentation">
@@ -58,7 +58,7 @@
                                 <div class="tab-pane fade show active" id="semester1" role="tabpanel" aria-labelledby="semester1-tab">
                                     @if($grades->has(1))
                                         <div class="d-flex justify-content-between align-items-center mb-3">
-                                            <h5 class="mb-0">Học kỳ 2</h5>
+                                            <h5 class="mb-0">Học kỳ II</h5>
                                             <a href="{{ route('student_grades.detail', ['academic_year_id' => $selectedYearId, 'semester_id' => 2]) }}"
                                                class="btn btn-sm btn-outline-primary">
                                                 <i class="fas fa-search-plus me-1"></i> Xem chi tiết
@@ -94,14 +94,14 @@
                                     @else
                                         <div class="alert alert-warning">
                                             <i class="fas fa-exclamation-triangle me-2"></i>
-                                            Học kỳ 1 chưa có dữ liệu điểm.
+                                            Học kỳ I chưa có dữ liệu điểm.
                                         </div>
                                     @endif
                                 </div>
                                 <div class="tab-pane fade" id="semester2" role="tabpanel" aria-labelledby="semester2-tab">
                                     @if($grades->has(2))
                                         <div class="d-flex justify-content-between align-items-center mb-3">
-                                            <h5 class="mb-0">Học kỳ 2</h5>
+                                            <h5 class="mb-0">Học kỳ II</h5>
                                             <a href="{{ route('student_grades.detail', ['academic_year_id' => $selectedYearId, 'semester_id' => 2]) }}"
                                                class="btn btn-sm btn-outline-primary">
                                                 <i class="fas fa-search-plus me-1"></i> Xem chi tiết
@@ -137,7 +137,7 @@
                                     @else
                                         <div class="alert alert-warning">
                                             <i class="fas fa-exclamation-triangle me-2"></i>
-                                            Học kỳ 2 chưa có dữ liệu điểm.
+                                            Học kỳ II chưa có dữ liệu điểm.
                                         </div>
                                     @endif
                                 </div>

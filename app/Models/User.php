@@ -187,6 +187,10 @@ class User extends Authenticatable
     {
         return $this->hasMany(ExamSubmission::class, 'student_id');
     }
+    public function isCurrentTeacher()
+    {
+        return $this->teacherAssignments()->exists();
+    }
     protected function casts(): array
     {
         return [

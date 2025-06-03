@@ -33,7 +33,7 @@
                 </div>
             </div>
             <div class="mt-3 d-flex justify-content-end">
-                <a href="{{ route('semesters.edit', $semester->id) }}" class="btn btn-primary-color">
+                <a href="{{ route('semesters.index', $semester->id) }}" class="btn btn-primary-color">
                    Đóng
                 </a>
             </div>

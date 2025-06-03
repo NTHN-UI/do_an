@@ -9,11 +9,6 @@ use Illuminate\Validation\ValidationException;
 
 class LoginController extends Controller
 {
-//    public function showLoginForm()
-//    {
-//        Auth::logout();
-//        return view('auth.login');
-//    }
     public function showLoginForm()
     {
         // Kiểm tra nếu đăng nhập do hết hạn session
@@ -24,6 +19,7 @@ class LoginController extends Controller
 
         return view('auth.login');
     }
+
     public function login(Request $request)
     {
         $request->validate([
@@ -35,24 +31,29 @@ class LoginController extends Controller
             'password.min' => 'Mật khẩu phải có ít nhất 8 ký tự',
         ]);
 
+        // Xác định field đăng nhập (email hoặc phone)
         $field = filter_var($request->login, FILTER_VALIDATE_EMAIL) ? 'email' : 'phone';
 
+        // Tạo credentials với is_active = true
         $credentials = [
             $field => $request->login,
             'password' => $request->password,
-            'is_active' => true
+            'is_active' => true // Chỉ cho phép đăng nhập nếu tài khoản đang hoạt động
         ];
 
-        // Thêm remember token với thời gian lưu dài hơn
-//        $remember = $request->filled('remember');
-//        if ($remember) {
-//            $rememberTokenExpire = 43200; // 30 ngày (tính bằng phút)
-//            Auth::setRememberDuration($rememberTokenExpire);
-//        }
-
-        if (!Auth::attempt($credentials)) {
+        // Thực hiện đăng nhập
+        if (!Auth::attempt($credentials, $request->filled('remember'))) {
             throw ValidationException::withMessages([
-                'login' => 'Thông tin đăng nhập không chính xác',
+                'login' => 'Tài khoản đã bị khóa',
+            ]);
+        }
+
+        // Kiểm tra thêm nếu cần (ví dụ: phân quyền)
+        $user = Auth::user();
+        if (!$user->is_active) {
+            Auth::logout();
+            throw ValidationException::withMessages([
+                'login' => 'Tài khoản của bạn đã bị khóa',
             ]);
         }
 
@@ -69,5 +70,27 @@ class LoginController extends Controller
         return redirect()->route('login')->with('status', 'Bạn đã đăng xuất thành công!');
     }
 
+    /**
+     * Get the guard to be used during authentication.
+     * (Có thể bỏ qua nếu sử dụng guard mặc định)
+     */
+    protected function guard()
+    {
+        return Auth::guard();
+    }
 
+    /**
+     * Get the needed authorization credentials from the request.
+     * (Có thể bỏ qua nếu xử lý trực tiếp trong phương thức login)
+     */
+    protected function credentials(Request $request)
+    {
+        $field = filter_var($request->login, FILTER_VALIDATE_EMAIL) ? 'email' : 'phone';
+
+        return [
+            $field => $request->login,
+            'password' => $request->password,
+            'is_active' => true
+        ];
+    }
 }

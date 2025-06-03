@@ -1,18 +1,19 @@
 @extends('layouts.app')
 
 @section('content')
-    <div class="container">
-        <div class="card">
-            <div class="card-header">
-                <h4>Phân công học sinh tự động vào lớp</h4>
+    <div class="container rounded-3 shadow p-4">
+            <div class="d-flex align-items-center mb-4">
+                <a href="{{ url()->previous() }}" class="btn text-primary-color btn-sm me-3" title="Quay lại">
+                    <i class="fas fa-arrow-left"></i>
+                </a>
+                <h3 class="mb-0 text-primary-color">Phân công học sinh tự động vào lớp</h3>
             </div>
             <div class="card-body">
                 <form method="POST" action="{{ route('class_assignments.auto_assign') }}">
                     @csrf
 
-                    <div class="row mb-3">
+                    <div class="form-group">
                         <label for="grade_level_id" class="col-md-3 col-form-label">Khối lớp</label>
-                        <div class="col-md-9">
                             <select name="grade_level_id" id="grade_level_id" class="form-select" required>
                                 <option value="">-- Chọn khối --</option>
                                 @foreach($gradeLevels as $grade)
@@ -20,11 +21,10 @@
                                 @endforeach
                             </select>
                         </div>
-                    </div>
 
-                    <div class="row mb-3">
+
+                    <div class="form-group">
                         <label for="academic_year_id" class="col-md-3 col-form-label">Năm học</label>
-                        <div class="col-md-9">
                             <select name="academic_year_id" id="academic_year_id" class="form-select" required>
                                 @foreach($academicYears as $year)
                                     <option value="{{ $year->id }}" {{ $currentAcademicYear && $year->id == $currentAcademicYear->id ? 'selected' : '' }}>
@@ -33,20 +33,14 @@
                                 @endforeach
                             </select>
                         </div>
-                    </div>
-
-                    <div class="row">
-                        <div class="col-md-9 offset-md-3">
-                            <button type="submit" class="btn btn-primary">
-                                <i class="fas fa-magic me-2"></i>Phân công tự động
-                            </button>
-                            <a href="{{ route('class_assignments.index') }}" class="btn btn-secondary">
-                                Hủy bỏ
-                            </a>
-                        </div>
+                    <div class="d-flex justify-content-end mt-3">
+                        <a href="{{ route('class_assignments.index') }}" class="btn btn-outline-primary-color me-2">Đóng</a>
+                        <button type="submit" class="btn btn-primary-color">
+                            Phân công tự động
+                        </button>
                     </div>
                 </form>
             </div>
         </div>
-    </div>
+
 @endsection

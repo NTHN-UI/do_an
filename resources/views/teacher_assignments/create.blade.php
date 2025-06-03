@@ -1,108 +1,101 @@
 @extends('layouts.app')
 
 @section('content')
-    <div class="container">
-        <div class="card shadow-sm">
-            <div class="card-header bg-primary text-white">
-                <h4 class="mb-0">Phân công giảng dạy cho: {{ $teacher->full_name }}</h4>
-            </div>
-            <div class="card-body">
-                <form action="{{ route('teacher_assignments.store', $teacher) }}" method="POST" id="assignment-form">
-                    @csrf
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <label class="form-label">Giáo viên</label>
-                            <input type="text" class="form-control" value="{{ $teacher->full_name }}" readonly>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Trường</label>
-                            <input type="text" class="form-control" value="{{ $teacher->school->name }}" readonly>
-                        </div>
+    <div class="container rounded-3 shadow p-4">
+        <div class="d-flex align-items-center mb-4">
+            <a href="{{ url()->previous() }}" class="btn text-primary-color btn-sm me-3" title="Quay lại">
+                <i class="fas fa-arrow-left"></i>
+            </a>
+            <h3 class="mb-0 text-primary-color">Phân công giảng dạy cho: {{ $teacher->full_name }}</h3>
+        </div>
+        <div class="card-body">
+            <form action="{{ route('teacher_assignments.store', $teacher) }}" method="POST" id="assignment-form">
+                @csrf
+                    <div class="col-md-12">
+                        <label class="form-label">Giáo viên</label>
+                        <input type="text" class="form-control" value="{{ $teacher->full_name }}" readonly>
+                    </div>
+                <div class="col-md-12">
+                        <label class="form-label">Trường</label>
+                        <input type="text" class="form-control" value="{{ $teacher->school->name }}" readonly>
                     </div>
 
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <label class="form-label">Môn học <span class="text-danger">*</span></label>
-                            <select name="subject_id" class="form-select" required>
-                                <option value="">-- Chọn môn học --</option>
-                                @foreach($subjects as $subject)
-                                    <option value="{{ $subject->id }}" {{ old('subject_id') == $subject->id ? 'selected' : '' }}>
-                                        {{ $subject->name }}
-                                    </option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Năm học</label>
-                            <select name="academic_year_id" class="form-select" id="academic-year-filter">
-                                <option value="">-- Tất cả năm --</option>
-                                @foreach($academicYears as $year)
-                                    <option value="{{ $year->id }}" {{ request('academic_year_id') == $year->id ? 'selected' : '' }}>
-                                        {{ $year->year }}
-                                    </option>
-                                @endforeach
-                            </select>
-                        </div>
+
+                <div class="col-md-12">
+                        <label class="form-label">Môn học <span class="text-danger">*</span></label>
+                        <select name="subject_id" class="form-select" required>
+                            <option value="">-- Chọn môn học --</option>
+                            @foreach($subjects as $subject)
+                                <option value="{{ $subject->id }}" {{ old('subject_id') == $subject->id ? 'selected' : '' }}>
+                                    {{ $subject->name }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+                <div class="col-md-12">
+                        <label class="form-label">Năm học</label>
+                        <select name="academic_year_id" class="form-select" id="academic-year-filter">
+                            <option value="">-- Tất cả năm --</option>
+                            @foreach($academicYears as $year)
+                                <option value="{{ $year->id }}" {{ request('academic_year_id') == $year->id ? 'selected' : '' }}>
+                                    {{ $year->year }}
+                                </option>
+                            @endforeach
+                        </select>
                     </div>
 
-                    <div class="row mb-3">
-                        <div class="col-md-12">
-                            <label class="form-label">Lớp học (Chọn nhiều lớp) <span class="text-danger">*</span></label>
-                            <div class="dropdown">
-                                <button class="btn btn-outline-secondary dropdown-toggle w-100" type="button" id="classDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                                    Chọn lớp học
-                                </button>
-                                <div class="dropdown-menu w-100 p-3" aria-labelledby="classDropdown" id="classes-container">
-                                    @if($classes->count() > 0)
-                                        <div class="row">
-                                            @foreach($classes as $class)
-                                                <div class="col-12 mb-2">
-                                                    <div class="form-check">
-                                                        <input class="form-check-input class-checkbox"
-                                                               type="checkbox"
-                                                               name="class_ids[]"
-                                                               value="{{ $class->id }}"
-                                                            {{ request('class_id') == $class->id ? 'checked' : '' }}>
-                                                        <label class="form-check-label" for="class_{{ $class->id }}">
-                                                            {{ $class->gradeLevel->grade_number }} - {{ $class->name }}
-                                                        </label>
-                                                    </div>
+                <div class="col-md-12">
+
+                        <label class="form-label">Lớp học (Chọn nhiều lớp) <span class="text-danger">*</span></label>
+                        <div class="dropdown">
+                            <button class="btn btn-outline-secondary dropdown-toggle w-100" type="button" id="classDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                Chọn lớp học
+                            </button>
+                            <div class="dropdown-menu w-100 p-3" aria-labelledby="classDropdown" id="classes-container">
+                                @if($classes->count() > 0)
+                                    <div class="row">
+                                        @foreach($classes as $class)
+                                            <div class="col-12 mb-2">
+                                                <div class="form-check">
+                                                    <input class="form-check-input class-checkbox"
+                                                           type="checkbox"
+                                                           name="class_ids[]"
+                                                           value="{{ $class->id }}"
+                                                        {{ request('class_id') == $class->id ? 'checked' : '' }}>
+                                                    <label class="form-check-label" for="class_{{ $class->id }}">
+                                                        {{ $class->gradeLevel->grade_number }} - {{ $class->name }}
+                                                    </label>
                                                 </div>
-                                            @endforeach
-                                        </div>
-                                    @else
-                                        <div class="alert alert-warning">Không có lớp học nào trong năm học này</div>
-                                    @endif
-                                </div>
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                @else
+                                    <div class="alert alert-warning">Không có lớp học nào trong năm học này</div>
+                                @endif
                             </div>
-                            <div id="selected-classes" class="mt-2"></div>
                         </div>
+                        <div id="selected-classes" class="mt-2"></div>
                     </div>
 
-                    <div class="mb-3">
-                        <div class="form-check form-switch">
-                            <input type="checkbox" name="is_homeroom" id="is_homeroom"
-                                   class="form-check-input" value="1" {{ old('is_homeroom') ? 'checked' : '' }}>
-                            <label class="form-check-label" for="is_homeroom">
-                                Giáo viên chủ nhiệm
-                            </label>
-                        </div>
+                <div class="mb-3">
+                    <div class="form-check form-switch">
+                        <input type="checkbox" name="is_homeroom" id="is_homeroom"
+                               class="form-check-input" value="1" {{ old('is_homeroom') ? 'checked' : '' }}>
+                        <label class="form-check-label" for="is_homeroom">
+                            Giáo viên chủ nhiệm
+                        </label>
                     </div>
+                </div>
 
-                    <div class="d-flex justify-content-between">
-                        <a href="{{ route('teacher_assignments.index') }}" class="btn btn-outline-secondary">
-                            <i class="fas fa-arrow-left"></i> Quay lại
-                        </a>
-                        <button type="submit" class="btn btn-primary">
-                            <i class="fas fa-save"></i> Lưu phân công
-                        </button>
-                    </div>
-                </form>
-            </div>
+                <div class="d-flex justify-content-end gap-2">
+                    <button type="submit" class="btn btn-primary-color">
+                         Lưu
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 @endsection
-
 @push('scripts')
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script>

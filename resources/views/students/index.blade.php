@@ -2,78 +2,45 @@
 
 @section('content')
     <style>
-        .container {
-            border-radius: 12px;
-            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
-            padding: 20px;
-            overflow-x: auto;
+        .table-responsive .dropdown-menu {
+            position: fixed !important;
+            z-index: 1000 !important;
+            min-width: 90px;
         }
-
-        .card {
-            border-radius: 0.5rem;
+        .dropdown-item:active,
+        .dropdown-item:focus {
+            background-color: #013066 !important;
+            color: white !important;
         }
-
-        .card-body {
-            position: relative;
-            overflow: visible !important;
+        .pagination .page-item.active .page-link {
+            background-color: var(--primary-color);
+            color: var(--bs-white);
+            border-color: var(--primary-color);
         }
-
-        .table thead {
-            background: linear-gradient(45deg, #f1f3f5, #e9ecef);
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-        }
-
-        .table th {
-            font-weight: 500;
-            padding: 12px;
-        }
-
-        .table td {
-            vertical-align: middle;
-            padding: 10px;
-            border-bottom: 1px solid #dee2e6;
-        }
-
-        .table-hover tbody tr:hover {
-            background-color: rgba(0, 123, 255, 0.08);
-            transition: background-color 0.3s ease-in-out;
-        }
-
-        .badge {
-            font-size: 0.85rem;
-            padding: 0.4em 0.75em;
-            border-radius: 0.5rem;
-        }
-
-        .table-responsive {
-            overflow: visible !important;
-        }
-
-        .input-group .btn {
-            border: 0.5rem;
-        }
-
     </style>
-    <div class="container">
-        <h3 class="mb-3">Danh sách học sinh</h3>
+    <div class="container rounded-3 shadow p-4">
+        <h3 class="mb-3 text-primary-color">Danh sách học sinh</h3>
 
         <!-- Search and Add Button -->
+        <div class="mb-3 d-flex justify-content-end align-items-center">
+            <form id="search-form" method="GET" action="{{ route('students.index') }}" class="me-2">
+                <div class="input-group">
+                    <input type="text" name="search" class="form-control"
+                           placeholder="Tìm kiếm học sinh..."
+                           value="{{ request('search') }}"
+                           id="search-input">
+                    <button type="submit" class="btn btn-primary-color">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Filter Form -->
         <div class="card mb-3">
             <div class="card-body">
-                <form method="GET" action="{{ route('students.index') }}" id="search-form">
+                <form method="GET" action="{{ route('students.index') }}" id="filter-form">
                     <div class="row g-3">
-                        <!-- Search Input -->
-                        <div class="col-md-4">
-                            <div class="input-group">
-                                <input type="text" name="search" class="form-control"
-                                       placeholder="Tìm kiếm học sinh..." value="{{ $search }}">
-                                <button type="submit" class="btn btn-primary-color">
-                                    <i class="fas fa-search text-white"></i>
-                                </button>
-                            </div>
-                        </div>
-
-                        <!-- Academic Year Filter -->
                         <div class="col-md-3">
                             <label for="academic_year_id" class="form-label">Năm học</label>
                             <select class="form-select" id="academic_year_id" name="academic_year_id">
@@ -86,8 +53,6 @@
                                 @endforeach
                             </select>
                         </div>
-
-                        <!-- Grade Level Filter -->
                         <div class="col-md-3">
                             <label for="grade_level_id" class="form-label">Khối học</label>
                             <select class="form-select" id="grade_level_id" name="grade_level_id">
@@ -114,7 +79,6 @@
                 <a href="{{ route('class_assignments.index') }}" class="btn btn-primary-color me-2">Phân lớp
                 </a>
             </div>
-
             <div>
                 <!-- Import Button -->
                 <button class="btn btn-primary-color me-2 action-btn" onclick="$('#real-import-btn').click()"
@@ -153,19 +117,19 @@
         </div>
 
         <!-- Student list -->
-        <div class="card border-0 shadow-sm">
+        <div class="card border-0 shadow-sm rounded-2">
             <div class="card-body p-0">
                 <div class="table-responsive">
-                    <table class="table table-hover mb-0">
-                        <thead class="table-secondary">
+                    <table class="table table-hover mb-0 rounded-3 overflow-hidden">
+                        <thead class="table-secondary text-center">
                         <tr>
-                            <th class="ps-4" style="width: 50px;">ID</th>
+                            <th>ID</th>
                             <th>Họ và tên</th>
                             <th>Email</th>
-                            <th class="text-center">SĐT</th>
+                            <th >SĐT</th>
                             <th>Trường</th>
-                            <th class="text-center">Trạng thái</th>
-                            <th class="text-end pe-4" style="width: 50px;"></th>
+                            <th>Trạng thái</th>
+                            <th>Thao tác</th>
                         </tr>
                         </thead>
                         <tbody id="students-container">
@@ -181,15 +145,27 @@
 
 @push('scripts')
     <script>
-        $(document).ready(function () {
             $(document).ready(function () {
+                let timer;
+                $('#search-input').on('keyup', function() {
+                    clearTimeout(timer);
+                    timer = setTimeout(() => {
+                        $('#search-form').submit();
+                    }, 500);
+                });
+
+                // Reset search input if needed (add a clear button if you want)
+                @if(request('search'))
+                $('.btn-outline-secondary').click(function() {
+                    $('#search-input').val('');
+                    $('#search-form').submit();
+                });
+                @endif
                 const academicYearSelect = $('#academic_year_id');
                 const gradeLevelSelect = $('#grade_level_id');
-                const searchForm = $('#search-form');
                 const inputFile = $("#real-import-btn");
 
-                // Tìm kiếm khi nhập (debounce)
-                const $searchInput = $('input[name="search"]');
+
 
                 function toggleActionButtons() {
                     const yearSelected = academicYearSelect.val();
@@ -310,17 +286,6 @@
                         success: function(response) {
                             if (response.success) {
                                 render(gradeLevelSelect.val(), academicYearSelect.val())
-                                /*// Thêm các tham số filter vào URL khi reload
-                                let reloadUrl = window.location.pathname;
-                                const params = new URLSearchParams();
-
-                                if (academicYearId) params.append('academic_year_id', academicYearId);
-                                if (gradeLevelId) params.append('grade_level_id', gradeLevelId);
-                                if ($searchInput.val()) params.append('search', $searchInput.val());
-
-                                if (params.toString()) {
-                                    reloadUrl += '?' + params.toString();
-                                }*/
 
                             } else {
                                 alert('Lỗi: ' + response.message);
@@ -347,6 +312,5 @@
                     $('#export-template-link').attr('href', url);
                 }
             });
-        });
     </script>
 @endpush

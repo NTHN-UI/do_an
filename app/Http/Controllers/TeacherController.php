@@ -163,6 +163,8 @@ class TeacherController extends Controller
 
         // Giữ nguyên email và không cho phép thay đổi
         $data['email'] = $teacher->email;
+        $teacher->is_active = $request->input('is_active', false);
+
 
         $teacher->update($data);
 

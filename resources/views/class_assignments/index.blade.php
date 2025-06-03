@@ -1,17 +1,32 @@
 @extends('layouts.app')
 
 @section('content')
-    <div class="container">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h3>Quản lý phân lớp học sinh</h3>
-            <div>
-                <a href="{{ route('class_assignments.auto_assign') }}" class="btn btn-primary-color">
-                    <i class="fas fa-magic me-2"></i>Phân công tự động
-                </a>
-            </div>
-        </div>
+    <style>
+        .table-responsive .dropdown-menu {
+            position: fixed !important;
+            z-index: 1000 !important;
+            min-width: 90px;
+        }
+        .dropdown-item:active,
+        .dropdown-item:focus {
+            background-color: #013066 !important;
+            color: white !important;
+        }
+        .pagination .page-item.active .page-link {
+            background-color: var(--primary-color);
+            color: var(--bs-white);
+            border-color: var(--primary-color);
+        }
+    </style>
 
-        <div class="card mb-4">
+    <div class="container rounded-3 shadow p-4">
+        <h3 class="mb-3 text-primary-color">Quản lý phân lớp học sinh</h3>
+        <div class="mb-3 d-flex justify-content-end align-items-center">
+            <a href="{{ route('class_assignments.auto_assign') }}" class="btn btn-primary-color me-2">
+               Phân công tự động
+            </a>
+        </div>
+        <div class="card border-0 shadow-sm rounded-2 mb-4">
             <div class="card-body">
                 <form method="GET" action="{{ route('class_assignments.index') }}" class="row g-3">
                     <div class="col-md-5">
@@ -20,26 +35,23 @@
                                 onchange="this.form.submit()">
                             <option value="">-- Chọn năm học --</option>
                             @foreach($academicYears as $year)
-                                <option
-                                    value="{{ $year->id }}" {{ $selectedAcademicYear == $year->id ? 'selected' : '' }}>
+                                <option value="{{ $year->id }}" {{ $selectedAcademicYear == $year->id ? 'selected' : '' }}>
                                     {{ $year->year }}
                                 </option>
                             @endforeach
                         </select>
                     </div>
-                    <!-- Thêm input hidden để giữ các tham số khác nếu có -->
                     @foreach(request()->except('academic_year_id') as $key => $value)
                         <input type="hidden" name="{{ $key }}" value="{{ $value }}">
                     @endforeach
                 </form>
             </div>
         </div>
-
-        <div class="card">
-            <div class="card-body">
+        <div class="card border-0 shadow-sm rounded-2">
+            <div class="card-body p-0">
                 <div class="table-responsive">
-                    <table class="table table-hover">
-                        <thead>
+                    <table class="table table-hover mb-0 rounded-3 overflow-hidden">
+                        <thead class="table-secondary text-center">
                         <tr>
                             <th>Tên lớp</th>
                             <th>Khối</th>
@@ -50,7 +62,7 @@
                         </thead>
                         <tbody>
                         @forelse($classes as $class)
-                            <tr>
+                            <tr class="text-center">
                                 <td>{{ $class->name }}</td>
                                 <td>Khối {{ $class->gradeLevel->grade_number }}</td>
                                 <td>
@@ -61,14 +73,14 @@
                                     @endif
                                 </td>
                                 <td>
-                                        <span class="badge bg-primary-color rounded-pill">
-                                            {{ $class->students_count ?: '0' }}
-                                        </span>
+                                    <span class="badge text-primary-color rounded-pill">
+                                        {{ $class->students_count ?: '0' }}
+                                    </span>
                                 </td>
-                                <td>
+                                <td class="text-center pe-4">
                                     <a href="{{ route('class_assignments.show', ['class' => $class, 'academic_year_id' => $selectedAcademicYear]) }}"
-                                       class="btn btn-sm btn-primary-color">
-                                        Xem học sinh
+                                       class="btn btn-sm text-primary-color" title="Xem học sinh">
+                                        <i class="fas fa-eye"></i>
                                     </a>
                                 </td>
                             </tr>

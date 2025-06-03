@@ -106,7 +106,7 @@
                             <th>Môn học</th>
                             <th>Vai trò</th>
                             <th>Năm học</th>
-                            <th class="text-end pe-4" style="width: 50px;"></th>
+                            <th>Thao tác</th>
                         </tr>
                         </thead>
                         <tbody>
@@ -122,7 +122,7 @@
                                         class="badge bg-primary-color">{{ $assignment->is_homeroom ? "Giáo viên chủ nhiệm" : "Giáo viên bộ môn" }}</span>
                                 </td>
                                 <td>{{ $assignment->academicYear->year }}</td>
-                                <td class="text-end pe-4">
+                                <td class="text-center">
                                     <div class="dropdown">
                                         <button class="btn btn-sm" type="button" data-bs-toggle="dropdown"
                                                 aria-expanded="false">

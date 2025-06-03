@@ -42,7 +42,7 @@
                 </div>
 
                 <div class="d-flex justify-content-end align-items-center mt-3">
-                    <a href="{{ route('academic_years.index') }}" class="btn btn-primary-color me-2">
+                    <a href="{{ route('academic_years.index') }}" class="btn btn-outline-primary-color me-2">
                         Đóng
                     </a>
                     <button type="submit" class="btn btn-primary-color">

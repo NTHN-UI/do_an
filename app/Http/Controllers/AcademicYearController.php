@@ -29,7 +29,6 @@ class AcademicYearController extends Controller
     {
         return view('academic_years.create');
     }
-
     /**
      * Store a newly created resource in storage.
      */

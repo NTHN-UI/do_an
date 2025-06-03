@@ -23,7 +23,7 @@
     <div class="container rounded-3 shadow p-4">
         <h3 class="mb-3 text-primary-color">Danh sách lớp học</h3>
         <div class="mb-3 d-flex justify-content-end align-items-center">
-            <form method="GET" action="{{ route('classes.index') }}" class="me-2">
+            <form method="GET" action="{{ route('classes.index') }}">
                 <div class="input-group">
                     <select name="academic_year_id" class="form-select" onchange="this.form.submit()">
                         <option value="">-- Chọn năm học --</option>

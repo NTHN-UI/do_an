@@ -26,7 +26,7 @@
                 <div class="form-group">
                     <label for="start_date">Ngày bắt đầu *</label>
                     <input id="start_date" type="date" class="form-control @error('start_date') is-invalid @enderror"
-                           name="start_date" value="{{ old('start_date', $semester->start_date) }}">
+                           name="start_date" value="{{ old('start_date', $semester->start_date ? $semester->start_date->format('Y-m-d') : '') }}">
                     @error('start_date')
                     <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
@@ -35,14 +35,14 @@
                 <div class="form-group">
                     <label for="end_date">Ngày kết thúc *</label>
                     <input id="end_date" type="date" class="form-control @error('end_date') is-invalid @enderror"
-                           name="end_date" value="{{ old('end_date', $semester->end_date) }}">
+                           name="end_date" value="{{ old('end_date', $semester->end_date ? $semester->end_date->format('Y-m-d') : '') }}">
                     @error('end_date')
                     <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
                 </div>
 
                 <div class="d-flex justify-content-end align-items-center mt-3">
-                    <a href="{{ route('semesters.index', $selectedYearId) }}" class="btn btn-primary-color me-2">
+                    <a href="{{ route('semesters.index', $selectedYearId) }}" class="btn btn-outline-primary-color me-2">
                         Đóng
                     </a>
                     <button type="submit" class="btn btn-primary-color">

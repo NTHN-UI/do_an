@@ -61,10 +61,10 @@ class SemesterController extends Controller
                 'start_date.required' => 'Ngày bắt đầu không được để trống',
                 'end_date.required' => 'Ngày kết thúc không được để trống',
                 'end_date.after' => 'Ngày kết thúc phải sau ngày bắt đầu',
-                'start_date.semester1_start' => 'Học kỳ 1 phải bắt đầu vào tháng 9',
-                'start_date.semester2_start' => 'Học kỳ 2 phải bắt đầu vào tháng 1',
-                'end_date.semester1_end' => 'Học kỳ 1 phải kết thúc vào tháng 12 hoặc tháng 1',
-                'end_date.semester2_end' =>  'Học kỳ 2 phải kết thúc vào tháng 5 hoặc tháng 6',
+                'start_date.semester1_start' => 'Học kỳ I phải bắt đầu vào tháng 9',
+                'start_date.semester2_start' => 'Học kỳ II phải bắt đầu vào tháng 1',
+                'end_date.semester1_end' => 'Học kỳ I phải kết thúc vào tháng 12 hoặc tháng 1',
+                'end_date.semester2_end' =>  'Học kỳ II phải kết thúc vào tháng 5 hoặc tháng 6',
                 'duration.valid' => 'Học kỳ phải kéo dài từ 4 đến 5 tháng',
                 'overlap.exists' => 'Khoảng thời gian này đã có học kỳ khác',
                 'name.unique_semester' => 'Năm học này đã có :attribute rồi'
@@ -79,8 +79,8 @@ class SemesterController extends Controller
                     'string',
                     'max:50',
                     function ($attribute, $value, $fail) use ($request) {
-                        if (!in_array($value, ['Học kỳ 1', 'Học kỳ 2'])) {
-                            $fail('Tên học kỳ phải là "Học kỳ 1" hoặc "Học kỳ 2"');
+                        if (!in_array($value, ['Học kỳ I', 'Học kỳ II'])) {
+                            $fail('Tên học kỳ phải là "Học kỳ I" hoặc "Học kỳ II"');
                             return;
                         }
                         // Chỉ kiểm tra trùng nếu academic_year_id hợp lệ
@@ -102,7 +102,7 @@ class SemesterController extends Controller
                     'date',
                     function ($attribute, $value, $fail) use ($request) {
                         // Chỉ kiểm tra nếu có academic_year_id và name hợp lệ
-                        if (!$request->academic_year_id || !in_array($request->name, ['Học kỳ 1', 'Học kỳ 2'])) {
+                        if (!$request->academic_year_id || !in_array($request->name, ['Học kỳ I', 'Học kỳ II'])) {
                             return;
                         }
 
@@ -113,16 +113,29 @@ class SemesterController extends Controller
                         $month = $startDate->format('m');
                         $year = $startDate->format('Y');
 
-                        if ($request->name === 'Học kỳ 1' && $month !== '09') {
-                            $fail('Học kỳ 1 phải bắt đầu vào tháng 9');
+                        if ($request->name === 'Học kỳ I' && $month !== '09') {
+                            $fail('Học kỳ I phải bắt đầu vào tháng 9');
                         }
 
-                        if ($request->name === 'Học kỳ 2' && $month !== '01') {
-                            $fail('Học kỳ 2 phải bắt đầu vào tháng 1');
+                        if ($request->name === 'Học kỳ II' && $month !== '01') {
+                            $fail('Học kỳ II phải bắt đầu vào tháng 1');
                         }
 
-                        if ($request->name === 'Học kỳ 1' && $year != $academicYear->start_date->format('Y')) {
-                            $fail('Học kỳ 1 phải thuộc năm bắt đầu của năm học');
+                        if ($request->name === 'Học kỳ I' && $year != $academicYear->start_date->format('Y')) {
+                            $fail('Học kỳ I phải thuộc năm bắt đầu của năm học');
+                        }
+                        $startDateSemester = date_create($value);
+                        $academicYearStartDate = $academicYear->start_date; // Đây đã là đối tượng Carbon/DateTime
+                        $academicYearEndDate = $academicYear->end_date;     // Đây đã là đối tượng Carbon/DateTime
+
+                        // Kiểm tra ngày bắt đầu học kỳ không được trước ngày bắt đầu năm học
+                        if ($startDateSemester < $academicYearStartDate) {
+                            $fail('Ngày bắt đầu học kỳ không được trước ngày bắt đầu của năm học (' . $academicYearStartDate->format('d/m/Y') . ')');
+                        }
+
+                        // Kiểm tra ngày bắt đầu học kỳ không được sau ngày kết thúc năm học
+                        if ($startDateSemester > $academicYearEndDate) {
+                            $fail('Ngày bắt đầu học kỳ không được sau ngày kết thúc của năm học (' . $academicYearEndDate->format('d/m/Y') . ')');
                         }
                     }
                 ],
@@ -132,7 +145,7 @@ class SemesterController extends Controller
                     'after:start_date',
                     function ($attribute, $value, $fail) use ($request, $school) {
                         // Chỉ kiểm tra nếu có đủ thông tin cần thiết
-                        if (!$request->academic_year_id || !$request->start_date || !in_array($request->name, ['Học kỳ 1', 'Học kỳ 2'])) {
+                        if (!$request->academic_year_id || !$request->start_date || !in_array($request->name, ['Học kỳ I', 'Học kỳ II'])) {
                             return;
                         }
 
@@ -143,13 +156,13 @@ class SemesterController extends Controller
                         $month = $endDate->format('m');
                         $year = $endDate->format('Y');
 
-                        if ($request->name === 'Học kỳ 1') {
+                        if ($request->name === 'Học kỳ I') {
                             if (!in_array($month, ['12', '01'])) {
-                                $fail('Học kỳ 1 phải kết thúc vào tháng 12 hoặc tháng 1');
+                                $fail('Học kỳ I phải kết thúc vào tháng 12 hoặc tháng 1');
                             }
                         } else {
                             if (!in_array($month, ['05', '06'])) {
-                                $fail('Học kỳ 2 phải kết thúc vào tháng 5 hoặc tháng 6');
+                                $fail('Học kỳ II phải kết thúc vào tháng 5 hoặc tháng 6');
                             }
                         }
 
@@ -161,6 +174,22 @@ class SemesterController extends Controller
 
                         if ($totalMonths < 4 || $totalMonths > 5) {
                             $fail('Học kỳ phải kéo dài từ 4 đến 5 tháng');
+                        }
+                        $academicYear = AcademicYear::find($request->academic_year_id);
+                        if (!$academicYear) return;
+
+                        $endDateSemester = date_create($value);
+                        $academicYearStartDate = $academicYear->start_date; // Đây đã là đối tượng Carbon/DateTime
+                        $academicYearEndDate = $academicYear->end_date;     // Đây đã là đối tượng Carbon/DateTime
+
+                        // Kiểm tra ngày kết thúc học kỳ không được trước ngày bắt đầu năm học
+                        if ($endDateSemester < $academicYearStartDate) {
+                            $fail('Ngày kết thúc học kỳ không được trước ngày bắt đầu của năm học (' . $academicYearStartDate->format('d/m/Y') . ')');
+                        }
+
+                        // Kiểm tra ngày kết thúc học kỳ không được sau ngày kết thúc năm học
+                        if ($endDateSemester > $academicYearEndDate) {
+                            $fail('Ngày kết thúc học kỳ không được sau ngày kết thúc của năm học (' . $academicYearEndDate->format('d/m/Y') . ')');
                         }
                     }
                 ],
@@ -265,10 +294,10 @@ class SemesterController extends Controller
             'start_date.required' => 'Ngày bắt đầu không được để trống',
             'end_date.required' => 'Ngày kết thúc không được để trống',
             'end_date.after' => 'Ngày kết thúc phải sau ngày bắt đầu',
-            'start_date.semester1_start' => 'Học kỳ 1 phải bắt đầu vào tháng 9',
-            'start_date.semester2_start' => 'Học kỳ 2 phải bắt đầu vào tháng 1',
-            'end_date.semester1_end' => 'Học kỳ 1 phải kết thúc vào tháng 12 hoặc tháng 1',
-            'end_date.semester2_end' =>  'Học kỳ 2 phải kết thúc vào tháng 5 hoặc tháng 6',
+            'start_date.semester1_start' => 'Học kỳ I phải bắt đầu vào tháng 9',
+            'start_date.semester2_start' => 'Học kỳ II phải bắt đầu vào tháng 1',
+            'end_date.semester1_end' => 'Học kỳ I phải kết thúc vào tháng 12 hoặc tháng 1',
+            'end_date.semester2_end' =>  'Học kỳ II phải kết thúc vào tháng 5 hoặc tháng 6',
             'duration.valid' => 'Học kỳ phải kéo dài từ 4 đến 5 tháng',
             'overlap.exists' => 'Khoảng thời gian này đã có học kỳ khác',
             'name.unique_semester' => 'Năm học này đã có :attribute rồi'
@@ -285,8 +314,8 @@ class SemesterController extends Controller
                 'string',
                 'max:50',
                 function ($attribute, $value, $fail) use ($request, $semester) {
-                    if (!in_array($value, ['Học kỳ 1', 'Học kỳ 2'])) {
-                        $fail('Tên học kỳ phải là "Học kỳ 1" hoặc "Học kỳ 2"');
+                    if (!in_array($value, ['Học kỳ I', 'Học kỳ II'])) {
+                        $fail('Tên học kỳ phải là "Học kỳ I" hoặc "Học kỳ II"');
                         return;
                     }
                     // Chỉ kiểm tra trùng nếu academic_year_id hợp lệ
@@ -309,7 +338,7 @@ class SemesterController extends Controller
                 'date',
                 function ($attribute, $value, $fail) use ($request) {
                     // Chỉ kiểm tra nếu có academic_year_id và name hợp lệ
-                    if (!$request->academic_year_id || !in_array($request->name, ['Học kỳ 1', 'Học kỳ 2'])) {
+                    if (!$request->academic_year_id || !in_array($request->name, ['Học kỳ I', 'Học kỳ II'])) {
                         return;
                     }
 
@@ -320,16 +349,31 @@ class SemesterController extends Controller
                     $month = $startDate->format('m');
                     $year = $startDate->format('Y');
 
-                    if ($request->name === 'Học kỳ 1' && $month !== '09') {
-                        $fail('Học kỳ 1 phải bắt đầu vào tháng 9');
+                    if ($request->name === 'Học kỳ I' && $month !== '09') {
+                        $fail('Học kỳ I phải bắt đầu vào tháng 9');
                     }
 
-                    if ($request->name === 'Học kỳ 2' && $month !== '01') {
-                        $fail('Học kỳ 2 phải bắt đầu vào tháng 1');
+                    if ($request->name === 'Học kỳ II' && $month !== '01') {
+                        $fail('Học kỳ II phải bắt đầu vào tháng 1');
                     }
 
-                    if ($request->name === 'Học kỳ 1' && $year != $academicYear->start_date->format('Y')) {
-                        $fail('Học kỳ 1 phải thuộc năm bắt đầu của năm học');
+                    if ($request->name === 'Học kỳ I' && $year != $academicYear->start_date->format('Y')) {
+                        $fail('Học kỳ II phải thuộc năm bắt đầu của năm học');
+                    }
+
+
+                    $startDateSemester = date_create($value);
+                    $academicYearStartDate = $academicYear->start_date; // Đây đã là đối tượng Carbon/DateTime
+                    $academicYearEndDate = $academicYear->end_date;     // Đây đã là đối tượng Carbon/DateTime
+
+                    // Kiểm tra ngày bắt đầu học kỳ không được trước ngày bắt đầu năm học
+                    if ($startDateSemester < $academicYearStartDate) {
+                        $fail('Ngày bắt đầu học kỳ không được trước ngày bắt đầu của năm học (' . $academicYearStartDate->format('d/m/Y') . ')');
+                    }
+
+                    // Kiểm tra ngày bắt đầu học kỳ không được sau ngày kết thúc năm học
+                    if ($startDateSemester > $academicYearEndDate) {
+                        $fail('Ngày bắt đầu học kỳ không được sau ngày kết thúc của năm học (' . $academicYearEndDate->format('d/m/Y') . ')');
                     }
                 }
             ],
@@ -339,7 +383,7 @@ class SemesterController extends Controller
                 'after:start_date',
                 function ($attribute, $value, $fail) use ($request, $school) {
                     // Chỉ kiểm tra nếu có đủ thông tin cần thiết
-                    if (!$request->academic_year_id || !$request->start_date || !in_array($request->name, ['Học kỳ 1', 'Học kỳ 2'])) {
+                    if (!$request->academic_year_id || !$request->start_date || !in_array($request->name, ['Học kỳ I', 'Học kỳ II'])) {
                         return;
                     }
 
@@ -350,13 +394,13 @@ class SemesterController extends Controller
                     $month = $endDate->format('m');
                     $year = $endDate->format('Y');
 
-                    if ($request->name === 'Học kỳ 1') {
+                    if ($request->name === 'Học kỳ I') {
                         if (!in_array($month, ['12', '01'])) {
-                            $fail('Học kỳ 1 phải kết thúc vào tháng 12 hoặc tháng 1');
+                            $fail('Học kỳ I phải kết thúc vào tháng 12 hoặc tháng 1');
                         }
                     } else {
                         if (!in_array($month, ['05', '06'])) {
-                            $fail('Học kỳ 2 phải kết thúc vào tháng 5 hoặc tháng 6');
+                            $fail('Học kỳ II phải kết thúc vào tháng 5 hoặc tháng 6');
                         }
                     }
 
@@ -367,6 +411,19 @@ class SemesterController extends Controller
 
                     if ($totalMonths < 4 || $totalMonths > 5) {
                         $fail('Học kỳ phải kéo dài từ 4 đến 5 tháng');
+                    }
+                    $endDateSemester = date_create($value);
+                    $academicYearStartDate = $academicYear->start_date; // Đây đã là đối tượng Carbon/DateTime
+                    $academicYearEndDate = $academicYear->end_date;     // Đây đã là đối tượng Carbon/DateTime
+
+                    // Kiểm tra ngày kết thúc học kỳ không được trước ngày bắt đầu năm học
+                    if ($endDateSemester < $academicYearStartDate) {
+                        $fail('Ngày kết thúc học kỳ không được trước ngày bắt đầu của năm học (' . $academicYearStartDate->format('d/m/Y') . ')');
+                    }
+
+                    // Kiểm tra ngày kết thúc học kỳ không được sau ngày kết thúc năm học
+                    if ($endDateSemester > $academicYearEndDate) {
+                        $fail('Ngày kết thúc học kỳ không được sau ngày kết thúc của năm học (' . $academicYearEndDate->format('d/m/Y') . ')');
                     }
                 }
             ],

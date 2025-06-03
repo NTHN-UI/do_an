@@ -5,13 +5,9 @@
         <!-- Header Section -->
         <div class="d-flex align-items-center justify-content-between mb-4 p-3 bg-white rounded shadow-sm">
             <div class="d-flex align-items-center">
-                <a href="{{ url()->previous() }}" class="btn btn-outline-primary me-3 rounded-circle" title="Quay lại">
-                    <i class="fas fa-arrow-left"></i>
-                </a>
                 <div>
-                    <h2 class="mb-0 text-primary-color fw-bold">
-                        <i class="fas fa-chart-line me-2"></i>Quản lý điểm học sinh
-                    </h2>
+                    <h3 class="mb-0 text-primary-color fw-bold">Quản lý điểm học sinh
+                    </h3>
                     <small class="text-muted">Theo dõi và quản lý kết quả học tập</small>
                 </div>
             </div>
@@ -19,18 +15,13 @@
 
         <!-- Filter Section -->
         <div class="card shadow-sm border-0 mb-4">
-            <div class="card-header bg-primary-color text-white py-3">
-                <h5 class="mb-0 fw-bold">
-                    <i class="fas fa-filter me-2"></i>Bộ lọc dữ liệu
-                </h5>
-            </div>
             <div class="card-body p-4">
                 <form method="GET" action="{{ route('grades.index') }}" id="filter-form">
                     <div class="row g-4">
                         <div class="col-lg-4 col-md-6">
                             <div class="form-group">
-                                <label for="academic_year_id" class="form-label fw-semibold text-primary-color">
-                                    <i class="fas fa-calendar-alt me-1"></i>Năm học *
+                                <label for="academic_year_id" class="form-label fw-semibold">
+                                   Năm học
                                 </label>
                                 <select class="form-select form-select-lg border-2" id="academic_year_id" name="academic_year_id" required>
                                     <option value="">-- Chọn năm học --</option>
@@ -45,8 +36,7 @@
 
                         <div class="col-lg-4 col-md-6">
                             <div class="form-group">
-                                <label for="class_id" class="form-label fw-semibold text-primary-color">
-                                    <i class="fas fa-users me-1"></i>Lớp học *
+                                <label for="class_id" class="form-label fw-semibold">Lớp học
                                 </label>
                                 <select class="form-select form-select-lg border-2" id="class_id" name="class_id" required>
                                     <option value="">-- Chọn lớp --</option>
@@ -62,8 +52,7 @@
 
                         <div class="col-lg-4 col-md-12">
                             <div class="form-group">
-                                <label for="semester_id" class="form-label fw-semibold text-primary-color">
-                                    <i class="fas fa-book me-1"></i>Học kỳ *
+                                <label for="semester_id" class="form-label fw-semibold">Học kỳ
                                 </label>
                                 <select class="form-select form-select-lg border-2" id="semester_id" name="semester_id" required>
                                     <option value="">-- Chọn học kỳ --</option>
@@ -103,8 +92,7 @@
                 <div class="card shadow-sm border-0">
                     <div class="card-header bg-light py-3 d-flex justify-content-between align-items-center">
                         <div>
-                            <h5 class="mb-0 text-primary-color fw-bold">
-                                <i class="fas fa-table me-2"></i>Bảng điểm học sinh
+                            <h5 class="mb-0 text-primary-color fw-bold">Bảng điểm học sinh
                             </h5>
                             <small class="text-muted">Dữ liệu được cập nhật theo thời gian thực</small>
                         </div>
@@ -118,24 +106,23 @@
                                 <thead class="bg-primary-color text-white sticky-top">
                                 <tr>
                                     <th rowspan="2" class="text-center align-middle">
-                                        <i class="fas fa-id-card me-1"></i>Mã HS
+                                        Mã HS
                                     </th>
                                     <th rowspan="2" class="text-center align-middle">
-                                        <i class="fas fa-user me-1"></i>Họ và tên
+                                        Họ và tên
                                     </th>
                                     @foreach($subjectsTaught as $subject)
                                         @if($selectedSemesterId == 0)
                                             <th colspan="2" class="text-center">
-                                                <i class="fas fa-book me-1"></i>{{ $subject->name }}
+                                               {{ $subject->name }}
                                             </th>
                                         @else
                                             <th colspan="5" class="text-center">
-                                                <i class="fas fa-book me-1"></i>{{ $subject->name }}
+                                                {{ $subject->name }}
                                             </th>
                                         @endif
                                     @endforeach
                                     <th rowspan="2" class="text-center align-middle">
-                                        <i class="fas fa-chart-bar me-1"></i>
                                         @if($selectedSemesterId == 0)
                                             Điểm TB cả năm
                                         @else
@@ -174,20 +161,16 @@
                                                     <!-- Hiển thị điểm cả năm -->
                                                     <td class="text-center">
                                                         @if($isSpecialSubject)
-                                                            <span class="badge {{ ($subjectData['semester1_text'] ?? '-') == 'Đạt' ? 'bg-success' : 'bg-warning' }}">
-                {{ $subjectData['semester1_text'] ?? '-' }}
-            </span>
+                                                            {{ $subjectData['semester1_text'] ?? '-' }}
                                                         @else
-                                                            <span class="badge bg-info">{{ $subjectData['semester1_avg'] ?? '-' }}</span>
+                                                            {{ $subjectData['semester1_avg'] ?? '-' }}
                                                         @endif
                                                     </td>
                                                     <td class="text-center">
                                                         @if($isSpecialSubject)
-                                                            <span class="badge {{ ($subjectData['semester2_text'] ?? '-') == 'Đạt' ? 'bg-success' : 'bg-warning' }}">
-                {{ $subjectData['semester2_text'] ?? '-' }}
-            </span>
+                                                            {{ $subjectData['semester2_text'] ?? '-' }}
                                                         @else
-                                                            <span class="badge bg-info">{{ $subjectData['semester2_avg'] ?? '-' }}</span>
+                                                            {{ $subjectData['semester2_avg'] ?? '-' }}
                                                         @endif
                                                     </td>
                                                 @else
@@ -231,7 +214,7 @@
                                         @endforeach
 
                                         <!-- Điểm trung bình -->
-                                        <td class="text-center fw-bold">
+                                        <td class="text-center">
                                             @php
                                                 $allSubjectsPassed = true;
                                                 $hasSpecialSubjects = false;
@@ -281,17 +264,16 @@
 
                                                 // Hiển thị kết quả
                                                 if (!$hasAnyGrade) {
-                                                    echo '<span class="text-muted">-</span>';
-                                                } elseif ($hasSpecialSubjects) {
-                                                    $result = $allSubjectsPassed ? 'Đạt' : 'Chưa đạt';
-                                                    $badgeClass = $allSubjectsPassed ? 'bg-success' : 'bg-danger';
-                                                    echo "<span class='badge $badgeClass fs-6'>$result</span>";
-                                                } elseif ($numericCount > 0) {
-                                                    $avg = round($numericAverage / $numericCount, 1);
-                                                    echo "<span class='badge bg-primary-color fs-6'>$avg</span>";
-                                                } else {
-                                                    echo '<span class="text-muted">-</span>';
-                                                }
+                                                        echo '-';
+                                                    } elseif ($hasSpecialSubjects) {
+                                                        $result = $allSubjectsPassed ? 'Đạt' : 'Chưa đạt';
+                                                        echo $result;
+                                                    } elseif ($numericCount > 0) {
+                                                        $avg = round($numericAverage / $numericCount, 1);
+                                                        echo $avg;
+                                                    } else {
+                                                        echo '-';
+                                                    }
                                             @endphp
                                         </td>
                                     </tr>

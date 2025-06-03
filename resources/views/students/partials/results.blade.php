@@ -1,17 +1,18 @@
 @foreach($students as $index => $student)
-    <tr>
+    <tr class ="text-center">
         <td class="ps-4">{{ $index + 1 }}</td>
         <td>{{ $student->full_name }}</td>
         <td>{{ $student->email }}</td>
         <td class="text-center">{{ $student->phone }}</td>
         <td>{{ $student->school->name ?? 'N/A' }}</td>
         <td class="text-center">
-            <span
-                class="badge rounded-pill {{ $student->is_active ? 'bg-primary-color' : 'bg-primary-color' }}">
-                {{ $student->is_active ? 'Hoạt động' : 'Ngừng' }}
-            </span>
+            @if($student->is_active)
+                <span class="badge bg-primary-color">Hoạt động</span>
+            @else
+                <span class="badge bg-secondary">Ngừng</span>
+            @endif
         </td>
-        <td class="text-end pe-4">
+        <td class="text-center">
             <div class="dropdown">
                 <button class="btn btn-sm" type="button" data-bs-toggle="dropdown"
                         aria-expanded="false">

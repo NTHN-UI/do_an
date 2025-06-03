@@ -2,50 +2,11 @@
 
 @section('content')
     <style>
-        .container {
-            border-radius: 12px;
-            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
-            padding: 20px;
-            overflow-x: auto;
-        }
-
-        .card {
-            border-radius: 0.5rem;
-        }
-
-        .card-body {
-            position: relative;
-            overflow: visible !important;
-        }
-
-        .table {
-            border-radius: 10px;
-            overflow: hidden;
-        }
-
-        .table-hover tbody tr:hover {
-            background-color: rgba(0, 123, 255, 0.08);
-            transition: background-color 0.3s ease-in-out;
-        }
-
-        .table-responsive {
-            overflow: visible !important;
-        }
-
         .table-responsive .dropdown-menu {
             position: fixed !important;
             z-index: 1000 !important;
             min-width: 90px;
         }
-
-        .table-responsive .show > .dropdown-menu {
-            display: block !important;
-        }
-
-        th {
-            font-weight: 500;
-        }
-
         .dropdown-item:active,
         .dropdown-item:focus {
             background-color: #013066 !important;
@@ -56,34 +17,27 @@
             color: var(--bs-white);
             border-color: var(--primary-color);
         }
-
     </style>
-    <div class="container">
+    <div class="container rounded-3 shadow p-4">
         <h3 class="mb-3 text-primary-color">Quản lý giáo viên</h3>
         <div class="mb-3 d-flex justify-content-end align-items-center">
-            <form id="search-form" method="GET" action="{{ route('teachers.index') }}">
+            <form id="search-form" method="GET" action="{{ route('teachers.index') }}" class="me-2">
                 <div class="input-group">
                     <input type="text" name="search" class="form-control"
                            placeholder="Tìm kiếm giáo viên..."
                            value="{{ request('search') }}"
                            id="search-input">
-                    <button type="submit" class="btn btn-primary">
+                    <button type="submit" class="btn btn-primary-color">
                         <i class="fas fa-search"></i>
                     </button>
-                    @if(request('search'))
-                        <a href="{{ route('teachers.index') }}" class="btn btn-outline-secondary">
-                            <i class="fas fa-times"></i>
-                        </a>
-                    @endif
                 </div>
             </form>
-            <a href="{{ route('teachers.create') }}" class="btn btn-primary-color ms-2">Thêm mới
-            </a>
+            <a href="{{ route('teachers.create') }}" class="btn btn-primary-color ms-2">Thêm mới</a>
         </div>
-        <div class="card border-0 shadow-sm">
+        <div class="card border-0 shadow-sm rounded-2">
             <div class="card-body p-0">
                 <div class="table-responsive">
-                    <table class="table table-hover mb-0">
+                    <table class="table table-hover mb-0 rounded-3 overflow-hidden">
                         <thead class="table-secondary text-center">
                         <tr>
                             <th>Họ tên</th>
@@ -96,19 +50,18 @@
                         </tr>
                         </thead>
                         <tbody>
-                        @foreach($teachers as $teacher)
+                        @forelse($teachers as $teacher)
                             <tr class="text-center">
                                 <td>{{ $teacher->full_name }}</td>
                                 <td>{{ $teacher->school->name ?? 'N/A' }}</td>
                                 <td>{{ $teacher->email }}</td>
                                 <td>{{ $teacher->phone }}</td>
                                 <td>{{ $teacher->subject->name ?? "Chưa được phân công" }}</td>
-                                <td></td>
                                 <td>
                                     @if($teacher->is_active)
                                         <span class="badge bg-primary-color">Hoạt động</span>
                                     @else
-                                        <span class="badge bg-primary-color">Không hoạt động</span>
+                                        <span class="badge bg-secondary">Ngừng</span>
                                     @endif
                                 </td>
                                 <td class="text-end pe-4">
@@ -120,19 +73,18 @@
                                         <ul class="dropdown-menu dropdown-menu-end shadow-sm rounded-3 border-0">
                                             <li>
                                                 <a class="dropdown-item px-3 py-2"
-                                                   href="{{ route('teachers.show', $teacher) }}" >Xem
-                                                </a>
+                                                   href="{{ route('teachers.show', $teacher) }}">Xem</a>
                                             </li>
                                             <li>
                                                 <a class="dropdown-item px-3 py-2"
-                                                    href="{{ route('teachers.edit', $teacher) }}">
+                                                   href="{{ route('teachers.edit', $teacher) }}">
                                                     Sửa
                                                 </a>
                                             </li>
                                             <li>
                                                 <a class="dropdown-item px-3 py-2"
-                                                    href="{{ route('teacher_assignments.create', $teacher) }}"
-                                                    title="Phân công">
+                                                   href="{{ route('teacher_assignments.create', $teacher) }}"
+                                                   title="Phân công">
                                                     Phân công
                                                 </a>
                                             </li>
@@ -140,19 +92,22 @@
                                     </div>
                                 </td>
                             </tr>
-                        @endforeach
+                        @empty
+                            <tr>
+                                <td colspan="7" class="text-center">Không có dữ liệu</td>
+                            </tr>
+                        @endforelse
                         </tbody>
                     </table>
                 </div>
-                @if($teachers->lastPage() > 1)
-                    <div class="card-footer border-0 bg-transparent" id="pagination-container">
-                        <nav aria-label="page navigation">
-                            {{ $teachers->links('pagination::bootstrap-5') }}
-                        </nav>
-                    </div>
-                @endif
-
             </div>
+            @if($teachers->lastPage() > 1)
+                <div class="card-footer border-0 bg-transparent" id="pagination-container">
+                    <nav aria-label="page navigation">
+                        {{ $teachers->links('pagination::bootstrap-5') }}
+                    </nav>
+                </div>
+            @endif
         </div>
     </div>
 @endsection

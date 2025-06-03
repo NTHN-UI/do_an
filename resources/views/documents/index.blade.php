@@ -1,37 +1,29 @@
 @extends('layouts.app')
 
 @section('content')
-    <div class="container-fluid py-5">
-        <div class="bg-primary-color mb-5 p-4 rounded-4 position-relative overflow-hidden">
-            <div class=" position-absolute top-0 start-0 w-100 h-100 opacity-10"></div>
-            <div class="row align-items-center position-relative">
-                <div class="col-lg-8">
-                    <h1 class=" fw-bold text-white mb-2">
-                        <i class="fas fa-archive me-3"></i>Kho Tài liệu học tập
-                    </h1>
-                    <p class="text-white-75 fs-6 mb-3">Quản lý tài liệu từ các môn học, dễ dàng tìm kiếm và tải về.</p>                    <div class="d-flex gap-3">
-                    <span class="badge bg-white text-primary-color px-3 py-2 rounded-pill fs-6">
-                        <i class="fas fa-file-alt me-1"></i>{{ $documents->total() ?? 0 }} tài liệu
-                    </span>
-                    </div>
+    <div class="container-fluid">
+        <div class="d-flex align-items-center justify-content-between mb-4 p-3 bg-white rounded shadow-sm">
+            <div class="d-flex align-items-center ms-2">
+                <div>
+                    <h3 class="mb-0 text-primary-color fw-bold">Tài liệu học tập</h3>
+                    <small class="text-muted d-block">Quản lý tài liệu từ các môn học, dễ dàng tìm kiếm và tải về.</small>
+                    <span class="badge bg-primary-color text-white px-3 py-2 rounded-pill mt-2">
+              {{ $documents->total() ?? 0 }} tài liệu
+            </span>
                 </div>
-                <div class="col-lg-4 text-end">
-                    @if(Auth::user()->isTeacher())
-                        <a href="{{ route('documents.create') }}" class="btn btn-light btn-lg px-4 py-3 text-primary-color rounded-pill shadow-sm hover-lift">
-                            <i class="fas fa-cloud-upload-alt me-2"></i>Tải lên tài liệu mới
-                        </a>
-                    @endif
-                </div>
+            </div>
+            <div class="d-flex align-items-center gap-3">
+
+                @if(Auth::user()->isTeacher())
+                    <a href="{{ route('documents.create') }}" class="btn btn-primary-color text-white px-3 py-2 rounded-pill shadow-sm hover-lift">
+                        <i class="fas fa-cloud-upload-alt me-2"></i>Tải lên tài liệu
+                    </a>
+                @endif
             </div>
         </div>
 
         <div class="search-panel mb-5">
             <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
-                <div class="card-header bg-primary-color text-white border-0 p-4">
-                    <h5 class="mb-0 fw-bold">
-                        <i class="fas fa-search me-2"></i>Tìm kiếm & Lọc tài liệu
-                    </h5>
-                </div>
                 <div class="card-body p-4 bg-light-subtle">
                     <form method="GET" action="{{ route('documents.index') }}" id="searchForm">
                         <div class="row g-4 align-items-end">
@@ -199,7 +191,7 @@
                                     @endif
 
                                     <a href="{{ route('documents.show', $document) }}"
-                                       class="btn btn-outline-primary rounded-pill px-4 py-2 fw-semibold hover-lift">
+                                       class="btn btn-outline-primary-color rounded-pill px-4 py-2 fw-semibold hover-lift">
                                         Xem chi tiết <i class="fas fa-arrow-right ms-1"></i>
                                     </a>
                                 </div>
