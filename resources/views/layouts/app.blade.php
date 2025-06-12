@@ -47,16 +47,17 @@
 
     </main>@yield('content')
 
-    @if(session('success'))
+    @if(session('success') || session('error') || session('info'))
         <div class="toast text-white border-0 position-fixed"
-             style="background-color:#013066;top: 5rem; right: 1rem; max-width: 235px; z-index: 9999;"
+             style="background-color: {{ session('success') ? '#013066' : (session('error') ? '#dc3545' : '#0d6efd') }}; top: 5rem; right: 1rem; max-width: 235px; z-index: 9999;"
              role="alert" aria-live="assertive" aria-atomic="true" data-bs-delay="5000" data-bs-autohide="true">
             <div class="d-flex">
                 <div class="toast-body small">
-                    {{ session('success') }}
+                    {{ session('success') ?? session('error') ?? session('info') }} {{-- Hiển thị thông báo đầu tiên tìm thấy --}}
                 </div>
-                <button type="button" class="btn-close btn-close-white me-2 m-auto"
-                        data-bs-dismiss="toast" aria-label="Close"></button>
+                <div class="toast-header bg-transparent border-0"> {{-- Thêm toast-header --}}
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
             </div>
         </div>
     @endif
@@ -64,7 +65,9 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.21/lodash.min.js"></script>
-
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" async></script>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script>
         $(document).ready(function () {
             window.csrfToken = "{{ csrf_token() }}"
@@ -74,17 +77,47 @@
             });
         });
 
-        @if(session('success'))
+        @if(session('success') || session('error') || session('info'))
         document.addEventListener('DOMContentLoaded', function () {
             var toastEl = document.querySelector('.toast');
-            var toast = new bootstrap.Toast(toastEl, {
-                animation: true,
-                autohide: true,
-                delay: 5000
-            });
-            toast.show();
+            if (toastEl) { // Kiểm tra nếu phần tử toast tồn tại
+                var toast = new bootstrap.Toast(toastEl, {
+                    animation: true,
+                    autohide: true,
+                    delay: 3000
+                });
+                toast.show();
+            }
         });
         @endif
+            MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']],
+                processEscapes: true,
+                packages: {'[+]': ['ams', 'color', 'boldsymbol']}
+            },
+            options: {
+                ignoreHtmlClass: 'tex2jax_ignore',
+                processHtmlClass: 'tex2jax_process'
+            },
+            loader: {
+                load: ['[tex]/ams', '[tex]/color', '[tex]/boldsymbol']
+            },
+            startup: {
+                ready: () => {
+                    MathJax.startup.defaultReady();
+                    // Tự động render khi có nội dung mới được thêm vào
+                    MathJax.startup.promise.then(() => {
+                        document.addEventListener('DOMNodeInserted', () => {
+                            if (typeof MathJax !== 'undefined') {
+                                MathJax.typesetPromise();
+                            }
+                        });
+                    });
+                }
+            }
+        };
     </script>
 
     @stack('scripts')

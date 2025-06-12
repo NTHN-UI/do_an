@@ -127,17 +127,85 @@ class NotificationController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(string $id)
+
+
+    public function edit(Notification $notification)
     {
-        //
+        // Kiểm tra quyền: Đảm bảo giáo viên có quyền chỉnh sửa thông báo này
+        if (!auth()->user()->isHomeroomTeacherOfClass($notification->class_id) || $notification->sender_id !== auth()->user()->id) {
+            return redirect()->back()
+                ->with('error', 'Bạn không có quyền chỉnh sửa thông báo này.');
+        }
+
+        // Lấy thông tin lớp chủ nhiệm hiện tại (vẫn cần để hiển thị tên lớp)
+        $teacher = Auth::user();
+        $currentYear = AcademicYear::where('start_date', '<=', now())
+            ->where('end_date', '>=', now())
+            ->firstOrFail();
+
+        $homeroomClass = $teacher->homeroomClasses()
+            ->where('academic_year_id', $currentYear->id)
+            ->with(['class' => function($query) {
+                $query->select('id', 'name');
+            }])
+            ->first();
+
+        if (!$homeroomClass) {
+            return redirect()->back()
+                ->with('error', 'Bạn không chủ nhiệm lớp nào trong năm học này.');
+        }
+
+        $templates = NotificationTemplate::where('school_id', $teacher->school_id)
+            ->where('is_active', true)
+            ->get();
+
+        return view('notifications.edit', [ // <-- Trả về view edit.blade.php
+            'notification' => $notification, // <-- Truyền đối tượng thông báo hiện tại
+            'className' => $homeroomClass->class->name, // Vẫn cần để hiển thị tên lớp
+            'classId' => $homeroomClass->class_id,      // Vẫn cần
+            'templates' => $templates,
+            'priorities' => [
+                ['value' => 'low', 'label' => 'Thấp'],
+                ['value' => 'medium', 'label' => 'Trung bình'],
+                ['value' => 'high', 'label' => 'Cao'],
+                ['value' => 'urgent', 'label' => 'Khẩn cấp']
+            ]
+        ]);
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(Request $request, Notification $notification)
     {
-        //
+        // Kiểm tra quyền tương tự như edit
+        if (!auth()->user()->isHomeroomTeacherOfClass($notification->class_id) || $notification->sender_id !== auth()->user()->id) {
+            return redirect()->back()
+                ->with('error', 'Bạn không có quyền cập nhật thông báo này.');
+        }
+
+        $request->validate([
+            'template_id' => 'required|exists:notification_templates,id',
+            'subject' => 'required|string|max:255',
+            'content' => 'required|string',
+            'priority' => 'required|in:low,medium,high,urgent',
+            'attachments.*' => 'file|mimes:pdf,doc,docx,xls,xlsx,jpg,jpeg,png|max:5120'
+        ]);
+
+        $notification->update([
+            'template_id' => $request->template_id,
+            'subject' => $request->input('subject'),
+            'content' => $request->input('content'),
+            'priority' => $request->priority,
+        ]);
+
+        // Xử lý file đính kèm nếu cần (có thể cần logic xóa/thêm mới file)
+        if ($request->hasFile('attachments')) {
+            // ... logic để thêm hoặc thay thế file đính kèm ...
+        }
+
+        return redirect()->route('notifications.preview', $notification)
+            ->with('success', 'Thông báo đã được cập nhật thành công!');
     }
 
     /**

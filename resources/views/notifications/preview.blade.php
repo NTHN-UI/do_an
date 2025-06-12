@@ -1,73 +1,84 @@
 @extends('layouts.app')
 
 @section('content')
-    <div class="container py-4">
-        <div class="row justify-content-center">
-            <div class="col-md-10">
-                <div class="card">
-                    <div class="card-header bg-primary text-white">
-                        <h4 class="mb-0">
-                            <i class="fas fa-eye me-2"></i> Xem Trước Thông Báo
-                        </h4>
-                    </div>
+    <div class="container rounded-3 shadow p-4">
+        {{-- Phần tiêu đề --}}
+        <div class="d-flex align-items-center mb-4">
+            <a href="{{ route('notifications.create') }}" class="btn text-primary-color btn-sm me-3" title="Quay lại">
+                <i class="fas fa-arrow-left"></i>
+            </a>
+            <h3 class="mb-0 text-primary-color">Xem trước thông báo
+            </h3>
+        </div>
 
-                    <div class="card-body">
-                        <div class="mb-4">
-                            <h5>Thông tin gửi:</h5>
-                            <ul>
-                                <li>Lớp: {{ $notification->class->name }}</li>
-                                <li>Giáo viên: {{ $notification->sender->full_name }}</li>
-                                <li>Mẫu thông báo: {{ $notification->template->name ?? 'Tự viết' }}</li>
-                                {{-- Đã sửa lỗi: Đảm bảo $notification->priority không phải là null khi truyền vào ucfirst() --}}
-                                <li>Mức độ ưu tiên: {{ ucfirst($notification->priority ?? '') }}</li>
-                            </ul>
+        <div class="card border-0 shadow-sm rounded-2">
+            <div class="card-body">
+                <div class="mb-4 p-4 rounded-3 border border-secondary-subtle info-box-general">
+                    <h5 class="fw-semibold text-primary-color mb-3">Thông tin gửi:
+                    </h5>
+                    <ul class="list-unstyled mb-0">
+                        <li><strong> {{ $notification->class->name }}</strong></li>
+                        <li><strong>Giáo viên:</strong> {{ $notification->sender->full_name }}</li>
+                        <li><strong>Mẫu thông báo:</strong> {{ $notification->template->name ?? 'Tự viết' }}</li>
+                        <li><strong>Mức độ ưu tiên:</strong>
+                            @switch($notification->priority)
+                                @case('high')
+                                    <span class="badge bg-danger">Cao</span>
+                                    @break
+                                @case('medium')
+                                    <span class="badge bg-warning text-dark">Trung bình</span>
+                                    @break
+                                @default
+                                    <span class="badge bg-info text-dark">Thấp</span>
+                            @endswitch
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="mb-4 p-4 rounded-3 border border-secondary-subtle info-box-preview">
+                    <h5 class="fw-semibold text-primary-color mb-3">Xem trước email:
+                    </h5>
+                    <div class="border p-4 bg-white rounded-3 shadow-sm">
+                        <h4 class="fw-bold mb-3 text-primary-color">{{ $notification->subject }}</h4>
+                        <div class="mt-3 whitespace-pre-line">
+                            {!! nl2br(e($notification->content)) !!}
                         </div>
 
-                        <div class="mb-4 bg-light p-4 rounded">
-                            <h5 class="mb-3">Xem trước email:</h5>
-                            <div class="border p-4 bg-white">
-                                <h4 class="fw-bold">{{ $notification->subject }}</h4>
-                                <div class="mt-3 whitespace-pre-line">
-                                    {!! nl2br(e($notification->content)) !!}
-                                </div>
-
-                                @if($notification->attachments->count() > 0)
-                                    <div class="mt-4 pt-3 border-top">
-                                        <h6>File đính kèm:</h6>
-                                        <ul>
-                                            @foreach($notification->attachments as $attachment)
-                                                <li>{{ $attachment->file_name }}</li>
-                                            @endforeach
-                                        </ul>
-                                    </div>
-                                @endif
-                            </div>
-                        </div>
-
-                        @if($studentsWithoutEmail->count() > 0)
-                            <div class="alert alert-warning">
-                                <h5><i class="fas fa-exclamation-triangle me-2"></i> Cảnh báo</h5>
-                                <p>Có {{ $studentsWithoutEmail->count() }} học sinh chưa có email phụ huynh:</p>
-                                <ul>
-                                    @foreach($studentsWithoutEmail as $student)
-                                        <li>{{ $student->full_name }}</li>
+                        @if($notification->attachments->count() > 0)
+                            <div class="mt-4 pt-3 border-top">
+                                <h6 class="fw-semibold text-muted">File đính kèm:</h6>
+                                <ul class="list-unstyled mb-0">
+                                    @foreach($notification->attachments as $attachment)
+                                        <li><i class="fas fa-paperclip me-2 text-muted"></i>{{ $attachment->file_name }}</li>
                                     @endforeach
                                 </ul>
                             </div>
                         @endif
-
-                        <div class="d-flex justify-content-between mt-4">
-                            <a href="{{ route('notifications.create') }}" class="btn btn-outline-secondary">
-                                <i class="fas fa-edit me-1"></i> Chỉnh sửa lại
-                            </a>
-                            <form action="{{ route('notifications.send', $notification) }}" method="POST">
-                                @csrf
-                                <button type="submit" class="btn btn-success">
-                                    <i class="fas fa-paper-plane me-1"></i> Gửi Thông Báo
-                                </button>
-                            </form>
-                        </div>
                     </div>
+                </div>
+
+                {{-- Cảnh báo học sinh thiếu email --}}
+                @if($studentsWithoutEmail->count() > 0)
+                    <div class="alert alert-warning border border-warning rounded-3 shadow-sm" role="alert">
+                        <h5 class="alert-heading text-warning">
+                            <i class="fas fa-exclamation-triangle me-2"></i> Cảnh báo
+                        </h5>
+                        <p class="mb-0">Có **{{ $studentsWithoutEmail->count() }}** học sinh chưa có email phụ huynh:</p>
+                        <ul class="mb-0 mt-2 list-unstyled">
+                            @foreach($studentsWithoutEmail as $student)
+                                <li><i class="fas fa-user-times me-2"></i>{{ $student->full_name }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                @endif
+
+                {{-- Nút hành động --}}
+                <div class="d-flex justify-content-end mt-4">
+                    <a href="{{ route('notifications.edit', $notification->id) }}" class="btn btn-outline-primary-color me-2">Chỉnh sửa</a>
+                    <form action="{{ route('notifications.send', $notification) }}" method="POST">
+                        @csrf
+                        <button type="submit" class="btn btn-primary-color">Gửi thông báo</button>
+                    </form>
                 </div>
             </div>
         </div>

@@ -217,12 +217,6 @@
                                 <li><a class="dropdown-item" href="{{ route('student_grades') }}">
                                         <i class="fas fa-list me-2"></i> Tất cả năm
                                     </a></li>
-
-                                @foreach(Auth::user()->studentClasses()->with('academicYear')->get()->unique('academic_year_id') as $enrollment)
-                                    <li><a class="dropdown-item" href="{{ route('student_grades', ['academic_year_id' => $enrollment->academic_year_id]) }}">
-                                            <i class="fas fa-calendar me-2"></i> {{ $enrollment->academicYear->name }}
-                                        </a></li>
-                                @endforeach
                             </ul>
                         </li>
                     @endif

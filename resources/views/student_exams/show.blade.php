@@ -1,29 +1,34 @@
 @extends('layouts.app')
 
 @section('content')
-    <div class="container">
-        <div class="card">
-            <div class="card-header">
-                <h4>{{ $assignment->exam->title }}</h4>
-                <div class="text-muted">
-                    Thời gian làm bài: {{ $assignment->start_time->format('d/m/Y H:i') }} -
+    <div class="container rounded-3 shadow p-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            {{-- Tiêu đề và thông tin bài thi --}}
+            <div>
+                <h3 class="m-0 text-primary-color">Đề thi: {{ $exam->title }}</h3>
+                <div class="text-muted mt-1">
+                    <span class="fw-bold me-2">Thời gian:</span>
+                    {{ $assignment->start_time->format('d/m/Y H:i') }} -
                     {{ $assignment->end_time->format('d/m/Y H:i') }}
                 </div>
-                <div id="timer" class="text-danger font-weight-bold"></div>
             </div>
+            {{-- Đồng hồ đếm ngược --}}
+            <div id="timer" class="exam-timer"></div>
+        </div>
 
-            <div class="card-body">
+        <div class="card border-0 shadow-sm rounded-2">
+            <div class="card-body p-4">
                 <form id="examForm" action="{{ route('student_exams.submit', $assignment->id) }}" method="POST">
                     @csrf
 
                     @foreach($questions as $index => $question)
-                        <div class="question mb-4">
-                            <h5>Câu {{ $index + 1 }} ({{ $question->marks }} điểm)</h5>
-                            <p>{!! nl2br(e($question->content)) !!}</p>
+                        <div class="question mb-4 p-3 border rounded-3 shadow-sm bg-light">
+                            <h5 class="fw-bold mb-3">Câu {{ $index + 1 }} ({{ $question->marks }} điểm)</h5>
+                            <p class="mb-3">{!! nl2br(e($question->content)) !!}</p>
 
                             <div class="options">
                                 @foreach($question->options as $option)
-                                    <div class="form-check">
+                                    <div class="form-check mb-2">
                                         <input class="form-check-input" type="radio"
                                                name="answers[{{ $question->id }}]"
                                                id="option_{{ $option->id }}"
@@ -38,7 +43,10 @@
                     @endforeach
 
                     <input type="hidden" name="time_taken" id="timeTaken">
-                    <button type="submit" class="btn btn-primary">Nộp bài</button>
+                    <div class="text-end mt-4">
+                        <button type="submit" class="btn btn-primary-color px-4">Nộp bài
+                        </button>
+                    </div>
                 </form>
             </div>
         </div>

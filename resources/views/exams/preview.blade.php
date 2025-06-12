@@ -5,7 +5,7 @@
         <div class="row justify-content-center">
             <div class="col-md-10">
                 <div class="card">
-                    <div class="card-header bg-primary text-white">
+                    <div class="card-header bg-primary-color text-white">
                         <h3 class="text-center mb-0">BẢN XEM TRƯỚC ĐỀ THI</h3>
                     </div>
 
@@ -23,7 +23,7 @@
                                 <span class="mx-2">|</span>
                                 <span>Năm học: {{ $academicYear->year }}</span>
                                 <span class="mx-2">|</span>
-                                <span>Học kỳ: {{ $semester->name }}</span>
+                                <span>{{ $semester->name }}</span>
                             </div>
                             @if($examData['duration_override'])
                                 <div class="exam-duration mt-2">
@@ -72,8 +72,8 @@
                         <!-- Footer -->
                         <div class="exam-footer text-center mt-4 pt-3 border-top">
                             <div class="row">
-                                <div class="col-md-6 text-left">
-                                    <strong>Người tạo:</strong> {{ auth()->user()->name }}
+                                <div class="col-md-6 text-start">
+                                    <strong>Người tạo:</strong> {{ auth()->user()->full_name }}
                                 </div>
                                 <div class="col-md-6 text-right">
                                     <strong>Ngày tạo:</strong> {{ now()->format('d/m/Y H:i') }}
@@ -86,9 +86,6 @@
                     @if($isPreview)
                         <div class="card-footer bg-light">
                             <div class="d-flex justify-content-between">
-                                <a href="javascript:window.close()" class="btn btn-secondary">
-                                    <i class="fas fa-arrow-left"></i> Quay lại chỉnh sửa
-                                </a>
                                 <form action="{{ isset($exam) ? route('exams.update', $exam->id) : route('exams.store') }}" method="POST" class="d-inline">
                                     @csrf
                                     @if(isset($exam))
@@ -120,8 +117,7 @@
                                         @endforeach
                                     @endforeach
 
-                                    <button type="submit" name="action" value="{{ isset($exam) ? 'update' : 'save' }}" class="btn btn-primary ml-2">
-                                        <i class="fas fa-save"></i> {{ isset($exam) ? 'Cập nhật' : 'Lưu' }} đề thi
+                                    <button type="submit" name="action" value="{{ isset($exam) ? 'update' : 'save' }}" class="btn btn-primary-color ml-2">{{ isset($exam) ? 'Cập nhật' : 'Lưu' }} đề thi
                                     </button>
                                 </form>
                             </div>

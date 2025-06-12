@@ -4,7 +4,7 @@
         <div class="d-flex justify-content-between mb-2">
             <h5 class="mb-0">Câu hỏi <span class="question-number"><%= index + 1 %></span></h5>
             <button type="button" class="btn btn-sm btn-danger remove-question">
-                <i class="fas fa-trash"></i> Xóa
+                <i class="fas fa-trash"></i>
             </button>
         </div>
         <div class="form-group">

@@ -12,12 +12,7 @@
 </head>
 <body>
 <div class="container">
-    <div class="header">
-        <h2>{{ config('app.name') }}</h2>
-    </div>
-
     <div class="content">
-        <h3>{{ $notification->subject }}</h3>
         <p>{!! nl2br(e($content)) !!}</p>
 
     </div>

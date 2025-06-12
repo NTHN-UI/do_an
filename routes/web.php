@@ -119,6 +119,8 @@ Route::middleware(['auth'])->group(function () {
         Route::prefix('notifications')->name('notifications.')->controller(NotificationController::class)->group(function () {
             Route::get('/create', 'create')->name('create');
             Route::post('/', 'store')->name('store');
+            Route::get('/{notification}/edit', 'edit')->name('edit');
+            Route::put('/{notification}', 'update')->name('update');
             Route::get('/preview/{notification}', 'preview')->name('preview');
             Route::post('/send/{notification}', 'send')->name('send');
             Route::get('/history', 'history')->name('history');
@@ -141,9 +143,8 @@ Route::middleware(['auth'])->group(function () {
             // Xuất bản đề thi
             Route::post('/{exam}/publish', [ExamController::class, 'publish'])
                 ->name('exams.publish');
-
-
-
+            Route::post('/exams/preview-word', [ExamController::class, 'previewWord'])
+                ->name('exams.preview-word');
             // Xuất đề thi ra Word
             Route::get('/{exam}/export-word', [ExamController::class, 'exportWord'])
                 ->name('exams.export-word');

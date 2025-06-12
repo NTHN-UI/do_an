@@ -1,39 +1,45 @@
 @extends('layouts.app')
 
 @section('content')
-    <div class="container">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h1>Quản lý đề thi</h1>
-            <div>
-                <a href="{{ route('exams.create') }}" class="btn btn-primary">
-                    <i class="fas fa-plus"></i> Tạo đề thi mới
-                </a>
-            </div>
-        </div>
-        <div class="card">
-            <div class="card-header">
-                <div class="row">
-                    <div class="col-md-6">
-                        <h4 class="mb-0">Danh sách đề thi</h4>
-                    </div>
-                    <div class="col-md-6">
-                        <form method="GET" class="form-inline float-right">
-                            <div class="input-group">
-                                <input type="text" name="search" class="form-control" placeholder="Tìm kiếm..." value="{{ request('search') }}">
-                                <div class="input-group-append">
-                                    <button class="btn btn-outline-secondary" type="submit">
-                                        <i class="fas fa-search"></i>
-                                    </button>
-                                </div>
-                            </div>
-                        </form>
-                    </div>
+    <style>
+        .table-responsive .dropdown-menu {
+            position: fixed !important;
+            z-index: 1000 !important;
+            min-width: 90px;
+        }
+        .dropdown-item:active,
+        .dropdown-item:focus {
+            background-color: #013066 !important;
+            color: white !important;
+        }
+        .pagination .page-item.active .page-link {
+            background-color: var(--primary-color);
+            color: var(--bs-white);
+            border-color: var(--primary-color);
+        }
+        </style>
+    <div class="container rounded-3 shadow p-4">
+        <h3 class="mb-3 text-primary-color">Quản lý đề thi</h3>
+        <div class="mb-3 d-flex justify-content-end align-items-center">
+            <form method="GET" class="me-1">
+                <div class="input-group">
+                    <input type="text" name="search" class="form-control"
+                           placeholder="Tìm kiếm..."
+                           value="{{ request('search') }}"
+                           id="search-input-exam">
+                        <button type="submit" class="btn btn-primary-color px-2">
+                            <i class="fas fa-search"></i>
+                        </button>
                 </div>
-            </div>
-            <div class="card-body">
+            </form>
+            <a href="{{ route('exams.create') }}" class="btn btn-primary-color ms-1">Tạo mới đề thi</a>
+        </div>
+
+        <div class="card border-0 shadow-sm rounded-2">
+            <div class="card-body p-0">
                 <div class="table-responsive">
-                    <table class="table table-hover">
-                        <thead>
+                    <table class="table table-hover mb-0 rounded-3 overflow-hidden">
+                        <thead class="table-secondary text-center">
                         <tr>
                             <th>ID</th>
                             <th>Tên đề thi</th>
@@ -41,12 +47,12 @@
                             <th>Khối lớp</th>
                             <th>Loại đề</th>
                             <th>Trạng thái</th>
-                            <th>Hành động</th>
+                            <th class="text-end pe-4" style="width: 50px;"></th>
                         </tr>
                         </thead>
                         <tbody>
                         @forelse($exams as $exam)
-                            <tr>
+                            <tr class="text-center">
                                 <td>{{ $exam->id }}</td>
                                 <td>{{ Str::limit($exam->title, 30) }}</td>
                                 <td>{{ $exam->subject->name }}</td>
@@ -58,53 +64,64 @@
                                         1 tiết
                                     @endif
                                 </td>
-
                                 <td>
                                     @if($exam->is_published)
                                         <span class="badge bg-primary-color">Đã xuất bản</span>
                                     @else
-                                        <span class="badge bg-primary-color">Bản nháp</span>
+                                        <span class="badge bg-secondary">Bản nháp</span>
                                     @endif
                                 </td>
-                                <td>
-                                    <div class="btn-group btn-group-sm">
-                                        <a href="{{ route('exams.show', $exam->id) }}" class="btn btn-info" title="Xem chi tiết">
-                                            <i class="fas fa-eye"></i>
-                                        </a>
-                                        <a href="{{ route('exams.edit', $exam->id) }}" class="btn btn-primary" title="Sửa">
-                                            <i class="fas fa-edit"></i>
-                                        </a>
-                                        @if($exam->is_published)
-                                            <a href="{{ route('exam_assignments.create', ['exam' => $exam->id]) }}" class="btn btn-success">
-                                                <i class="fas fa-paper-plane"></i> Giao đề cho lớp
-                                            </a>
-                                        @endif
-                                        <form action="{{ route('exams.destroy', $exam->id) }}" method="POST" onsubmit="return confirm('Bạn chắc chắn muốn xóa đề thi này?');">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="btn btn-danger" title="Xóa">
-                                                <i class="fas fa-trash"></i>
-                                            </button>
-                                        </form>
+                                <td class="text-end pe-4">
+                                    <div class="dropdown">
+                                        <button class="btn btn-sm" type="button" data-bs-toggle="dropdown"
+                                                aria-expanded="false">
+                                            <i class="fas fa-ellipsis-v text-muted"></i>
+                                        </button>
+                                        <ul class="dropdown-menu dropdown-menu-end shadow-sm rounded-3 border-0">
+                                            <li>
+                                                <a class="dropdown-item px-3 py-2"
+                                                   href="{{ route('exams.show', $exam->id) }}">Xem</a>
+                                            </li>
+                                            <li>
+                                                <a class="dropdown-item px-3 py-2"
+                                                   href="{{ route('exams.edit', $exam->id) }}">Sửa</a>
+                                            </li>
+                                            @if($exam->is_published)
+                                                <li>
+                                                    <a href="{{ route('exam_assignments.create', ['exam' => $exam->id]) }}" class="dropdown-item px-3 py-2">
+                                                        Giao đề
+                                                    </a>
+                                                </li>
+                                            @endif
+                                            <li>
+                                                <form action="{{ route('exams.destroy', $exam->id) }}" method="POST" onsubmit="return confirm('Bạn chắc chắn muốn xóa đề thi này?');">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" class="dropdown-item px-3 py-2">
+                                                        Xóa
+                                                    </button>
+                                                </form>
+                                            </li>
+                                        </ul>
                                     </div>
                                 </td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="8" class="text-center">Không có đề thi nào</td>
+                                <td colspan="7" class="text-center">Không có đề thi nào</td>
                             </tr>
                         @endforelse
                         </tbody>
                     </table>
                 </div>
-                 @if($exams->lastPage() > 1)
-                        <div class="card-footer border-0 bg-transparent" id="pagination-container">
-                            <nav aria-label="page navigation">
-                                {{ $exams->links('pagination::bootstrap-5') }}
-                            </nav>
-                        </div>
-                    @endif
             </div>
+            @if($exams->lastPage() > 1)
+                <div class="card-footer border-0 bg-transparent" id="pagination-container">
+                    <nav aria-label="page navigation">
+                        {{ $exams->links('pagination::bootstrap-5') }}
+                    </nav>
+                </div>
+            @endif
         </div>
     </div>
 @endsection

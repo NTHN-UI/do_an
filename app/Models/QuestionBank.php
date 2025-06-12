@@ -9,10 +9,10 @@ class QuestionBank extends Model
 {
     use HasFactory;
 
-    protected $fillable = [
-        'content', 'difficulty', 'question_type',
-        'subject_id', 'grade_level_id', 'teacher_id', 'school_id'
-    ];
+        protected $fillable = [
+            'content', 'difficulty', 'question_type',
+            'subject_id', 'grade_level_id', 'teacher_id', 'school_id'
+        ];
 
     public function subject()
     {

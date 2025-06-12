@@ -6,7 +6,7 @@
                 <a href="{{ route('teachers.index') }}" class="btn text-primary-color btn-sm me-3" title="Quay lại">
                     <i class="fas fa-arrow-left"></i>
                 </a>
-                <h4 class="mb-0 text-primary-color">Thông tin giáo viên</h4>
+                <h3 class="mb-0 text-primary-color">Thông tin giáo viên</h3>
             </div>
             <div class="card-body">
                 <div class="row mb-4">
@@ -14,7 +14,7 @@
                         <div class="avatar-lg mx-auto bg-light rounded-circle d-flex align-items-center justify-content-center mb-3" style="width:96px;height:96px;">
                             <i class="fas fa-user-tie fa-3x text-secondary"></i>
                         </div>
-                        <h4>{{ $teacher->full_name }}</h4>
+                        <h3>{{ $teacher->full_name }}</h3>
                         <p class="text-muted mb-0">{{ $teacher->school->name ?? 'Chưa phân công trường' }}</p>
                     </div>
                     <div class="col-md-9">

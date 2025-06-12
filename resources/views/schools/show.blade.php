@@ -15,7 +15,7 @@
             <a href="{{ route('schools.index') }}" class="btn btn-sm btn-primary-color me-3" title="Quay lại">
                 <i class="fas fa-arrow-left"></i>
             </a>
-            <h4 class="mb-0 text-primary-color"> Xem thông tin trường học</h4>
+            <h3 class="mb-0 text-primary-color"> Xem thông tin trường học</h3>
         </div>
         <div class="card-body">
             <div class="row mb-4">

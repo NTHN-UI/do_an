@@ -21,18 +21,18 @@
     <div class="container rounded-3 shadow p-4">
         <h3 class="mb-3 text-primary-color">Quản lý giáo viên</h3>
         <div class="mb-3 d-flex justify-content-end align-items-center">
-            <form id="search-form" method="GET" action="{{ route('teachers.index') }}" class="me-2">
+            <form id="search-form" method="GET" action="{{ route('teachers.index') }}" class="me-1">
                 <div class="input-group">
                     <input type="text" name="search" class="form-control"
                            placeholder="Tìm kiếm giáo viên..."
                            value="{{ request('search') }}"
                            id="search-input">
-                    <button type="submit" class="btn btn-primary-color">
+                    <button type="submit" class="btn btn-primary-color px-2">
                         <i class="fas fa-search"></i>
                     </button>
                 </div>
             </form>
-            <a href="{{ route('teachers.create') }}" class="btn btn-primary-color ms-2">Thêm mới</a>
+            <a href="{{ route('teachers.create') }}" class="btn btn-primary-color ms-1">Thêm mới</a>
         </div>
         <div class="card border-0 shadow-sm rounded-2">
             <div class="card-body p-0">

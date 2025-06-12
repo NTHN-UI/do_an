@@ -28,6 +28,11 @@
     background-color: var(--primary-color-hover);
     color: var(--bs-white);
 }
+.btn-outline-primary-color:hover {
+    background-color: var(--primary-color);
+    color: var(--bs-white);
+}
+
 
 .text-primary-color {
     color: var(--primary-color);

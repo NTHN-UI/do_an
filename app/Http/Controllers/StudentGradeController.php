@@ -57,16 +57,47 @@ class StudentGradeController extends Controller
                     ->where('test_type', 'final')
                     ->get();
 
+                // Trong phương thức index() của StudentGradeController
                 if ($semester1Grades->isNotEmpty() && $semester2Grades->isNotEmpty()) {
                     $semester1Avg = $semester1Grades->avg('score');
                     $semester2Avg = $semester2Grades->avg('score');
                     $yearlyAverage = round(($semester1Avg + $semester2Avg * 2) / 3, 1);
 
+                    // Tính điểm cả năm cho từng môn
+                    $subjectGrades = [];
+                    foreach ($subjects as $subject) {
+                        $grade1 = $grades[1][$subject->id][0] ?? null;
+                        $grade2 = $grades[2][$subject->id][0] ?? null;
+
+                        $isSpecialSubject = in_array($subject->name, [
+                            'Giáo dục quốc phòng và an ninh',
+                            'Giáo dục thể chất',
+                            'Nghệ thuật'
+                        ]);
+
+                        if ($grade1 && $grade2) {
+                            if ($isSpecialSubject) {
+                                // Môn đặc biệt: lấy kết quả HK2
+                                $subjectGrades[$subject->id] = [
+                                    'value' => $grade2->text_value ?? ($grade2->score >= 5 ? 'Đạt' : 'Chưa đạt'),
+                                    'is_special' => true
+                                ];
+                            } else {
+                                // Môn thường: tính theo công thức
+                                $subjectGrades[$subject->id] = [
+                                    'value' => round(($grade1->score + $grade2->score * 2) / 3, 1),
+                                    'is_special' => false
+                                ];
+                            }
+                        }
+                    }
+
                     $yearlyResults = [
                         'semester1_avg' => round($semester1Avg, 1),
                         'semester2_avg' => round($semester2Avg, 1),
                         'yearly_avg' => $yearlyAverage,
-                        'classification' => $this->classifyStudent($yearlyAverage)
+                        'classification' => $this->classifyStudent($yearlyAverage),
+                        'subject_grades' => $subjectGrades
                     ];
                 }
             }
@@ -86,7 +117,7 @@ class StudentGradeController extends Controller
     {
         if ($averageScore >= 8.0) return 'Giỏi';
         if ($averageScore >= 6.5) return 'Khá';
-        if ($averageScore >= 5.0) return 'Trung bình';
+        if ($averageScore >= 5.0) return 'TB';
         if ($averageScore >= 3.5) return 'Yếu';
         return 'Kém';
     }

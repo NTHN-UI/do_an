@@ -5,19 +5,27 @@ namespace App\Http\Controllers;
 use App\Models\ExamAssignment;
 use App\Models\ExamResult;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 
 class StudentExamController extends Controller
 {
     public function index()
     {
+        $studentId = auth()->id();
         // Danh sách đề thi được giao cho học sinh
-        $assignments = ExamAssignment::whereHas('class.students', function($query) {
-            $query->where('user_id', auth()->id());
+        $assignments = ExamAssignment::whereHas('class.students', function($query)  use ($studentId) {
+            $query->where('user_id', $studentId);
         })
             ->with(['exam', 'class'])
-            ->where('end_time', '>', now())
-            ->orderBy('start_time')
+            ->orderBy('start_time', 'desc')
             ->get();
+        $assignments->each(function($assignment) use ($studentId) {
+            $assignment->has_result = $assignment->results()->where('student_id', auth()->id())->exists();
+            $assignment->is_active = now()->between($assignment->start_time, $assignment->end_time);
+            $assignment->is_upcoming = now()->lt($assignment->start_time);
+            $assignment->is_expired = now()->gt($assignment->end_time);
+        });
+
 
         return view('student_exams.index', compact('assignments'));
     }
@@ -117,14 +125,22 @@ class StudentExamController extends Controller
     }
     public function assignedExams()
     {
+        $studentId = auth()->id();
+
         // Lấy tất cả các đề thi đã được giao cho học sinh hiện tại
-        $assignments = ExamAssignment::whereHas('class.students', function($query) {
-            $query->where('user_id', auth()->id());
+        $assignments = ExamAssignment::whereHas('class.students', function($query) use( $studentId) {
+            $query->where('user_id', $studentId);
         })
             ->with(['exam.subject', 'exam.gradeLevel', 'class'])
-            ->where('end_time', '>', now()) // Chỉ hiển thị các đề chưa hết hạn
-            ->orderBy('start_time', 'asc')
+            ->orderBy('start_time', 'desc')
             ->get();
+        $assignments->each(function($assignment) use ($studentId) {
+            $now = Carbon::now();
+            $assignment->has_result = $assignment->results()->where('student_id', $studentId)->exists();
+            $assignment->is_active = $now->between($assignment->start_time, $assignment->end_time);
+            $assignment->is_upcoming = $now->lt($assignment->start_time);
+            $assignment->is_expired = $now->gt($assignment->end_time);
+        });
 
         return view('student_exams.assigned_exams', compact('assignments'));
     }

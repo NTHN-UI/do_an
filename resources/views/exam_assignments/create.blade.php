@@ -4,7 +4,7 @@
     <div class="container">
         <div class="card">
             <div class="card-header">
-                <h4>Giao đề thi: {{ $exam->title }}</h4>
+                <h3>Giao đề thi: {{ $exam->title }}</h3>
             </div>
             <div class="card-body">
                 <form action="{{ route('exam_assignments.store', $exam->id) }}" method="POST">

@@ -23,29 +23,27 @@ class ParentNotification extends Mailable
     public $mailData;
     public function __construct(Notification $notification, User $student)
     {
-        $this->notification = $notification; // GÁN BIẾN VÀO THUỘC TÍNH PUBLIC
-        $this->student = $student;          // GÁN BIẾN VÀO THUỘC TÍNH PUBLIC
+        $this->notification = $notification;
+        $this->student = $student;
 
         $this->mailData = [
             'notification' => $notification,
             'student' => $student,
-            // Đảm bảo truyền subject và content đã được thay thế biến vào view
             'subject' => $this->replaceVariables($notification->subject, $notification, $student),
             'content' => $this->replaceVariables($notification->content, $notification, $student)
         ];
     }
     public function build()
     {
-        return $this->view('notifications.parent_notification') // Đổi thành đường dẫn mới
+        return $this->view('notifications.parent_notification')
             ->subject($this->mailData['subject'])
             ->with($this->mailData);
     }
 
     public function envelope(): Envelope
     {
-        // Bây giờ bạn có thể truy cập $this->notification
         return new Envelope(
-            subject: $this->mailData['subject'], // Lấy subject đã được thay thế biến
+            subject: $this->mailData['subject'],
             from: new Address(
                 $this->notification->class->school->emailSettings->from_address,
                 $this->notification->class->school->emailSettings->from_name
@@ -62,7 +60,7 @@ class ParentNotification extends Mailable
                 'notification' => $this->notification,
                 'student' => $this->student,
                 'subject' => $this->mailData['subject'],
-                'content' => $this->mailData['content'] // Truyền content đã được xử lý
+                'content' => $this->mailData['content']
             ]
         );
     }
@@ -73,9 +71,6 @@ class ParentNotification extends Mailable
             '{TEN_HOC_SINH}' => $student->full_name,
             '{LOP}' => $notification->class->name,
             '{GIAO_VIEN}' => $notification->sender->full_name,
-            '{NGAY}' => now()->format('d/m/Y'),
-            '{THANG}' => now()->format('m'),
-            '{NAM}' => now()->format('Y'),
         ];
 
         if (!empty($notification->custom_variables)) {

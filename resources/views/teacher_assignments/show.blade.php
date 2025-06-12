@@ -6,7 +6,7 @@
             <a href="{{ route('teacher_assignments.index') }}" class="btn text-primary-color btn-sm me-3" title="Quay lại">
                 <i class="fas fa-arrow-left"></i>
             </a>
-            <h4 class="mb-0 text-primary-color">Chi tiết phân công giảng dạy</h4>
+            <h3 class="mb-0 text-primary-color">Chi tiết phân công giảng dạy</h3>
         </div>
         <div class="card-body">
             <div class="row mb-4">

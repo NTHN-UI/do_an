@@ -12,6 +12,7 @@
             background-color: #013066 !important;
             color: white !important;
         }
+
         .pagination .page-item.active .page-link {
             background-color: var(--primary-color);
             color: var(--bs-white);
@@ -22,26 +23,35 @@
         <h3 class="mb-3 text-primary-color">Danh sách học sinh</h3>
 
         <!-- Search and Add Button -->
-        <div class="mb-3 d-flex justify-content-end align-items-center">
-            <form id="search-form" method="GET" action="{{ route('students.index') }}" class="me-2">
-                <div class="input-group">
-                    <input type="text" name="search" class="form-control"
-                           placeholder="Tìm kiếm học sinh..."
-                           value="{{ request('search') }}"
-                           id="search-input">
-                    <button type="submit" class="btn btn-primary-color">
-                        <i class="fas fa-search"></i>
-                    </button>
-                </div>
-            </form>
-        </div>
+        <div class="d-flex flex-column flex-md-row justify-content-end align-items-md-center mb-4 gap-3 header-actions">
 
+            <div class="d-flex align-items-center gap-2 flex-wrap flex-md-nowrap">
+                <form id="search-form" method="GET" action="{{ route('students.index') }}" class="search-form">
+                    <div class="input-group shadow-sm">
+                        <input type="text" name="search" class="form-control border-end-0"
+                               placeholder="Tìm kiếm học sinh..."
+                               value="{{ request('search') }}"
+                               id="search-input">
+                        <button type="submit" class="btn btn-primary-color px-2">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                </form>
+                <div class="d-flex gap-2">
+                    <a href="{{ route('students.create') }}" class="btn btn-primary-color">
+                        Thêm mới
+                    </a>
+                    <a href="{{ route('class_assignments.index') }}" class="btn btn-primary-color">Phân lớp
+                    </a>
+                </div>
+            </div>
+        </div>
         <!-- Filter Form -->
-        <div class="card mb-3">
+        <div class="card mb-3 ">
             <div class="card-body">
                 <form method="GET" action="{{ route('students.index') }}" id="filter-form">
                     <div class="row g-3">
-                        <div class="col-md-3">
+                        <div class="col-md-4">
                             <label for="academic_year_id" class="form-label">Năm học</label>
                             <select class="form-select" id="academic_year_id" name="academic_year_id">
                                 <option value="">-- Chọn năm học --</option>
@@ -53,7 +63,7 @@
                                 @endforeach
                             </select>
                         </div>
-                        <div class="col-md-3">
+                        <div class="col-md-4">
                             <label for="grade_level_id" class="form-label">Khối học</label>
                             <select class="form-select" id="grade_level_id" name="grade_level_id">
                                 <option value="">-- Chọn khối --</option>
@@ -65,56 +75,48 @@
                                 @endforeach
                             </select>
                         </div>
+                        <div class="col-md-4 d-flex align-items-end gap-2 justify-content-end">
+                            <!-- Nút Import -->
+                            <div class="flex-shrink-0">                            <!-- Import Button -->
+                            <button class="btn btn-primary-color me-2 action-btn" onclick="$('#real-import-btn').click()"
+                                    {{ !$academicYearId ? 'disabled' : '' }}
+                                    title="{{ !$academicYearId ? 'Vui lòng chọn năm học trước' : 'Import học sinh' }}">
+                                <i class="fas fa-file-import me-1"></i> Import
+                            </button>
+                            <input type="file" id="real-import-btn" accept=".xlsx,.xls" class="d-none">
+
+                            <!-- Export Dropdown -->
+                            <div class="dropdown d-inline-block">
+                                <button class="btn btn-secondary dropdown-toggle action-btn" type="button"
+                                        id="exportDropdown" data-bs-toggle="dropdown"
+                                        {{ !$academicYearId ? 'disabled' : '' }}
+                                        @if(!$academicYearId) title="Vui lòng chọn năm học trước" @endif>
+                                    <i class="fas fa-download me-1"></i> Export
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end">
+                                    <li>
+                                        <a class="dropdown-item" href="{{ route('students.export.template', [
+    'academic_year_id' => $academicYearId ?? null,
+    'grade_level_id' => $gradeLevelId ?? null
+]) }}" id="export-template-link">
+                                            <i class="fas fa-file-excel me-1"></i> Tải file mẫu
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item"
+                                           href="{{ $academicYearId ? route('students.export', ['academic_year_id' => $academicYearId, 'grade_level_id' => $gradeLevelId]) : '#' }}">
+                                            <i class="fas fa-file-export me-1"></i> Xuất danh sách
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
                     </div>
                 </form>
             </div>
         </div>
 
-        <!-- Action Buttons -->
-        <div class="d-flex justify-content-between mb-3">
-            <div>
-                <a href="{{ route('students.create') }}" class="btn btn-primary-color me-2">
-                    Thêm mới
-                </a>
-                <a href="{{ route('class_assignments.index') }}" class="btn btn-primary-color me-2">Phân lớp
-                </a>
-            </div>
-            <div>
-                <!-- Import Button -->
-                <button class="btn btn-primary-color me-2 action-btn" onclick="$('#real-import-btn').click()"
-                        {{ !$academicYearId ? 'disabled' : '' }}
-                        title="{{ !$academicYearId ? 'Vui lòng chọn năm học trước' : 'Import học sinh' }}">
-                    <i class="fas fa-file-import me-1"></i> Import
-                </button>
-                <input type="file" id="real-import-btn" accept=".xlsx,.xls" class="d-none">
-
-                <!-- Export Dropdown -->
-                <div class="dropdown d-inline-block">
-                    <button class="btn btn-secondary dropdown-toggle action-btn" type="button"
-                            id="exportDropdown" data-bs-toggle="dropdown"
-                            {{ !$academicYearId ? 'disabled' : '' }}
-                            @if(!$academicYearId) title="Vui lòng chọn năm học trước" @endif>
-                        <i class="fas fa-download me-1"></i> Export
-                    </button>
-                    <ul class="dropdown-menu dropdown-menu-end">
-                        <li>
-                            <a class="dropdown-item" href="{{ route('students.export.template', [
-    'academic_year_id' => $academicYearId ?? null,
-    'grade_level_id' => $gradeLevelId ?? null
-]) }}" id="export-template-link">
-                                <i class="fas fa-file-excel me-1"></i> Tải file mẫu
-                            </a>
-                        </li>
-                        <li>
-                            <a class="dropdown-item"
-                               href="{{ $academicYearId ? route('students.export', ['academic_year_id' => $academicYearId, 'grade_level_id' => $gradeLevelId]) : '#' }}">
-                                <i class="fas fa-file-export me-1"></i> Xuất danh sách
-                            </a>
-                        </li>
-                    </ul>
-                </div>
-            </div>
-        </div>
 
         <!-- Student list -->
         <div class="card border-0 shadow-sm rounded-2">

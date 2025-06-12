@@ -627,43 +627,118 @@ class GradeController extends Controller
 
         // Tính toán điểm trung bình và xếp loại
         $studentResults = [];
+        $specialSubjectNames = [
+            'Giáo dục quốc phòng và an ninh',
+            'Giáo dục thể chất',
+            'Nghệ thuật'
+        ];
 
         foreach ($students as $student) {
             $result = [
-                'semester1' => ['subjects' => [], 'average' => 0, 'classification' => ''],
-                'semester2' => ['subjects' => [], 'average' => 0, 'classification' => ''],
-                'yearly' => ['average' => 0, 'classification' => '']
+                'semester1' => [
+                    'subjects' => [],
+                    'display_subjects' => [],
+                    'average' => 0,
+                    'classification' => ''
+                ],
+                'semester2' => [
+                    'subjects' => [],
+                    'display_subjects' => [],
+                    'average' => 0,
+                    'classification' => ''
+                ],
+                'yearly' => [
+                    'subjects' => [],
+                    'display_subjects' => [],
+                    'average' => 0,
+                    'classification' => ''
+                ]
             ];
 
             $semester1Total = 0;
             $semester1Count = 0;
             $semester2Total = 0;
             $semester2Count = 0;
-
+            $yearlyTotal = 0;
+            $yearlyCount = 0;
 
             foreach ($subjects as $subject) {
-                $semester1Avg = $finalGrades[$student->id][1][$subject->id][0]->score ?? 0;
-                $semester2Avg = $finalGrades[$student->id][2][$subject->id][0]->score ?? 0;
+                $isSpecialSubject = in_array($subject->name, $specialSubjectNames);
 
-                // Lưu điểm HK1, HK2
-                $result['semester1']['subjects'][$subject->id] = $semester1Avg;
-                $result['semester2']['subjects'][$subject->id] = $semester2Avg;
+                // Lấy điểm HK1
+                $semester1Grade = $finalGrades[$student->id][1][$subject->id][0] ?? null;
+                $semester1Score = $semester1Grade ? $semester1Grade->score : 0;
+                $semester1TextValue = $semester1Grade ? $semester1Grade->text_value : null;
 
-                // Tính điểm cả năm cho từng môn (CN) = (ĐTB HK1 + ĐTB HK2 * 2) / 3
-                $yearlySubjectAvg = round(($semester1Avg + $semester2Avg * 2) / 3, 1);
-                $result['yearly']['subjects'][$subject->id] = $yearlySubjectAvg;
+                // Lấy điểm HK2
+                $semester2Grade = $finalGrades[$student->id][2][$subject->id][0] ?? null;
+                $semester2Score = $semester2Grade ? $semester2Grade->score : 0;
+                $semester2TextValue = $semester2Grade ? $semester2Grade->text_value : null;
 
+                // Xử lý hiển thị điểm HK1
+                if ($semester1Grade) {
+                    if ($isSpecialSubject) {
+                        $semester1Display = $semester1TextValue ?: ($semester1Score >= 5 ? 'Đạt' : 'Chưa đạt');
+                    } else {
+                        $semester1Display = $semester1Score;
+                    }
+                } else {
+                    $semester1Display = '-';
+                }
+
+                // Xử lý hiển thị điểm HK2
+                if ($semester2Grade) {
+                    if ($isSpecialSubject) {
+                        $semester2Display = $semester2TextValue ?: ($semester2Score >= 5 ? 'Đạt' : 'Chưa đạt');
+                    } else {
+                        $semester2Display = $semester2Score;
+                    }
+                } else {
+                    $semester2Display = '-';
+                }
+
+                // Tính điểm cả năm cho môn học
+                $yearlySubjectScore = 0;
+                $yearlyDisplay = '-';
+
+                if ($semester1Grade && $semester2Grade) {
+                    if ($isSpecialSubject) {
+                        // Đối với môn đặc biệt, điểm cả năm phụ thuộc vào HK2
+                        $yearlySubjectScore = $semester2Score;
+                        $yearlyDisplay = $semester2Display;
+                    } else {
+                        // Môn thường: (HK1 + HK2*2)/3
+                        $yearlySubjectScore = round(($semester1Score + $semester2Score * 2) / 3, 1);
+                        $yearlyDisplay = $yearlySubjectScore;
+                    }
+                }
+
+                // Lưu điểm số để tính toán
+                $result['semester1']['subjects'][$subject->id] = $semester1Score;
+                $result['semester2']['subjects'][$subject->id] = $semester2Score;
+                $result['yearly']['subjects'][$subject->id] = $yearlySubjectScore;
+
+                // Lưu giá trị hiển thị
+                $result['semester1']['display_subjects'][$subject->id] = $semester1Display;
+                $result['semester2']['display_subjects'][$subject->id] = $semester2Display;
+                $result['yearly']['display_subjects'][$subject->id] = $yearlyDisplay;
 
                 // Cập nhật tổng điểm và số môn cho HK1 (chỉ tính các môn có điểm > 0)
-                if ($semester1Avg > 0) {
-                    $semester1Total += $semester1Avg;
+                if ($semester1Score > 0) {
+                    $semester1Total += $semester1Score;
                     $semester1Count++;
                 }
 
                 // Cập nhật tổng điểm và số môn cho HK2 (chỉ tính các môn có điểm > 0)
-                if ($semester2Avg > 0) {
-                    $semester2Total += $semester2Avg;
+                if ($semester2Score > 0) {
+                    $semester2Total += $semester2Score;
                     $semester2Count++;
+                }
+
+                // Cập nhật tổng điểm và số môn cho cả năm
+                if ($yearlySubjectScore > 0) {
+                    $yearlyTotal += $yearlySubjectScore;
+                    $yearlyCount++;
                 }
             }
 
@@ -678,10 +753,9 @@ class GradeController extends Controller
                 $result['semester2']['classification'] = $this->classifyStudent($result['semester2']['average'], $result['semester2']['subjects']);
             }
 
-            if ($semester1Count > 0 && $semester2Count > 0) {
-                $yearAvg = round(($result['semester1']['average'] + $result['semester2']['average'] * 2) / 3, 1);
-                $result['yearly']['average'] = $yearAvg;
-                $result['yearly']['classification'] = $this->classifyStudent($yearAvg, $result['yearly']['subjects']);
+            if ($yearlyCount > 0) {
+                $result['yearly']['average'] = round($yearlyTotal / $yearlyCount, 1);
+                $result['yearly']['classification'] = $this->classifyStudent($result['yearly']['average'], $result['yearly']['subjects']);
             }
 
             $studentResults[$student->id] = $result;
@@ -699,33 +773,68 @@ class GradeController extends Controller
     }
 
 // Hàm xếp loại học lực theo quy định
-    private
-    function classifyStudent($averageScore, $subjectScores)
+    private function classifyStudent($averageScore, $subjectScores)
     {
-        if (!is_numeric($averageScore)) return 'Chưa đủ điểm';
+        if (!is_numeric($averageScore)) {
+            return 'Chưa xếp loại';
+        }
+        $specialSubjects = [
+            'Giáo dục quốc phòng và an ninh',
+            'Giáo dục thể chất',
+            'Nghệ thuật'];
 
-        // Đếm số môn dưới 5.0 (không tính môn GDCD, Thể dục, Âm nhạc, Mỹ thuật)
-        $failedSubjects = count(array_filter($subjectScores, function ($score, $subjectId) {
-            $excludedSubjects = ['GDCD', 'THEDUC', 'AMNHAC', 'MYTHUAT']; // Các môn không tính
-            return is_numeric($score) && $score < 5.0 && !in_array($subjectId, $excludedSubjects);
-        }, ARRAY_FILTER_USE_BOTH));
+        // Đếm số môn có điểm TB dưới 6.5 và dưới 5.0 (không tính các môn đặc biệt)
+        $under6_5 = 0;
+        $under5_0 = 0;
 
-        // Xếp loại theo quy định Bộ GD&ĐT
-        switch (true) {
-            case ($averageScore >= 8.0):
-                return ($failedSubjects == 0) ? 'Giỏi' : 'Khá';
+        foreach ($subjectScores as $subjectName => $score) {
+            $isSpecial = false;
+            foreach ($specialSubjects as $special) {
+                if (stripos($subjectName, $special) !== false) {
+                    $isSpecial = true;
+                    break;
+                }
+            }
 
-            case ($averageScore >= 6.5):
-                return ($failedSubjects <= 1) ? 'Khá' : 'Trung bình';
+            if (!$isSpecial && is_numeric($score)) {
+                if ($score < 6.5) $under6_5++;
+                if ($score < 5.0) $under5_0++;
+            }
+        }
 
-            case ($averageScore >= 5.0):
-                return ($failedSubjects <= 2) ? 'Trung bình' : 'Yếu';
+        // Xếp loại theo quy định mới
+        if ($averageScore >= 9.0 && $under6_5 == 0) {
+            return 'Xuất sắc';
+        }
+        elseif ($averageScore >= 8.0) {
+            return ($under6_5 == 0) ? 'Giỏi' : 'Khá';
+        }
+        elseif ($averageScore >= 6.5) {
+            // Điều kiện xếp loại Khá:
+            // - Không có môn nào dưới 5.0
+            return ($under5_0 == 0) ? 'Khá' : 'Đạt';
+        }
+        elseif ($averageScore >= 5.0) {
+            $hasUnder3_5 = false;
+            foreach ($subjectScores as $subjectName => $score) {
+                $isSpecial = false;
+                foreach ($specialSubjects as $special) {
+                    if (stripos($subjectName, $special) !== false) {
+                        $isSpecial = true;
+                        break;
+                    }
+                }
 
-            case ($averageScore >= 3.5):
-                return ($failedSubjects <= 3) ? 'Yếu' : 'Kém';
+                if (!$isSpecial && is_numeric($score) && $score < 3.5) {
+                    $hasUnder3_5 = true;
+                    break;
+                }
+            }
 
-            default:
-                return 'Kém'; // Dưới 3.5
+            return !$hasUnder3_5 ? 'Đạt' : 'Chưa đạt';
+        }
+        else {
+            return 'Chưa đạt';
         }
     }
 }

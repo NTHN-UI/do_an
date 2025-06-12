@@ -35,7 +35,7 @@
             <a href="{{ route('school_admins.index') }}" class="btn btn-back text-primary-color me-3" title="Quay lại">
                 <i class="fas fa-arrow-left"></i>
             </a>
-            <h4 class="mb-0 text-primary-color">Thêm mới Admin Trường</h4>
+            <h3 class="mb-0 text-primary-color">Thêm mới Admin Trường</h3>
         </div>
 
         <div class="card-body">

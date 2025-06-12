@@ -1,68 +1,76 @@
 @extends('layouts.app')
 
 @section('content')
-    <div class="container">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h1>Chi tiết đề thi</h1>
-            <div>
+    <style>
+        /* Phong cách cho radio button, giống với form giáo viên */
+        .form-check-input:checked {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+        /* Style cho các phần thông tin */
+        .info-item strong {
+            color: var(--primary-color);
+        }
+    </style>
+    <div class="container rounded-3 shadow p-4"> {{-- Main container styling --}}
+        {{-- Tiêu đề và nút Xuất bản (nếu có), giống form tạo mới/giáo viên --}}
+        <div class="d-flex align-items-center mb-4">
+            <a href="{{ route('exams.index') }}" class="btn text-primary-color btn-sm me-3" title="Quay lại danh sách đề thi">
+                <i class="fas fa-arrow-left"></i>
+            </a>
+            <h3 class="mb-0 text-primary-color">Chi tiết đề thi</h3>
+            <div class="ms-auto"> {{-- Để các nút hành động căn phải --}}
                 @if(!$exam->is_published)
-                    <form action="{{ route('exams.publish', $exam->id) }}" method="POST" class="d-inline">
+                    <form action="{{ route('exams.publish', $exam->id) }}" method="POST" class="d-inline"> {{-- Removed me-2 here --}}
                         @csrf
                         <button type="submit" class="btn btn-success">
                             <i class="fas fa-check-circle"></i> Xuất bản
                         </button>
                     </form>
                 @endif
-                <a href="{{ route('exams.edit', $exam->id) }}" class="btn btn-primary ml-2">
-                    <i class="fas fa-edit"></i> Chỉnh sửa
-                </a>
-                <a href="{{ route('exams.index') }}" class="btn btn-secondary ml-2">
-                    <i class="fas fa-list"></i> Danh sách
-                </a>
+                {{-- Các nút Chỉnh sửa và Danh sách đã được di chuyển xuống cuối trang --}}
             </div>
         </div>
 
-        <div class="card mb-4">
-            <div class="card-header">
-                <h3 class="mb-0">Thông tin đề thi</h3>
-            </div>
+        <div class="card mb-4 border-0 shadow-sm rounded-2"> {{-- Card styling --}}
+            <div class="card-header bg-transparent text-primary-color fw-semibold">Thông tin đề thi</div> {{-- Header styling --}}
             <div class="card-body">
                 <div class="row">
                     <div class="col-md-6">
-                        <p><strong>Tên đề thi:</strong> {{ $exam->title }}</p>
-                        <p><strong>Môn học:</strong> {{ $exam->subject->name }}</p>
-                        <p><strong>Khối lớp:</strong> Khối {{ $exam->gradeLevel->grade_number }}</p>
+                        <p class="mb-2"><strong>Tên đề thi:</strong> {{ $exam->title }}</p>
+                        <p class="mb-2"><strong>Môn học:</strong> {{ $exam->subject->name }}</p>
+                        <p class="mb-2"><strong>Khối lớp:</strong> Khối {{ $exam->gradeLevel->grade_number }}</p>
                     </div>
                     <div class="col-md-6">
-                        <p><strong>Loại đề thi:</strong>
+                        <p class="mb-2"><strong>Loại đề thi:</strong>
                             @if($exam->test_type === 'fifteen_minutes')
                                 15 phút
                             @elseif($exam->test_type === 'one_period')
                                 1 tiết
                             @endif
                         </p>
-                        <p><strong>Thời gian làm bài:</strong> {{ $exam->duration_override ?? 'Mặc định' }} phút</p>
-                        <p><strong>Tổng điểm:</strong> {{ $exam->total_marks }}</p>
+                        <p class="mb-2"><strong>Thời gian làm bài:</strong> {{ $exam->duration_override ?? 'Mặc định' }} phút</p>
+                        <p class="mb-2"><strong>Tổng điểm:</strong> {{ $exam->total_marks }}</p>
                     </div>
                 </div>
                 <div class="row mt-3">
                     <div class="col-md-6">
-                        <p><strong>Năm học:</strong> {{ $exam->academicYear->year }}</p>
+                        <p class="mb-2"><strong>Năm học:</strong> {{ $exam->academicYear->year }}</p>
                     </div>
                     <div class="col-md-6">
-                        <p><strong>Học kỳ:</strong> {{ $exam->semester->name }}</p>
+                        <p class="mb-2"><strong>Học kỳ:</strong> {{ $exam->semester->name }}</p>
                     </div>
                 </div>
                 <div class="row mt-3">
                     <div class="col-md-6">
-                        <p><strong>Người tạo:</strong> {{ $exam->teacher->name }}</p>
+                        <p class="mb-2"><strong>Người tạo:</strong> {{ $exam->teacher->full_name }}</p>
                     </div>
                     <div class="col-md-6">
-                        <p><strong>Trạng thái:</strong>
+                        <p class="mb-2"><strong>Trạng thái:</strong>
                             @if($exam->is_published)
-                                <span class="badge badge-success">Đã xuất bản</span>
+                                <span class="badge bg-primary-color">Đã xuất bản</span>
                             @else
-                                <span class="badge badge-secondary">Bản nháp</span>
+                                <span class="badge bg-secondary">Bản nháp</span>
                             @endif
                         </p>
                     </div>
@@ -70,15 +78,13 @@
             </div>
         </div>
 
-        <div class="card">
-            <div class="card-header">
-                <h3 class="mb-0">Nội dung đề thi</h3>
-            </div>
+        <div class="card border-0 shadow-sm rounded-2"> {{-- Card styling --}}
+            <div class="card-header bg-transparent text-primary-color fw-semibold">Nội dung đề thi</div> {{-- Header styling --}}
             <div class="card-body">
                 @foreach($exam->questions as $index => $question)
-                    <div class="question-item mb-4 p-3 border rounded">
-                        <div class="d-flex justify-content-between mb-2">
-                            <h5 class="mb-0">Câu {{ $index + 1 }} <small>({{ $question->marks }} điểm)</small></h5>
+                    <div class="question-item mb-4 p-3 border rounded-3 shadow-sm"> {{-- Question item styling --}}
+                        <div class="d-flex justify-content-between align-items-center mb-2"> {{-- Added align-items-center --}}
+                            <h5 class="mb-0 text-primary-color">Câu {{ $index + 1 }} <small>({{ $question->marks }} điểm)</small></h5>
                         </div>
                         <div class="question-content mb-3">
                             {!! $question->content !!}
@@ -92,8 +98,8 @@
                                            id="option_{{ $option->id }}"
                                            disabled
                                         {{ $option->is_correct ? 'checked' : '' }}>
-                                    <label class="form-check-label {{ $option->is_correct ? 'text-success font-weight-bold' : '' }}"
-                                           for="option_{{ $option->id }}">
+                                    <label class="form-check-label {{ $option->is_correct ? 'text-primary-color fw-bold' : '' }}" {{-- Styling for correct option --}}
+                                    for="option_{{ $option->id }}">
                                         {{ chr(65 + $optionIndex) }}. {!! $option->content !!}
                                     </label>
                                 </div>
@@ -102,8 +108,15 @@
                     </div>
                 @endforeach
 
-                <div class="text-right mt-4">
-                    <p class="font-weight-bold">Tổng cộng: {{ $exam->questions->count() }} câu - {{ $exam->questions->sum('marks') }} điểm</p>
+                {{-- Tổng điểm và các nút hành động cuối trang --}}
+                <div class="d-flex justify-content-between align-items-center mt-4 pt-3 border-top"> {{-- Added pt-3 border-top --}}
+                    <p class="fw-bold mb-0">Tổng cộng: {{ $exam->questions->count() }} câu - {{ $exam->questions->sum('marks') }} điểm</p>
+                    <div>
+
+                        <a href="{{ route('exams.index') }}" class="btn btn-primary-color">
+                          Đóng
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>

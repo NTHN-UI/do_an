@@ -15,7 +15,7 @@
             <a href="{{ route('schools.index') }}" class="btn btn-sm btn-primary-color me-3" title="Quay lại">
                 <i class="fas fa-arrow-left"></i>
             </a>
-            <h4 class="mb-0 text-primary-color">Thêm mới trường học</h4>
+            <h3 class="mb-0 text-primary-color">Thêm mới trường học</h3>
         </div>
         <div class="card-body">
             <form action="{{ route('schools.store') }}" method="POST">

@@ -7,7 +7,7 @@
             <a href="{{ url()->previous() }}" class="btn text-primary-color btn-sm me-3" title="Quay lại">
                 <i class="fas fa-arrow-left"></i>
             </a>
-            <h4 class="mb-0">Chỉnh sửa năm học</h4>
+            <h3 class="mb-0">Chỉnh sửa năm học</h3>
         </div>
         <div class="card-body">
             <form action="{{ route('academic_years.update', $academicYear->id) }}" method="POST" id="academicYearForm">

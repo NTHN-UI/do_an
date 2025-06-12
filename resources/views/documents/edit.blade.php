@@ -6,9 +6,9 @@
             <div class="col-lg-8">
                 <div class="card shadow-sm border-0">
                     <div class="card-header bg-white border-0">
-                        <h4 class="fw-bold mb-0">
+                        <h3 class="fw-bold mb-0">
                             <i class="fas fa-edit me-2"></i>Chỉnh sửa tài liệu
-                        </h4>
+                        </h3>
                     </div>
                     <div class="card-body">
                         <form action="{{ route('documents.update', $document) }}" method="POST" enctype="multipart/form-data">

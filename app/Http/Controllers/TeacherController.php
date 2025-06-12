@@ -130,6 +130,12 @@ class TeacherController extends Controller
         $teacher = User::where('school_id', auth()->user()->school_id)
             ->where('role', User::ROLE_TEACHER)
             ->findOrFail($id);
+    //        // Kiểm tra trạng thái hoạt động
+    //        if (!$teacher->is_active) {
+    //            return redirect()->route('teachers.index')
+    //                ->with('error', 'Không thể chỉnh sửa giáo viên đã ngừng hoạt động');
+    //        }
+
         $subjects = Subject::where('school_id', auth()->user()->school_id)->get();
 
         return view('teachers.edit', compact('teacher', 'subjects'));
@@ -143,6 +149,11 @@ class TeacherController extends Controller
         $teacher = User::where('school_id', auth()->user()->school_id)
             ->where('role', User::ROLE_TEACHER)
             ->findOrFail($id);
+
+//        if (!$teacher->is_active) {
+//            return redirect()->route('teachers.index')
+//                ->with('error', 'Không thể cập nhật giáo viên đã ngừng hoạt động');
+//        }
 
         $request->validate([
             'full_name' => 'required|string|max:255',
@@ -163,7 +174,7 @@ class TeacherController extends Controller
 
         // Giữ nguyên email và không cho phép thay đổi
         $data['email'] = $teacher->email;
-        $teacher->is_active = $request->input('is_active', false);
+//        $teacher->is_active = $request->input('is_active', false);
 
 
         $teacher->update($data);

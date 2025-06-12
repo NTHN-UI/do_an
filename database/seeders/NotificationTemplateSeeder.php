@@ -17,8 +17,8 @@ class NotificationTemplateSeeder extends Seeder
             [
                 'name' => 'Thông báo học phí',
                 'type' => 'tuition',
-                'subject_template' => 'Thông báo đóng học phí tháng {THANG} - Lớp {LOP}',
-                'body_template' => "Kính gửi Quý phụ huynh em {TEN_HOC_SINH}, lớp {LOP},
+                'subject_template' => 'Thông báo đóng học phí tháng {THANG} - {LOP}',
+                'body_template' => "Kính gửi Quý phụ huynh em {TEN_HOC_SINH}, {LOP},
 
 Nhà trường trân trọng thông báo đến Quý phụ huynh về việc đóng học phí cho tháng {THANG}.
 
@@ -30,10 +30,10 @@ Chi tiết:
 Kính mong Quý phụ huynh đóng học phí đúng hạn để con em được học tập tốt nhất.
 
 Trân trọng,
-{GIAO_VIEN} - Giáo viên chủ nhiệm lớp {LOP}",
-                'variables' => json_encode(['{TEN_HOC_SINH}', '{LOP}', '{GIAO_VIEN}', '{THANG}']),
+{GIAO_VIEN} - Giáo viên chủ nhiệm {LOP}",
+                'variables' => json_encode(['{TEN_HOC_SINH}', '{LOP}', '{GIAO_VIEN}']),
                 'school_id' => 1,
-                'is_active' => truexam
+                'is_active' => true
             ],
             [
                 'name' => 'Thông báo họp phụ huynh',
@@ -50,7 +50,7 @@ Kính mong Quý phụ huynh sắp xếp thời gian tham dự.
 
 Trân trọng,
 {GIAO_VIEN}",
-                'variables' => json_encode(['{TEN_HOC_SINH}', '{LOP}', '{GIAO_VIEN}', '{NGAY_THANG}']),
+                'variables' => json_encode(['{TEN_HOC_SINH}', '{LOP}', '{GIAO_VIEN}']),
                 'school_id' => 1,
                 'is_active' => true
             ],
@@ -63,7 +63,6 @@ Trân trọng,
 Nhà trường thông báo lịch thi {MON_THI} như sau:
 - Môn thi: {MON_THI}
 - Thời gian: {GIO_THI} ngày {NGAY_THI}
-- Địa điểm: Phòng thi số {PHONG_THI}
 - Hình thức: Thi viết/trắc nghiệm
 
 Lưu ý:
@@ -75,7 +74,7 @@ Kính mong Quý phụ huynh nhắc nhở con em chuẩn bị tốt cho kỳ thi.
 
 Trân trọng,
 {GIAO_VIEN}",
-                'variables' => json_encode(['{TEN_HOC_SINH}', '{LOP}', '{GIAO_VIEN}', '{MON_THI}', '{GIO_THI}', '{NGAY_THI}', '{PHONG_THI}']),
+                'variables' => json_encode(['{TEN_HOC_SINH}', '{LOP}', '{GIAO_VIEN}']),
                 'school_id' => 1,
                 'is_active' => true
             ],
@@ -91,7 +90,7 @@ Học sinh đi học lại vào ngày {NGAY_DI_HOC_LAI}.
 
 Trân trọng,
 {GIAO_VIEN}",
-                'variables' => json_encode(['{TEN_HOC_SINH}', '{GIAO_VIEN}', '{NGAY_THANG}', '{LY_DO}', '{NGAY_DI_HOC_LAI}']),
+                'variables' => json_encode(['{TEN_HOC_SINH}', '{GIAO_VIEN}']),
                 'school_id' => 1,
                 'is_active' => true
             ]

@@ -6,13 +6,17 @@
             <a href="{{ url()->previous() }}" class="btn text-primary-color btn-sm me-3" title="Quay lại">
                 <i class="fas fa-arrow-left"></i>
             </a>
-            <h3 class="mb-0 text-primary-color">Thông báo đến phụ huynh</h3>
+            <h3 class="mb-0 text-primary-color">Chỉnh sửa thông báo</h3>
         </div>
         <div class="card border-0 shadow-sm rounded-2">
             <div class="card-body">
-                <form id="notificationForm" action="{{ route('notifications.store') }}" method="POST" enctype="multipart/form-data">
+                <form id="notificationForm"
+                      action="{{ route('notifications.update', $notification->id) }}" {{-- Luôn trỏ đến update --}}
+                      method="POST"
+                      enctype="multipart/form-data">
                     @csrf
-                    <!-- Template Selection -->
+                    @method('PUT')
+
                     <div class="mb-4 rounded-3 info-box-yellow">
                         <label for="template_id" class="form-label">Chọn Mẫu Thông Báo <span class="text-danger">*</span>
                         </label>
@@ -21,7 +25,8 @@
                             @foreach($templates as $template)
                                 <option value="{{ $template->id }}"
                                         data-subject="{{ $template->subject_template }}"
-                                        data-content="{{ $template->body_template }}">
+                                        data-content="{{ $template->body_template }}"
+                                    {{ ($notification->template_id == $template->id) ? 'selected' : '' }}> {{-- Điền dữ liệu cũ --}}
                                     {{ $template->name }} ({{ $template->type }})
                                 </option>
                             @endforeach
@@ -31,7 +36,6 @@
                         @enderror
                     </div>
 
-                    <!-- Class Selection -->
                     <div class="mb-4">
                         <label class="form-label">Lớp Chủ Nhiệm</label>
                         <div class="form-control bg-light rounded-3 shadow-sm py-2 px-3">
@@ -40,13 +44,15 @@
                         <input type="hidden" name="class_id" value="{{ $classId }}">
                     </div>
 
-                    <!-- Priority -->
                     <div class="mb-4">
                         <label for="priority" class="form-label">Mức Độ Ưu Tiên <span class="text-danger">*</span></label>
                         <select class="form-select @error('priority') is-invalid @enderror" id="priority" name="priority" required>
                             <option value="">-- Chọn mức độ ưu tiên --</option>
                             @foreach($priorities as $priority)
-                                <option value="{{ $priority['value'] }}">{{ $priority['label'] }}</option>
+                                <option value="{{ $priority['value'] }}"
+                                    {{ ($notification->priority == $priority['value']) ? 'selected' : '' }}> {{-- Điền dữ liệu cũ --}}
+                                    {{ $priority['label'] }}
+                                </option>
                             @endforeach
                         </select>
                         @error('priority')
@@ -54,24 +60,23 @@
                         @enderror
                     </div>
 
-                    <!-- Subject -->
                     <div class="mb-4 rounded-3">
                         <label for="subject" class="form-label">Tiêu Đề Thông Báo <span class="text-danger">*</span>
                         </label>
                         <input type="text" class="form-control @error('subject') is-invalid @enderror"
-                               id="subject" name="subject" value="{{ old('subject') }}" required maxlength="255">
+                               id="subject" name="subject"
+                               value="{{ old('subject', $notification->subject) }}" required maxlength="255"> {{-- Điền dữ liệu cũ --}}
                         @error('subject')
                         <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
                     </div>
 
-                    <!-- Content -->
                     <div class="mb-4 rounded-3 ">
                         <label for="content" class="form-label fw-semibold">
                             <i class="fas fa-align-left me-1"></i> Nội Dung Thông Báo <span class="text-danger">*</span>
                         </label>
                         <textarea class="form-control @error('content') is-invalid @enderror"
-                                  id="content" name="content" rows="10" required>{{ old('content') }}</textarea>
+                                  id="content" name="content" rows="10" required>{{ old('content', $notification->content) }}</textarea> {{-- Điền dữ liệu cũ --}}
                         @error('content')
                         <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
@@ -84,10 +89,21 @@
                         <input type="file" class="form-control @error('attachments') is-invalid @enderror"
                                id="attachments" name="attachments[]" multiple>
                         @error('attachments')
-                        <div class="invalid-feedback">{{ $message }}
-                        </div>
+                        <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
                         <small class="text-muted">Định dạng: PDF, Word, Excel, hình ảnh. Tối đa 5MB/file.</small>
+
+                        @if($notification->attachments->count() > 0) {{-- Kiểm tra có file đính kèm --}}
+                        <div class="mt-2">
+                            <h6>File đính kèm hiện có:</h6>
+                            <ul class="list-unstyled">
+                                @foreach($notification->attachments as $attachment)
+                                    <li><i class="fas fa-file-alt me-1"></i> {{ $attachment->file_name }}</li>
+                                @endforeach
+                            </ul>
+                            <small class="text-info">Để xóa file cũ, bạn cần triển khai logic riêng trong phương thức update.</small>
+                        </div>
+                        @endif
                     </div>
 
                     <div class="d-flex justify-content-end mt-4">
@@ -106,7 +122,7 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Load template content when selected
+            // Load template content when selected (chỉ cho form tạo mới)
             document.getElementById('template_id').addEventListener('change', function() {
                 const templateId = this.value;
                 if (templateId) {
@@ -115,33 +131,34 @@
                     document.getElementById('content').value = selectedOption.dataset.content;
                 }
             });
-        });
-        $('#template_id').change(function() {
-            const templateId = $(this).val();
-            if (!templateId) return;
+            // Đoạn script jQuery của bạn (chỉ chạy khi chọn template)
+            $('#template_id').change(function() {
+                const templateId = $(this).val();
+                if (!templateId) return;
 
-            // Hiển thị loading
-            $('#template-loading').removeClass('d-none');
+                // Hiển thị loading (nếu có)
+                // $('#template-loading').removeClass('d-none'); // Bỏ comment nếu bạn có element này
 
-            $.get(`/notifications/templates/${templateId}`, function(data) {
-                $('#subject').val(data.subject);
-                $('#content').val(data.content);
+                $.get(`/notifications/templates/${templateId}`, function(data) {
+                    $('#subject').val(data.subject);
+                    $('#content').val(data.content);
 
-                // Hiển thị các biến có thể sử dụng
-                if (data.variables && data.variables.length > 0) {
-                    $('#template-variables').html(`
-                    <div class="alert alert-info mt-3">
-                        <strong>Các biến có thể sử dụng:</strong>
-                        ${data.variables.join(', ')}
-                    </div>
-                `);
-                }
+                    // Hiển thị các biến (nếu có)
+                    // if (data.variables && data.variables.length > 0) {
+                    //     $('#template-variables').html(` // Bỏ comment nếu bạn có element này
+                    //     <div class="alert alert-info mt-3">
+                    //         <strong>Các biến có thể sử dụng:</strong>
+                    //         ${data.variables.join(', ')}
+                    //     </div>
+                    // `);
+                    // }
 
-                // Ẩn loading
-                $('#template-loading').addClass('d-none');
-            }).fail(function() {
-                $('#template-loading').addClass('d-none');
-                alert('Lỗi khi tải nội dung mẫu');
+                    // Ẩn loading
+                    // $('#template-loading').addClass('d-none'); // Bỏ comment nếu bạn có element này
+                }).fail(function() {
+                    // $('#template-loading').addClass('d-none'); // Bỏ comment nếu bạn có element này
+                    alert('Lỗi khi tải nội dung mẫu');
+                });
             });
         });
     </script>

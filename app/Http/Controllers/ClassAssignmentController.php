@@ -11,6 +11,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\ValidationException;
 
 class ClassAssignmentController extends Controller
 {
@@ -109,9 +110,44 @@ class ClassAssignmentController extends Controller
 
     public function autoAssign(Request $request)
     {
+        $schoolId = auth()->user()->school_id;
+
         $request->validate([
-            'grade_level_id' => 'required|exists:grade_levels,id,school_id,' . auth()->user()->school_id,
-            'academic_year_id' => 'required|exists:academic_years,id,school_id,' . auth()->user()->school_id,
+            'grade_level_id' => 'required|exists:grade_levels,id,school_id,' . $schoolId,
+            'academic_year_id' => [
+                'required',
+                'exists:academic_years,id,school_id,' . $schoolId,
+                function ($attribute, $value, $fail) use ($schoolId) {
+                    $academicYear = AcademicYear::where('id', $value)
+                        ->where('school_id', $schoolId)
+                        ->first();
+
+                    if (!$academicYear) {
+                        return $fail('Năm học không hợp lệ.');
+                    }
+
+                    // Lấy năm học hiện tại
+                    $currentAcademicYear = AcademicYear::where('school_id', $schoolId)
+                        ->where('start_date', '<=', now())
+                        ->where('end_date', '>=', now())
+                        ->first();
+
+                    if (!$currentAcademicYear) {
+                        // Nếu không có năm học hiện tại, coi như năm học nào cũng hợp lệ, hoặc bạn có thể thêm logic cụ thể
+                        return;
+                    }
+
+                    // Kiểm tra năm học: hiện tại, sắp tới hoặc chưa kết thúc
+                    if ($academicYear->end_date < now() && $academicYear->id !== $currentAcademicYear->id) {
+                        $fail('Năm học đã chọn đã kết thúc và không phải là năm học hiện tại.');
+                    }
+                },
+            ],
+        ], [
+            'grade_level_id.required' => 'Khối học không được để trống.',
+            'grade_level_id.exists' => 'Khối học không hợp lệ.',
+            'academic_year_id.required' => 'Năm học không được để trống.',
+            'academic_year_id.exists' => 'Năm học không hợp lệ.',
         ]);
 
         try {
@@ -120,12 +156,23 @@ class ClassAssignmentController extends Controller
             $gradeLevelId = $request->grade_level_id;
             $academicYearId = $request->academic_year_id;
 
-            // Lấy thông tin khối học
             $gradeLevel = GradeLevel::find($gradeLevelId);
             $isGrade10 = $gradeLevel && $gradeLevel->grade_number == 10;
 
+            $classes = ClassModel::where('grade_level_id', $gradeLevelId)
+                ->where('academic_year_id', $academicYearId)
+                ->where('school_id', $schoolId)
+                ->orderBy('name')
+                ->get();
+
+            // Kiểm tra 4a: Không có lớp học nào thuộc khối và năm học được chọn
+            if ($classes->isEmpty()) {
+                // Thay vì throw ValidationException, trả về back() với flash error
+                return back()->with('error', 'Không có lớp nào trong khối và năm học được chọn.')->withInput();
+            }
+
             $unassignedStudents = User::where('role', User::ROLE_STUDENT)
-                ->where('school_id', auth()->user()->school_id)
+                ->where('school_id', $schoolId)
                 ->whereHas('studentGrades', function ($query) use ($gradeLevelId, $academicYearId) {
                     $query->where('grade_id', $gradeLevelId)
                         ->where('academic_year_id', $academicYearId);
@@ -138,28 +185,32 @@ class ClassAssignmentController extends Controller
                 }, function ($query) {
                     return $query->orderBy('full_name');
                 })
-                ->orderBy('full_name')
                 ->get();
 
-            // Lấy danh sách lớp trong khối
-            $classes = ClassModel::where('grade_level_id', $gradeLevelId)
-                ->where('academic_year_id', $academicYearId)
-                ->where('school_id', auth()->user()->school_id)
-                ->orderBy('name')
-                ->get();
-
-            if ($classes->isEmpty()) {
-                return back()->with('error', 'Không có lớp nào trong khối và năm học được chọn.');
-            }
-
+            // Kiểm tra 4b: Không có học sinh nào chưa được phân lớp
             if ($unassignedStudents->isEmpty()) {
-                return back()->with('info', 'Không có học sinh nào cần phân lớp trong khối và năm học được chọn.');
+                if ($unassignedStudents->isEmpty()) {
+                    return back()->with('error', 'Không có học sinh nào cần phân lớp trong khối và năm học được chọn.')->withInput();
+                }
             }
 
+            // Kiểm tra 4c: Một số học sinh không có điểm đầu vào (chỉ áp dụng cho khối 10)
+            if ($isGrade10) {
+                $studentsWithoutEntryScore = $unassignedStudents->filter(function ($student) {
+                    return $student->entry_score === null;
+                });
 
+                if ($studentsWithoutEntryScore->isNotEmpty()) {
+                    $countWithoutScore = $studentsWithoutEntryScore->count();
+                    $studentNames = $studentsWithoutEntryScore->pluck('full_name')->implode(', ');
+
+                    // Thay vì throw ValidationException, trả về back() với flash error
+                    return back()->with('error', "Có $countWithoutScore học sinh chưa có điểm đầu vào: $studentNames. Vui lòng cập nhật điểm đầu vào cho học sinh trước khi thực hiện phân lớp theo điểm số.")->withInput();
+                }
+            }
             $totalStudents = $unassignedStudents->count();
             $classCount = $classes->count();
-            $studentsPerClass = ceil($totalStudents / $classCount);
+            $studentsPerClass = $classCount > 0 ? ceil($totalStudents / $classCount) : 0;
 
             $assignmentDetails = [];
 
@@ -299,27 +350,137 @@ class ClassAssignmentController extends Controller
 
     public function advanceClassStudents(Request $request)
     {
+        $request->validate([
+            'student_ids' => 'required|array',
+            'student_ids.*' => 'exists:users,id',
+            'current_class_id' => 'required|exists:classes,id',
+            'next_academic_year_id' => 'required|exists:academic_years,id',
+        ]);
+
+        $student_ids = $request->input('student_ids');
+        $current_class_id = $request->input('current_class_id');
+        $next_academic_year_id = $request->input('next_academic_year_id');
+
+        $successCount = 0;
+        $failCount = 0;
+        $messages = [];
+
+        DB::beginTransaction();
         try {
-            $currentClassId = $request->input('current_class_id');
-            $targetClassId = $request->input('target_class_id');
-            $targetYear = $request->input('target_academic_year_id');
-            $selectedStudents = $request->input('selected_student_ids');
-            $selectedStudentsId = [explode(',', $selectedStudents)];
+            $currentClass = ClassModel::findOrFail($current_class_id);
+            $currentAcademicYearId = $currentClass->academic_year_id;
+            $nextAcademicYear = AcademicYear::findOrFail($next_academic_year_id);
 
-            $targetYearId = AcademicYear::where('year', $targetYear)
-                ->where('school_id', auth()->user()->school_id)
-                ->value('id');
+            foreach ($student_ids as $student_id) {
+                $user = User::find($student_id);
 
-            foreach($selectedStudentsId as $id){
-                $student = User::find($id);
-                Log::info("Du lieu:", [$student]);
-                Log::info("Diem trung binh cua: " . $student->getAveragesByYear($targetYearId));
+                if (!$user) {
+                    $failCount++;
+                    $messages[] = "Học sinh ID {$student_id} không tồn tại.";
+                    continue;
+                }
+
+                $averageGrade = $user->getAverageOverallGradeForAcademicYear($currentAcademicYearId);
+                $newClass = null; // Khởi tạo biến $newClass
+                $promotionStatus = '';
+
+                if ($averageGrade === null) {
+                    $messages[] = "Không tìm thấy điểm trung bình cả năm cho học sinh {$user->full_name} ({$user->id}) trong năm học hiện tại. Học sinh sẽ ở lại lớp.";
+                    $newClass = $this->getRetainedClass($currentClass, $nextAcademicYear);
+                    $promotionStatus = 'Ở lại lớp (không có điểm)';
+                } elseif ($averageGrade >= 5.0) {
+                    try {
+                        $newClass = $this->getPromotedClass($currentClass, $nextAcademicYear);
+                        $promotionStatus = 'Lên lớp';
+                    } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+                        $messages[] = "Không tìm thấy lớp để chuyển lên cho học sinh {$user->full_name} ({$user->id}). Học sinh sẽ ở lại lớp.";
+                        $newClass = $this->getRetainedClass($currentClass, $nextAcademicYear);
+                        $promotionStatus = 'Ở lại lớp (không tìm thấy lớp lên)';
+                    }
+                } else {
+                    $newClass = $this->getRetainedClass($currentClass, $nextAcademicYear);
+                    $promotionStatus = 'Ở lại lớp';
+                }
+
+                StudentClass::create([
+                    'user_id' => $user->id,
+                    'class_id' => $newClass->id,
+                    'academic_year_id' => $nextAcademicYear->id,
+                    // created_at và updated_at sẽ tự động được thêm bởi Eloquent
+                ]);
+
+                $successCount++;
+                $messages[] = "Học sinh {$user->full_name} ({$user->id}) đã được chuyển: {$promotionStatus} vào lớp {$newClass->name} ({$nextAcademicYear->year}).";
             }
 
-            return redirect()->back();
-        } catch (\Exception $ex) {
-            Log::error("Error in ClassAssignmentController@advanceClassStudents: " . $ex->getMessage());
-            return response()->json("Lỗi khi lên lớp chp học sinh: " . $ex->getMessage(), 500);
+            DB::commit();
+            return response()->json([
+                'message' => "Đã xử lý chuyển lớp cho {$successCount} học sinh thành công, {$failCount} thất bại. Chi tiết: " . implode('; ', $messages),
+                'status' => 'success'
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Lỗi khi chuyển lớp hàng loạt: ' . $e->getMessage() . ' - Stack: ' . $e->getTraceAsString());
+            return response()->json(['message' => 'Đã xảy ra lỗi hệ thống khi chuyển lớp: ' . $e->getMessage()], 500);
         }
     }
+
+    // Hàm helper để lấy lớp lên khối
+    private function getPromotedClass(ClassModel $currentClass, AcademicYear $nextAcademicYear)
+    {
+        // Lấy cấp độ khối hiện tại
+        $currentGradeNumber = $currentClass->gradeLevel->grade_number;
+        $nextGradeNumber = $currentGradeNumber + 1;
+
+        if ($nextGradeNumber > 12) { // Giả sử 12 là khối cuối cùng
+            return null; // Hoặc ném một Exception tùy chỉnh để báo là học sinh đã tốt nghiệp
+        }
+        $nextGradeLevel = GradeLevel::where('grade_number', $nextGradeNumber)
+            ->where('school_id', $currentClass->school_id)
+            ->first(); // <-- Thay firstOrFail() bằng first()
+
+        if (!$nextGradeLevel) {
+            Log::warning("Không tìm thấy GradeLevel cho khối {$nextGradeNumber} trong trường {$currentClass->school_id}.");
+            return null;
+        }
+
+        // Cố gắng tìm lớp có tên tương ứng (ví dụ: 10A1 -> 11A1)
+        $targetClassName = str_replace(
+            (string)$currentGradeNumber,
+            (string)$nextGradeNumber,
+            $currentClass->name
+        );
+
+        $promotedClass = ClassModel::where('academic_year_id', $nextAcademicYear->id)
+            ->where('grade_level_id', $nextGradeLevel->id)
+            ->where('name', $targetClassName)
+            ->where('school_id', $currentClass->school_id)
+            ->first(); // <-- Thay firstOrFail() bằng first()
+
+        if (!$promotedClass) {
+            Log::warning("Không tìm thấy lớp '{$targetClassName}' trong năm học {$nextAcademicYear->year} và khối {$nextGradeNumber}.");
+            return null;
+        }
+
+        return $promotedClass;
+    }
+
+    // Hàm helper để lấy lớp ở lại
+    private function getRetainedClass(ClassModel $currentClass, AcademicYear $nextAcademicYear)
+    {
+        $retainedClass = ClassModel::where('academic_year_id', $nextAcademicYear->id)
+            ->where('grade_level_id', $currentClass->grade_level_id)
+            ->where('name', $currentClass->name)
+            ->where('school_id', $currentClass->school_id)
+            ->first(); // <-- Thay firstOrFail() bằng first()
+
+        if (!$retainedClass) {
+            Log::warning("Không tìm thấy lớp ở lại '{$currentClass->name}' trong năm học {$nextAcademicYear->year}.");
+            return null;
+        }
+
+        return $retainedClass;
+    }
+
 }

@@ -6,7 +6,7 @@
             <a href="{{ url()->previous() }}" class="btn text-primary-color btn-sm me-3" title="Quay lại">
                 <i class="fas fa-arrow-left"></i>
             </a>
-            <h4 class="mb-0">Sửa thông tin lớp học</h4>
+            <h3 class="mb-0">Sửa thông tin lớp học</h3>
         </div>
         <div class="card-body">
             <form method="POST" action="{{ route('classes.update', $class->id) }}" id="classForm">

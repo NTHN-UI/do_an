@@ -1,47 +1,64 @@
-<div class="modal fade" id="questionBankModal" tabindex="-1" role="dialog" aria-labelledby="questionBankModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg" role="document">
+<!-- resources/views/exams/partials/question-bank-modal.blade.php -->
+<div class="modal fade" id="questionBankModal" tabindex="-1" aria-labelledby="questionBankModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="questionBankModalLabel">Chọn câu hỏi từ ngân hàng</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
+                <h5 class="modal-title" id="questionBankModalLabel">Ngân hàng câu hỏi</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <div class="form-group">
-                    <input type="text" class="form-control" id="searchQuestionBank" placeholder="Tìm kiếm câu hỏi...">
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <select id="filterSubject" class="form-select">
+                            <option value="">Lọc theo môn học</option>
+                            @foreach($subjects as $subject)
+                                <option value="{{ $subject->id }}">{{ $subject->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <select id="filterGrade" class="form-select">
+                            <option value="">Lọc theo khối</option>
+                            @foreach($gradeLevels as $grade)
+                                <option value="{{ $grade->id }}">Khối {{ $grade->grade_number }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <input type="text" id="searchQuestion" class="form-control" placeholder="Tìm kiếm câu hỏi...">
+                    </div>
                 </div>
-                <div class="question-bank-list">
-                    @foreach($questionBanks as $question)
-                        <div class="card mb-2">
-                            <div class="card-body">
-                                <div class="form-check">
-                                    <input class="form-check-input question-checkbox" type="checkbox"
-                                           value="{{ $question->id }}"
-                                           id="qb_{{ $question->id }}">
-                                    <label class="form-check-label" for="qb_{{ $question->id }}">
-                                        {{ $question->content }}
-                                    </label>
-                                </div>
-                                <div class="options ml-4 mt-2">
-                                    @foreach($question->options as $option)
-                                        <div class="form-check">
-                                            <input class="form-check-input" type="radio" disabled {{ $option->is_correct ? 'checked' : '' }}>
-                                            <label class="form-check-label {{ $option->is_correct ? 'text-success font-weight-bold' : '' }}">
-                                                {{ chr(64 + $loop->iteration) }}. {{ $option->content }}
-                                            </label>
-                                        </div>
-                                    @endforeach
-                                </div>
-                                <small class="text-muted">Mức độ: {{ ucfirst($question->difficulty) }}</small>
-                            </div>
-                        </div>
-                    @endforeach
+
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                        <tr>
+                            <th width="50px">Chọn</th>
+                            <th>Câu hỏi</th>
+                            <th>Môn</th>
+                            <th>Khối</th>
+                            <th>Điểm</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        @foreach($questionBanks as $question)
+                            <tr>
+                                <td>
+                                    <input type="checkbox" class="question-checkbox" value="{{ $question->id }}">
+                                </td>
+                                <td>{!! Str::limit($question->content, 150) !!}</td>
+                                <td>{{ $question->subject->name ?? '' }}</td>
+                                <td>Khối {{ $question->gradeLevel->grade_number ?? '' }}</td>
+                                <td>{{ $question->default_marks ?? 1 }}</td>
+                            </tr>
+                        @endforeach
+                        </tbody>
+                    </table>
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Đóng</button>
-                <button type="button" class="btn btn-primary" id="addSelectedQuestions">Thêm vào đề thi</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                <button type="button" class="btn btn-primary" id="addSelectedQuestions">Thêm câu hỏi đã chọn</button>
             </div>
         </div>
     </div>

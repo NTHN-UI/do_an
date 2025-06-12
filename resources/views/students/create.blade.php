@@ -12,7 +12,7 @@
             <a href="{{ route('students.index') }}" class="btn btn-back me-3" title="Quay lại">
                 <i class="fas fa-arrow-left"></i>
             </a>
-            <h4 class="mb-0 text-primary-color">Thêm mới Học sinh</h4>
+            <h3 class="mb-0 text-primary-color">Thêm mới Học sinh</h3>
         </div>
         <div class="card border-0 shadow-sm rounded-2">
             <div class="card-body">

@@ -15,7 +15,7 @@
             <a href="{{ route('school_admins.index') }}" class="btn btn-back me-3" title="Quay lại">
                 <i class="fas fa-arrow-left"></i>
             </a>
-            <h4 class="mb-0 text-primary-color">Sửa thông tin Admin Trường</h4>
+            <h3 class="mb-0 text-primary-color">Sửa thông tin Admin Trường</h3>
         </div>
         <div class="card-body">
             <form method="POST" action="{{ route('school_admins.update', $admin->id) }}">

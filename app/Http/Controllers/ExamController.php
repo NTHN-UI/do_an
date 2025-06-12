@@ -348,12 +348,7 @@ class ExamController extends Controller
         ]);
     }
 
-    public function exportWord(Exam $exam)
-    {
 
-        // Triển khai xuất file Word
-        // (Sử dụng PHPWord để tạo file)
-    }
 
     private function validateRequest(Request $request, $exam = null)
     {
@@ -438,43 +433,173 @@ class ExamController extends Controller
         ];
     }
 
-    private function importFromWord(Exam $exam, $file)
-    {
-        $originalName = $file->getClientOriginalName();
-        $fileSize = $file->getSize();
-        $path = $file->store('exam_imports');
+        private function importFromWord(Exam $exam, $file)
+        {
 
-        $import = $exam->imports()->create([
-            'file_path' => $path,
-            'original_name' => $originalName,
-            'file_size' => $fileSize,
+            $originalName = $file->getClientOriginalName();
+            $fileSize = $file->getSize();
+            $path = $file->store('exam_imports');
+
+            $import = $exam->imports()->create([
+                'file_path' => $path,
+                'original_name' => $originalName,
+                'file_size' => $fileSize,
+            ]);
+
+            try {
+                $phpWord = IOFactory::load(storage_path('app/' . $path));
+                $sections = $phpWord->getSections();
+
+                $questions = [];
+                $currentQuestion = null;
+
+                foreach ($sections as $section) {
+                    $elements = $section->getElements();
+
+                    foreach ($elements as $element) {
+                        if ($element instanceof \PhpOffice\PhpWord\Element\TextRun) {
+                            $text = $this->getElementText($element);
+
+                            // Phát hiện câu hỏi (bắt đầu bằng số hoặc chữ "Câu")
+                            if (preg_match('/^(Câu\s*\d+|\d+\.)\s*(.+)/', $text, $matches)) {
+                                if ($currentQuestion) {
+                                    $questions[] = $currentQuestion;
+                                }
+
+                                $currentQuestion = [
+                                    'content' => $matches[2],
+                                    'marks' => 1, // Mặc định
+                                    'options' => [],
+                                    'correct_option' => 0 // Mặc định
+                                ];
+                            }
+                            // Phát hiện đáp án (bắt đầu bằng A., B., C., D.)
+                            elseif (preg_match('/^([A-D])\.\s*(.+)/', $text, $matches) && $currentQuestion) {
+                                $optionIndex = ord($matches[1]) - ord('A');
+                                $currentQuestion['options'][$optionIndex] = [
+                                    'content' => $matches[2],
+                                    'is_correct' => false
+                                ];
+
+                                // Nếu có dấu (*) thì là đáp án đúng
+                                if (strpos($matches[2], '(*)') !== false) {
+                                    $currentQuestion['correct_option'] = $optionIndex;
+                                    $currentQuestion['options'][$optionIndex]['content'] = str_replace('(*)', '', $matches[2]);
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // Thêm câu hỏi cuối cùng
+                if ($currentQuestion) {
+                    $questions[] = $currentQuestion;
+                }
+
+                $this->addManualQuestions($exam, $questions);
+
+                $import->update([
+                    'import_status' => 'completed',
+                    'import_log' => 'Import thành công ' . count($questions) . ' câu hỏi'
+                ]);
+            } catch (\Exception $e) {
+                $import->update([
+                    'import_status' => 'failed',
+                    'import_log' => 'Lỗi: ' . $e->getMessage()
+                ]);
+
+                throw $e;
+            }
+        }
+
+
+
+
+
+
+
+
+    public function previewWord(Request $request)
+    {
+        $request->validate([
+            'file' => 'required|file|mimes:docx|max:10240'
         ]);
 
         try {
-            $phpWord = IOFactory::load(storage_path('app/' . $path));
+            $file = $request->file('file');
+            $phpWord = IOFactory::load($file->getRealPath());
             $sections = $phpWord->getSections();
 
             $questions = [];
+            $currentQuestion = null;
 
             foreach ($sections as $section) {
-                // Logic đọc file Word và trích xuất câu hỏi
-                // (Triển khai cụ thể tùy theo cấu trúc file)
+                $elements = $section->getElements();
+
+                foreach ($elements as $element) {
+                    if ($element instanceof \PhpOffice\PhpWord\Element\TextRun) {
+                        $text = $this->getElementText($element);
+
+                        // Phát hiện câu hỏi
+                        if (preg_match('/^(Câu\s*\d+|\d+\.)\s*(.+)/', $text, $matches)) {
+                            if ($currentQuestion) {
+                                $questions[] = $currentQuestion;
+                            }
+
+                            $currentQuestion = [
+                                'content' => $matches[2],
+                                'marks' => 1, // Mặc định
+                                'options' => [],
+                                'correct_option' => 0 // Mặc định
+                            ];
+                        }
+                        // Phát hiện đáp án
+                        elseif (preg_match('/^([A-D])\.\s*(.+)/', $text, $matches) && $currentQuestion) {
+                            $optionIndex = ord($matches[1]) - ord('A');
+                            $currentQuestion['options'][$optionIndex] = [
+                                'content' => $matches[2],
+                                'is_correct' => false
+                            ];
+
+                            // Đánh dấu đáp án đúng
+                            if (strpos($matches[2], '(*)') !== false) {
+                                $currentQuestion['correct_option'] = $optionIndex;
+                                $currentQuestion['options'][$optionIndex]['content'] = str_replace('(*)', '', $matches[2]);
+                            }
+                        }
+                    }
+                }
             }
 
-            $this->addManualQuestions($exam, $questions);
+            // Thêm câu hỏi cuối cùng
+            if ($currentQuestion) {
+                $questions[] = $currentQuestion;
+            }
 
-            $import->update([
-                'import_status' => 'completed',
-                'import_log' => 'Import thành công ' . count($questions) . ' câu hỏi'
+            return response()->json([
+                'success' => true,
+                'questions' => $questions
             ]);
+
         } catch (\Exception $e) {
-            $import->update([
-                'import_status' => 'failed',
-                'import_log' => 'Lỗi: ' . $e->getMessage()
-            ]);
-
-            throw $e;
+            return response()->json([
+                'success' => false,
+                'message' => 'Lỗi khi đọc file Word: ' . $e->getMessage()
+            ], 500);
         }
+    }
+
+
+
+    private function getElementText($element)
+    {
+        $text = '';
+        foreach ($element->getElements() as $child) {
+            if ($child instanceof \PhpOffice\PhpWord\Element\Text) {
+                $text .= $child->getText();
+            }
+        }
+        return trim($text);
     }
 
     private function addQuestionsFromBank(Exam $exam, array $questionBankIds)
