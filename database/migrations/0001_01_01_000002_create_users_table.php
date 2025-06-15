@@ -15,7 +15,7 @@ return new class extends Migration {
             $table->string('token');
             $table->timestamp('created_at')->nullable();
         });
-        
+
         Schema::create('users', function (Blueprint $table) {
             $table->id();
             $table->string('full_name');
@@ -23,10 +23,10 @@ return new class extends Migration {
             $table->string('password')->nullable();
             $table->string('guardian_name')->nullable();
             $table->string('guardian_email')->nullable()->unique();
-            $table->string('guardian_phone', 20)->nullable();
+            $table->string('guardian_phone', 11)->nullable();
             $table->decimal('entry_score', 5, 2)->nullable();
             $table->text('address')->nullable();
-            $table->string('phone', 20)->nullable();
+            $table->string('phone', 11)->nullable();
             $table->enum('gender', ['Nam', 'Nữ', 'Khác'])->nullable();
             $table->date('date_of_birth')->nullable();
             $table->enum('role', ['super_admin', 'school_admin', 'teacher', 'student']);

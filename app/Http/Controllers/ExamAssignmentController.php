@@ -40,8 +40,8 @@ class ExamAssignmentController extends Controller
             'class_id' => 'required|exists:classes,id',
             'start_time' => 'required|date|after:now',
             'end_time' => 'required|date|after:start_time',
-            'shuffle_questions' => 'boolean',
-            'shuffle_options' => 'boolean',
+            'shuffle_questions' => 'sometimes|boolean',
+            'shuffle_options' => 'sometimes|boolean',
         ]);
 
         $assignment = ExamAssignment::create([
@@ -49,8 +49,8 @@ class ExamAssignmentController extends Controller
             'class_id' => $validated['class_id'],
             'start_time' => $validated['start_time'],
             'end_time' => $validated['end_time'],
-            'shuffle_exam-assignmentsquestions' => $validated['shuffle_questions'] ?? false,
-            'shuffle_options' => $validated['shuffle_options'] ?? false,
+            'shuffle_questions' => $request->has('shuffle_questions'),
+            'shuffle_options' => $request->has('shuffle_options'),
         ]);
 
         // Gửi thông báo đến học sinh (có thể triển khai sau)
@@ -58,5 +58,27 @@ class ExamAssignmentController extends Controller
 
         return redirect()->route('exams.show', $exam->id)
             ->with('success', 'Đề thi đã được giao thành công!');
+    }
+    public function show(Exam $exam)
+    {
+        $assignment = ExamAssignment::where('exam_id', $exam->id)
+            ->where('class_id', auth()->user()->class_id)
+            ->firstOrFail();
+
+        $questions = $exam->questions()->with('options')->get();
+
+        // Xáo trộn câu hỏi nếu được cấu hình
+        if ($assignment->shuffle_questions) {
+            $questions = $questions->shuffle();
+        }
+
+        // Xáo trộn đáp án trong từng câu hỏi nếu được cấu hình
+        if ($assignment->shuffle_options) {
+            $questions->each(function ($question) {
+                $question->options = $question->options->shuffle();
+            });
+        }
+
+        return view('exams.take', compact('exam', 'questions', 'assignment'));
     }
 }

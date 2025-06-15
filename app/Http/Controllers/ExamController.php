@@ -511,14 +511,7 @@ class ExamController extends Controller
                 throw $e;
             }
         }
-
-
-
-
-
-
-
-
+        
     public function previewWord(Request $request)
     {
         $request->validate([

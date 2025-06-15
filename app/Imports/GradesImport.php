@@ -24,16 +24,19 @@ class GradesImport implements ToCollection, WithCalculatedFormulas // Đã bỏ 
 
     protected $importedStudentIds = [];
     protected $headerRowIndex = 0;
-    public function __construct($classId, $semesterId, $academicYearId, $teacherId, $schoolId, $currentSubject = null)
+    protected $isForceUpdate;
+
+    public function __construct($classId, $semesterId, $academicYearId, $teacherId, $schoolId, $currentSubject = null, $isForceUpdate = false)
     {
         $this->classId = $classId;
         $this->semesterId = $semesterId;
         $this->academicYearId = $academicYearId;
         $this->teacherId = $teacherId;
         $this->schoolId = $schoolId;
-        $this->currentSubject = $currentSubject; // Giữ lại để so sánh ban đầu
-
+        $this->currentSubject = $currentSubject;
+        $this->isForceUpdate = (bool)$isForceUpdate;
     }
+
     public function sheets(): array
     {
         return [
@@ -76,6 +79,31 @@ class GradesImport implements ToCollection, WithCalculatedFormulas // Đã bỏ 
             $this->semesterId != $extractedSemesterId ||
             $this->currentSubject->id != $extractedSubjectId) {
             throw new \Exception("Nội dung file Excel không khớp với thông tin import đã chọn trên hệ thống. Vui lòng kiểm tra lại lớp, năm học, học kỳ và môn học.");
+        }
+        if (!$this->isForceUpdate) {
+            $existingGrades = Grade::where([
+                'teacher_id' => $this->teacherId,
+                'subject_id' => $this->currentSubject->id,
+                'class_id' => $this->classId,
+                'academic_year_id' => $this->academicYearId,
+                'semester_id' => $this->semesterId,
+                'school_id' => $this->schoolId,
+            ])->exists();
+
+            if ($existingGrades) {
+                throw new \Exception("Điểm cho môn học này đã được nhập. Bạn có chắc muốn cập nhật lại?");
+            }
+        }
+        // Nếu ở chế độ ghi đè, xóa toàn bộ điểm cũ trước khi import
+        else {
+            Grade::where([
+                'teacher_id' => $this->teacherId,
+                'subject_id' => $this->currentSubject->id,
+                'class_id' => $this->classId,
+                'academic_year_id' => $this->academicYearId,
+                'semester_id' => $this->semesterId,
+                'school_id' => $this->schoolId,
+            ])->delete();
         }
 
         // Dòng tiêu đề dữ liệu học sinh trong Excel là dòng thứ 6 (index 5 trong collection)
@@ -175,20 +203,104 @@ class GradesImport implements ToCollection, WithCalculatedFormulas // Đã bỏ 
         ];
     }
 
-    // Hàm processGrades có vẻ không được gọi ở đâu, có thể xóa hoặc đảm bảo nó được gọi
-    // protected function processGrades($row, $studentId)
-    // {
-    //     $isTextSubject = $this->currentSubject->is_text_based;
-    //     if ($isTextSubject) {
-    //         $this->processTextGrades($row, $studentId);
-    //     } else {
-    //         $this->processNumericGrades($row, $studentId);
-    //     }
-    // }
 
+//    protected function processTextGrades($row, $studentId)
+//    {
+//        // Điều chỉnh lại chỉ số cột cho các điểm số: Cột C là 2, D là 3, E là 4, F là 5, G là 6
+//        $grades = [
+//            ['test_type' => 'fifteen_minutes', 'test_number' => 1, 'value' => $this->normalizeTextGrade($row->get(2) ?? null)],
+//            ['test_type' => 'fifteen_minutes', 'test_number' => 2, 'value' => $this->normalizeTextGrade($row->get(3) ?? null)],
+//            ['test_type' => 'fifteen_minutes', 'test_number' => 3, 'value' => $this->normalizeTextGrade($row->get(4) ?? null)],
+//            ['test_type' => 'one_period', 'test_number' => 1, 'value' => $this->normalizeTextGrade($row->get(5) ?? null)],
+//            ['test_type' => 'semester', 'test_number' => 1, 'value' => $this->normalizeTextGrade($row->get(6) ?? null)],
+//        ];
+//
+//        $fifteenMinPassed = 0;
+//        $onePeriodPassed = false;
+//        $semesterGrade = null;
+//
+//        foreach ($grades as $grade) {
+//            if ($grade['test_type'] === 'semester') {
+//                $semesterGrade = $grade['value'];
+//                continue;
+//            }
+//            if ($grade['value'] === 'Đạt') {
+//                if ($grade['test_type'] === 'fifteen_minutes') {
+//                    $fifteenMinPassed++;
+//                } elseif ($grade['test_type'] === 'one_period') {
+//                    $onePeriodPassed = true;
+//                }
+//            }
+//            if ($grade['value'] !== null) {
+//                Grade::updateOrCreate(
+//                    [
+//                        'teacher_id' => $this->teacherId,
+//                        'student_id' => $studentId,
+//                        'subject_id' => $this->currentSubject->id,
+//                        'class_id' => $this->classId,
+//                        'academic_year_id' => $this->academicYearId,
+//                        'semester_id' => $this->semesterId,
+//                        'test_type' => $grade['test_type'],
+//                        'test_number' => $grade['test_number'],
+//                        'school_id' => $this->schoolId,
+//                    ],
+//                    [
+//                        'text_value' => $grade['value'],
+//                        'score' => null
+//                    ]
+//                );
+//            }
+//        }
+//        $isEligible = ($fifteenMinPassed >= 2) && $onePeriodPassed;
+//        $finalSemesterGrade = $isEligible ? $semesterGrade : 'Chưa đạt';
+//
+//        if (!$isEligible) {
+//            $finalSemesterGrade = 'Chưa đạt';
+//        } elseif ($semesterGrade === null) {
+//            $finalSemesterGrade = null;
+//        }
+//
+//        if ($finalSemesterGrade !== null) {
+//            Grade::updateOrCreate(
+//                [
+//                    'teacher_id' => $this->teacherId,
+//                    'student_id' => $studentId,
+//                    'subject_id' => $this->currentSubject->id,
+//                    'class_id' => $this->classId,
+//                    'academic_year_id' => $this->academicYearId,
+//                    'semester_id' => $this->semesterId,
+//                    'test_type' => 'semester',
+//                    'test_number' => 1,
+//                    'school_id' => $this->schoolId,
+//                ],
+//                [
+//                    'text_value' => $finalSemesterGrade,
+//                    'score' => null
+//                ]
+//            );
+//        }
+//
+//        $finalGrade = $this->calculateFinalTextGrade($grades, $isEligible);
+//        Grade::updateOrCreate(
+//            [
+//                'teacher_id' => $this->teacherId,
+//                'student_id' => $studentId,
+//                'subject_id' => $this->currentSubject->id,
+//                'class_id' => $this->classId,
+//                'academic_year_id' => $this->academicYearId,
+//                'semester_id' => $this->semesterId,
+//                'test_type' => 'final',
+//                'school_id' => $this->schoolId,
+//            ],
+//            [
+//                'text_value' => $finalGrade,
+//                'score' => null
+//            ]
+//        );
+//    }
     protected function processTextGrades($row, $studentId)
     {
-        // Điều chỉnh lại chỉ số cột cho các điểm số: Cột C là 2, D là 3, E là 4, F là 5, G là 6
+        // Điều chỉnh lại chỉ số cột cho các điểm số
         $grades = [
             ['test_type' => 'fifteen_minutes', 'test_number' => 1, 'value' => $this->normalizeTextGrade($row->get(2) ?? null)],
             ['test_type' => 'fifteen_minutes', 'test_number' => 2, 'value' => $this->normalizeTextGrade($row->get(3) ?? null)],
@@ -202,59 +314,62 @@ class GradesImport implements ToCollection, WithCalculatedFormulas // Đã bỏ 
         $semesterGrade = null;
 
         foreach ($grades as $grade) {
-            if ($grade['test_type'] === 'semester') {
-                $semesterGrade = $grade['value'];
-                continue;
-            }
-            if ($grade['value'] === 'Đạt') {
-                if ($grade['test_type'] === 'fifteen_minutes') {
-                    $fifteenMinPassed++;
-                } elseif ($grade['test_type'] === 'one_period') {
-                    $onePeriodPassed = true;
-                }
-            }
             if ($grade['value'] !== null) {
+                // Thêm điều kiện test_number vào mảng điều kiện
                 Grade::updateOrCreate(
                     [
-                        'teacher_id' => $this->teacherId,
-                        'student_id' => $studentId,
-                        'subject_id' => $this->currentSubject->id,
-                        'class_id' => $this->classId,
-                        'academic_year_id' => $this->academicYearId,
-                        'semester_id' => $this->semesterId,
-                        'test_type' => $grade['test_type'],
-                        'test_number' => $grade['test_number'],
-                        'school_id' => $this->schoolId,
-                    ],
-                    [
-                        'text_value' => $grade['value'],
-                        'score' => null
-                    ]
-                );
-            }
-        }
-        $isEligible = ($fifteenMinPassed >= 2) && $onePeriodPassed;
-        $finalSemesterGrade = $isEligible ? $semesterGrade : 'Chưa đạt';
-
-        if (!$isEligible) {
-            $finalSemesterGrade = 'Chưa đạt';
-        } elseif ($semesterGrade === null) {
-            $finalSemesterGrade = null;
-        }
-
-        if ($finalSemesterGrade !== null) {
-            Grade::updateOrCreate(
-                [
                     'teacher_id' => $this->teacherId,
                     'student_id' => $studentId,
                     'subject_id' => $this->currentSubject->id,
                     'class_id' => $this->classId,
                     'academic_year_id' => $this->academicYearId,
                     'semester_id' => $this->semesterId,
-                    'test_type' => 'semester',
-                    'test_number' => 1,
+                    'test_type' => $grade['test_type'],
+                    'test_number' => $grade['test_number'],
                     'school_id' => $this->schoolId,
                 ],
+
+                    [
+                        'text_value' => $grade['value'],
+                        'score' => null
+                    ]
+                );
+            }
+
+            if ($grade['test_type'] === 'semester') {
+                $semesterGrade = $grade['value'];
+            } elseif ($grade['value'] === 'Đạt') {
+                if ($grade['test_type'] === 'fifteen_minutes') {
+                    $fifteenMinPassed++;
+                } elseif ($grade['test_type'] === 'one_period') {
+                    $onePeriodPassed = true;
+                }
+            }
+        }
+
+        // Xử lý điểm cuối kỳ
+        $isEligible = ($fifteenMinPassed >= 2) && $onePeriodPassed;
+        $finalSemesterGrade = $isEligible ? $semesterGrade : 'Chưa đạt';
+
+        if ($finalSemesterGrade !== null) {
+            $semesterConditions = [
+                'teacher_id' => $this->teacherId,
+                'student_id' => $studentId,
+                'subject_id' => $this->currentSubject->id,
+                'class_id' => $this->classId,
+                'academic_year_id' => $this->academicYearId,
+                'semester_id' => $this->semesterId,
+                'test_type' => 'semester',
+                'test_number' => 1,
+                'school_id' => $this->schoolId,
+            ];
+
+            if ($this->isForceUpdate) {
+                Grade::where($semesterConditions)->delete();
+            }
+
+            Grade::updateOrCreate(
+                $semesterConditions,
                 [
                     'text_value' => $finalSemesterGrade,
                     'score' => null
@@ -262,25 +377,31 @@ class GradesImport implements ToCollection, WithCalculatedFormulas // Đã bỏ 
             );
         }
 
+        // Xử lý điểm tổng kết
         $finalGrade = $this->calculateFinalTextGrade($grades, $isEligible);
+        $finalConditions = [
+            'teacher_id' => $this->teacherId,
+            'student_id' => $studentId,
+            'subject_id' => $this->currentSubject->id,
+            'class_id' => $this->classId,
+            'academic_year_id' => $this->academicYearId,
+            'semester_id' => $this->semesterId,
+            'test_type' => 'final',
+            'school_id' => $this->schoolId,
+        ];
+
+        if ($this->isForceUpdate) {
+            Grade::where($finalConditions)->delete();
+        }
+
         Grade::updateOrCreate(
-            [
-                'teacher_id' => $this->teacherId,
-                'student_id' => $studentId,
-                'subject_id' => $this->currentSubject->id,
-                'class_id' => $this->classId,
-                'academic_year_id' => $this->academicYearId,
-                'semester_id' => $this->semesterId,
-                'test_type' => 'final',
-                'school_id' => $this->schoolId,
-            ],
+            $finalConditions,
             [
                 'text_value' => $finalGrade,
                 'score' => null
             ]
         );
     }
-
     private function normalizeTextGrade($value)
     {
         if ($value === null) {
@@ -320,9 +441,69 @@ class GradesImport implements ToCollection, WithCalculatedFormulas // Đã bỏ 
         return []; // Trả về mảng rỗng nếu không có dữ liệu
     }
 
+//    protected function processNumericGrades($row, $studentId)
+//    {
+//        // Điều chỉnh lại chỉ số cột cho các điểm số
+//        $grades = collect([
+//            ['test_type' => 'fifteen_minutes', 'test_number' => 1, 'value' => (float)($row->get(2) ?? 0)],
+//            ['test_type' => 'fifteen_minutes', 'test_number' => 2, 'value' => (float)($row->get(3) ?? 0)],
+//            ['test_type' => 'fifteen_minutes', 'test_number' => 3, 'value' => (float)($row->get(4) ?? 0)],
+//            ['test_type' => 'one_period', 'test_number' => 1, 'value' => (float)($row->get(5) ?? 0)],
+//            ['test_type' => 'semester', 'test_number' => 1, 'value' => (float)($row->get(6) ?? 0)],
+//        ]);
+//
+//        $subjectGrades = [
+//            'fifteen_minutes' => [],
+//            'one_period' => null,
+//            'semester' => null
+//        ];
+//
+//        foreach ($grades as $grade) {
+//            if (is_numeric($grade['value']) && $grade['value'] >= 0 && $grade['value'] <= 10) {
+//                Grade::updateOrCreate(
+//                    [
+//                        'teacher_id' => $this->teacherId,
+//                        'student_id' => $studentId,
+//                        'subject_id' => $this->currentSubject->id,
+//                        'class_id' => $this->classId,
+//                        'academic_year_id' => $this->academicYearId,
+//                        'semester_id' => $this->semesterId,
+//                        'test_type' => $grade['test_type'],
+//                        'test_number' => $grade['test_number'],
+//                        'school_id' => $this->schoolId,
+//                    ],
+//                    ['score' => $grade['value'],
+//                        'text_value' => null
+//                    ]
+//                );
+//
+//                if ($grade['test_type'] == 'fifteen_minutes') {
+//                    $subjectGrades['fifteen_minutes'][] = $grade['value'];
+//                } else {
+//                    $subjectGrades[$grade['test_type']] = $grade['value'];
+//                }
+//            }
+//        }
+//
+//        $semesterAvg = $this->calculateSemesterAverage($subjectGrades);
+//        Grade::updateOrCreate(
+//            [
+//                'teacher_id' => $this->teacherId,
+//                'student_id' => $studentId,
+//                'subject_id' => $this->currentSubject->id,
+//                'class_id' => $this->classId,
+//                'academic_year_id' => $this->academicYearId,
+//                'semester_id' => $this->semesterId,
+//                'test_type' => 'final',
+//                'school_id' => $this->schoolId,
+//            ],
+//            ['score' => $semesterAvg,
+//                'text_value' => null
+//            ]
+//        );
+//    }
     protected function processNumericGrades($row, $studentId)
     {
-        // Điều chỉnh lại chỉ số cột cho các điểm số
         $grades = collect([
             ['test_type' => 'fifteen_minutes', 'test_number' => 1, 'value' => (float)($row->get(2) ?? 0)],
             ['test_type' => 'fifteen_minutes', 'test_number' => 2, 'value' => (float)($row->get(3) ?? 0)],
@@ -339,22 +520,23 @@ class GradesImport implements ToCollection, WithCalculatedFormulas // Đã bỏ 
 
         foreach ($grades as $grade) {
             if (is_numeric($grade['value']) && $grade['value'] >= 0 && $grade['value'] <= 10) {
-                Grade::updateOrCreate(
+                Grade::updateOrCreate([
+                    'teacher_id' => $this->teacherId,
+                    'student_id' => $studentId,
+                    'subject_id' => $this->currentSubject->id,
+                    'class_id' => $this->classId,
+                    'academic_year_id' => $this->academicYearId,
+                    'semester_id' => $this->semesterId,
+                    'test_type' => $grade['test_type'],
+                    'test_number' => $grade['test_number'],
+                    'school_id' => $this->schoolId,
+                ],
                     [
-                        'teacher_id' => $this->teacherId,
-                        'student_id' => $studentId,
-                        'subject_id' => $this->currentSubject->id,
-                        'class_id' => $this->classId,
-                        'academic_year_id' => $this->academicYearId,
-                        'semester_id' => $this->semesterId,
-                        'test_type' => $grade['test_type'],
-                        'test_number' => $grade['test_number'],
-                        'school_id' => $this->schoolId,
-                    ],
-                    ['score' => $grade['value'],
+                        'score' => $grade['value'],
                         'text_value' => null
                     ]
                 );
+
 
                 if ($grade['test_type'] == 'fifteen_minutes') {
                     $subjectGrades['fifteen_minutes'][] = $grade['value'];
@@ -364,24 +546,33 @@ class GradesImport implements ToCollection, WithCalculatedFormulas // Đã bỏ 
             }
         }
 
+        // Xử lý điểm tổng kết
         $semesterAvg = $this->calculateSemesterAverage($subjectGrades);
+
+        $finalConditions = [
+            'teacher_id' => $this->teacherId,
+            'student_id' => $studentId,
+            'subject_id' => $this->currentSubject->id,
+            'class_id' => $this->classId,
+            'academic_year_id' => $this->academicYearId,
+            'semester_id' => $this->semesterId,
+            'test_type' => 'final',
+            'school_id' => $this->schoolId,
+        ];
+
+        // Xóa điểm tổng kết cũ nếu ở chế độ ghi đè
+        if ($this->isForceUpdate) {
+            Grade::where($finalConditions)->delete();
+        }
+
         Grade::updateOrCreate(
+            $finalConditions,
             [
-                'teacher_id' => $this->teacherId,
-                'student_id' => $studentId,
-                'subject_id' => $this->currentSubject->id,
-                'class_id' => $this->classId,
-                'academic_year_id' => $this->academicYearId,
-                'semester_id' => $this->semesterId,
-                'test_type' => 'final',
-                'school_id' => $this->schoolId,
-            ],
-            ['score' => $semesterAvg,
+                'score' => $semesterAvg,
                 'text_value' => null
             ]
         );
     }
-
     private function calculateSemesterAverage($subjectGrades)
     {
         $fifteenMinutes = array_filter($subjectGrades['fifteen_minutes'] ?? [], function ($score) {

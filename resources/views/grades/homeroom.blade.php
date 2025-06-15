@@ -30,7 +30,7 @@
                                     @foreach($homeroomClasses->where('academic_year_id', $selectedAcademicYearId) as $assignment)
                                         <option value="{{ $assignment->class_id }}"
                                             {{ $selectedClassId == $assignment->class_id ? 'selected' : '' }}>
-                                            {{ $assignment->class->name }} ({{ $assignment->class->gradeLevel->name }})
+                                            {{ $assignment->class->name }}
                                         </option>
                                     @endforeach
                                 </select>
