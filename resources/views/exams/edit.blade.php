@@ -392,7 +392,7 @@
                 $btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Đang thêm...');
 
                 $.ajax({
-                    url: '{{ route("question-bank.get-questions") }}',
+                    url: '{{ route("question_bank.get_questions") }}',
                     method: 'POST',
                     data: {
                         ids: selectedIds,

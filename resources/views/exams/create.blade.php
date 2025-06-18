@@ -184,30 +184,6 @@
         @include('exams.partials.question-bank-modal')
         @include('exams.partials.question-template')
 
-        <div class="modal fade" id="mathModal" tabindex="-1" aria-hidden="true">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title">Chèn công thức toán</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
-                        <div class="form-group">
-                            <label>Nhập công thức LaTeX:</label>
-                            <input type="text" id="mathInput" class="form-control" placeholder="Ví dụ: x = \frac{-b \pm \sqrt{b^2-4ac}}{2a}">
-                        </div>
-                        <div class="mt-2">
-                            <strong>Xem trước:</strong>
-                            <div id="mathPreview" class="border p-2 mt-2"></div>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
-                        <button type="button" class="btn btn-primary" id="insertMath">Chèn</button>
-                    </div>
-                </div>
-            </div>
-        </div>
     </div>
 @endsection
 
@@ -274,11 +250,21 @@
         `;
             }
 
-            // Thêm câu hỏi mới (thủ công)
+            // Sửa lại hàm thêm câu hỏi
             $('#addQuestion').click(function() {
                 const questionHtml = createQuestionHtml(questionCount);
                 $('#questionsContainer').append(questionHtml);
+
+                // Khởi tạo trình soạn thảo cho câu hỏi mới
+                $('.question-item').last().find('.math-content').each(function() {
+                    if (!$(this).data('editor-initialized')) {
+                        initMathEditor(this);
+                        $(this).data('editor-initialized', true);
+                    }
+                });
+
                 questionCount++;
+                validateTotalMarks(); // Kiểm tra tổng điểm sau khi thêm
             });
 
             // Xóa câu hỏi
@@ -299,11 +285,8 @@
                     return;
                 }
 
-                const $addButton = $(this);
-                $addButton.prop('disabled', true).text('Đang thêm...');
-
                 $.ajax({
-                    url: '{{ route("question-bank.get-questions") }}',
+                    url: '{{ route("question_bank.get_questions") }}',
                     method: 'POST',
                     data: {
                         ids: selectedIds,
@@ -311,14 +294,27 @@
                     },
                     success: function(response) {
                         if (response && response.length > 0) {
+                            let questionsHtml = '';
                             response.forEach(function(question) {
                                 const newIndex = questionCount;
-                                const questionHtml = createQuestionHtml(newIndex, question);
-                                $('#questionsContainer').append(questionHtml);
+                                questionsHtml += createQuestionHtml(newIndex, question);
                                 questionCount++;
                             });
+
+                            $('#questionsContainer').append(questionsHtml);
+
+                            // Khởi tạo trình soạn thảo cho các câu hỏi mới
+                            $('.question-item').slice(-response.length).find('.math-content').each(function() {
+                                if (!$(this).data('editor-initialized')) {
+                                    initMathEditor(this);
+                                    $(this).data('editor-initialized', true);
+                                }
+                            });
+
                             $('#questionBankModal').modal('hide');
                             $('.question-checkbox').prop('checked', false);
+
+                            validateTotalMarks(); // Kiểm tra tổng điểm sau khi thêm
                         } else {
                             alert('Không tìm thấy câu hỏi nào được chọn từ ngân hàng.');
                         }
@@ -330,6 +326,35 @@
                     complete: function() {
                         $addButton.prop('disabled', false).text('Thêm câu hỏi đã chọn');
                     }
+                });
+            });
+            // Trong file JS của bạn
+
+            $(document).ready(function() {
+                // Xử lý khi mở modal ngân hàng câu hỏi
+                $('#questionBankModal').on('show.bs.modal', function() {
+                    loadQuestionBank();
+                });
+
+                // Hàm tải câu hỏi từ ngân hàng
+                function loadQuestionBank() {
+                    $.ajax({
+                        url: '/question-bank/filter',
+                        method: 'GET',
+                        data: {
+                            subject_id: $('#filterSubject').val(),
+                            grade_level_id: $('#filterGrade').val(),
+                            search: $('#searchQuestion').val()
+                        },
+                        success: function(response) {
+                            $('#questionBankTable tbody').html(response.html);
+                        }
+                    });
+                }
+
+                // Xử lý khi thay đổi bộ lọc
+                $('#filterSubject, #filterGrade, #searchQuestion').on('change keyup', function() {
+                    loadQuestionBank();
                 });
             });
             // Hàm cập nhật lại số thứ tự và thuộc tính name của các câu hỏi
@@ -379,11 +404,19 @@
                 }
             });
         });
+        // Trong phần script
         $(document).ready(function() {
+            $('#semester_id').prop('disabled', true);
+
+            // Xử lý khi chọn năm học
             $('#academic_year_id').change(function() {
                 var academicYearId = $(this).val();
 
                 if (academicYearId) {
+                    // Enable dropdown học kỳ
+                    $('#semester_id').prop('disabled', false);
+
+                    // Load học kỳ tương ứng với năm học
                     $.ajax({
                         url: '/get-semesters-by-year',
                         type: 'GET',
@@ -392,7 +425,7 @@
                         },
                         success: function(data) {
                             $('#semester_id').empty();
-                            $('#semester_id').append('<option value="">Chọn học kỳ</option>');
+                            $('#semester_id').append('<option value="">--Chọn học kỳ--</option>');
 
                             $.each(data, function(key, value) {
                                 $('#semester_id').append('<option value="'+ value.id +'">'+ value.name +'</option>');
@@ -400,48 +433,37 @@
                         }
                     });
                 } else {
+                    // Nếu bỏ chọn năm học thì disable dropdown học kỳ và xóa các option
                     $('#semester_id').empty();
+                    $('#semester_id').append('<option value="">--Chọn học kỳ--</option>');
+                    $('#semester_id').prop('disabled', true);
                 }
             });
+
+            $('#test_type').change(function() {
+                const testType = $(this).val();
+                let defaultDuration = '';
+
+                if (testType === 'fifteen_minutes') {
+                    defaultDuration = 15;
+                } else if (testType === 'one_period') {
+                    defaultDuration = 45;
+                }
+
+                // Đặt giá trị mặc định và disable trường nhập
+                if (defaultDuration) {
+                    $('#duration_override').val(defaultDuration).prop('disabled', true);
+                } else {
+                    $('#duration_override').val('').prop('disabled', false);
+                }
+            });
+
+            // Khi form được load lại (ví dụ có lỗi validate)
+            // Kiểm tra nếu đã có giá trị test_type thì disable duration_override
+            if ($('#test_type').val()) {
+                $('#test_type').trigger('change');
+            }
         });
-        // Thêm vào phần scripts của bạn
-        {{--$('#import_file').change(function(e) {--}}
-        {{--    const file = e.target.files[0];--}}
-        {{--    if (!file) return;--}}
-
-        {{--    // Kiểm tra định dạng file--}}
-        {{--    if (!file.name.endsWith('.docx')) {--}}
-        {{--        alert('Vui lòng chọn file Word (.docx)');--}}
-        {{--        return;--}}
-        {{--    }--}}
-
-        {{--    // Hiển thị loading--}}
-        {{--    $('#questionsContainer').html('<div class="text-center py-4"><i class="fas fa-spinner fa-spin"></i> Đang đọc file Word...</div>');--}}
-
-        {{--    // Tạo FormData để gửi file--}}
-        {{--    const formData = new FormData();--}}
-        {{--    formData.append('file', file);--}}
-        {{--    formData.append('_token', '{{ csrf_token() }}');--}}
-
-        {{--    // Gửi AJAX để đọc file Word--}}
-        {{--    $.ajax({--}}
-        {{--        url: '{{ route("exams.preview-word") }}', // Bạn cần tạo route này--}}
-        {{--        type: 'POST',--}}
-        {{--        data: formData,--}}
-        {{--        processData: false,--}}
-        {{--        contentType: false,--}}
-        {{--        success: function(response) {--}}
-        {{--            if (response.success && response.questions.length > 0) {--}}
-        {{--                renderQuestionsFromWord(response.questions);--}}
-        {{--            } else {--}}
-        {{--                $('#questionsContainer').html('<div class="alert alert-warning">Không tìm thấy câu hỏi nào trong file.</div>');--}}
-        {{--            }--}}
-        {{--        },--}}
-        {{--        error: function(xhr) {--}}
-        {{--            $('#questionsContainer').html('<div class="alert alert-danger">Lỗi khi đọc file: ' + (xhr.responseJSON?.message || 'Lỗi không xác định') + '</div>');--}}
-        {{--        }--}}
-        {{--    });--}}
-        {{--});--}}
 
         $('#import_file').change(function(e) {
             const file = e.target.files[0];
@@ -471,6 +493,7 @@
                             html += createQuestionHtml(index, question);
                         });
                         $('#questionsContainer').html(html);
+                        questionCount = response.questions.length;
 
                         // Khởi tạo trình soạn thảo cho các textarea mới
                         $('.math-content').each(function() {
@@ -484,6 +507,8 @@
                         if (typeof MathJax !== 'undefined') {
                             MathJax.typesetPromise();
                         }
+                        validateTotalMarks(); // Kiểm tra tổng điểm sau khi import
+
                     } else {
                         $('#questionsContainer').html('<div class="alert alert-warning">Không tìm thấy câu hỏi nào trong file.</div>');
                     }
@@ -537,6 +562,7 @@
             questionCount = questions.length;
         }
         // Hàm tạo HTML cho câu hỏi (cập nhật để hỗ trợ MathJax)
+        // Cập nhật hàm createQuestionHtml
         function createQuestionHtml(index, questionData = null) {
             const content = questionData ? questionData.content : '';
             const marks = questionData ? (questionData.marks || 1) : 1;
@@ -549,7 +575,7 @@
             <div class="form-group">
                 <label>Đáp án ${String.fromCharCode(65 + optIdx)} *</label>
                 <div class="input-group">
-                    <textarea class="form-control math-content" name="questions[${index}][options][${optIdx}][content]" required>${option.content}</textarea>
+                    <textarea class="form-control math-content" name="questions[${index}][options][${optIdx}][content]" required>${option.content || ''}</textarea>
                     <div class="input-group-append">
                         <div class="input-group-text">
                             <input type="radio" name="questions[${index}][correct_option]" value="${optIdx}" ${isChecked} required>
@@ -625,6 +651,36 @@
                 if (typeof MathJax !== 'undefined') {
                     MathJax.typesetPromise();
                 }
+            });
+        });
+        $(document).ready(function() {
+            // Hàm kiểm tra tổng điểm
+            function validateTotalMarks() {
+                const totalMarks = parseFloat($('#total_marks').val()) || 0;
+                let sumQuestionMarks = 0;
+
+                $('input[name^="questions["][name$="[marks]"]').each(function() {
+                    sumQuestionMarks += parseFloat($(this).val()) || 0;
+                });
+
+                if (Math.abs(sumQuestionMarks - totalMarks) > 0.01) { // Cho phép sai số 0.01
+                    alert(`Tổng điểm các câu hỏi (${sumQuestionMarks}) không khớp với tổng điểm đề thi (${totalMarks})`);
+                    return false;
+                }
+                return true;
+            }
+
+            // Kiểm tra khi submit form
+            $('#examForm').submit(function(e) {
+                if (!validateTotalMarks()) {
+                    e.preventDefault();
+                    return false;
+                }
+            });
+
+            // Kiểm tra khi thay đổi điểm của câu hỏi
+            $(document).on('change', 'input[name^="questions["][name$="[marks]"]', function() {
+                validateTotalMarks();
             });
         });
     </script>

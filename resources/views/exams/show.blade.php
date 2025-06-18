@@ -2,7 +2,6 @@
 
 @section('content')
     <style>
-        /* Phong cách cho radio button, giống với form giáo viên */
         .form-check-input:checked {
             background-color: var(--primary-color);
             border-color: var(--primary-color);
@@ -12,8 +11,7 @@
             color: var(--primary-color);
         }
     </style>
-    <div class="container rounded-3 shadow p-4"> {{-- Main container styling --}}
-        {{-- Tiêu đề và nút Xuất bản (nếu có), giống form tạo mới/giáo viên --}}
+    <div class="container rounded-3 shadow p-4">
         <div class="d-flex align-items-center mb-4">
             <a href="{{ route('exams.index') }}" class="btn text-primary-color btn-sm me-3" title="Quay lại danh sách đề thi">
                 <i class="fas fa-arrow-left"></i>
@@ -49,7 +47,10 @@
                                 1 tiết
                             @endif
                         </p>
-                        <p class="mb-2"><strong>Thời gian làm bài:</strong> {{ $exam->duration_override ?? 'Mặc định' }} phút</p>
+                        <p class="mb-2">
+                            <strong>Thời gian làm bài:</strong>
+                            {{ $exam->test_type == 'fifteen_minutes' ? '15 phút' : '45 phút' }}
+                        </p>
                         <p class="mb-2"><strong>Tổng điểm:</strong> {{ $exam->total_marks }}</p>
                     </div>
                 </div>

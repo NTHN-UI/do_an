@@ -343,7 +343,9 @@ class ExamController extends Controller
             'semester' => $semester,
             'questions' => $questions,
             'isPreview' => true,
-            'exam' => $exam
+            'exam' => $exam,
+            'duration_override' => $exam->duration_override ?? null // Thêm giá trị mặc định
+
 
         ]);
     }
@@ -511,7 +513,7 @@ class ExamController extends Controller
                 throw $e;
             }
         }
-        
+
     public function previewWord(Request $request)
     {
         $request->validate([

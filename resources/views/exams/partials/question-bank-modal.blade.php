@@ -57,6 +57,9 @@
                 </div>
             </div>
             <div class="modal-footer">
+                <a href="{{ route('question_bank.import') }}" class="btn btn-success">
+                    <i class="fas fa-file-import"></i> Import Câu Hỏi
+                </a>
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
                 <button type="button" class="btn btn-primary" id="addSelectedQuestions">Thêm câu hỏi đã chọn</button>
             </div>

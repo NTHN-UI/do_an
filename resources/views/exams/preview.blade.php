@@ -25,10 +25,8 @@
                                 <span class="mx-2">|</span>
                                 <span>{{ $semester->name }}</span>
                             </div>
-                            @if($examData['duration_override'])
-                                <div class="exam-duration mt-2">
-                                    <strong>Thời gian làm bài:</strong> {{ $examData['duration_override'] }} phút
-                                </div>
+                            @if(isset($duration_override))
+                                <strong>Thời gian làm bài:</strong>{{ $duration_override }} phút
                             @endif
                         </div>
 

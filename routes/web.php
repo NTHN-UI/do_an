@@ -6,6 +6,7 @@ use App\Http\Controllers\ExamController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\QuestionBankController;
+use App\Http\Controllers\QuestionBankImportController;
 use App\Http\Controllers\StudentExamController;
 use App\Http\Controllers\StudentGradeController;
 use App\Http\Middleware\AdminMiddleware;
@@ -145,11 +146,13 @@ Route::middleware(['auth'])->group(function () {
                 ->name('exams.publish');
             Route::post('/exams/preview-word', [ExamController::class, 'previewWord'])
                 ->name('exams.preview-word');
-            // Xuất đề thi ra Word
-            Route::get('/{exam}/export-word', [ExamController::class, 'exportWord'])
-                ->name('exams.export-word');
+            Route::get('/question_bank/import', [QuestionBankImportController::class, 'showImportForm'])->name('question_bank.import_form');
+            Route::post('/question_bank/import', [QuestionBankImportController::class, 'import'])->name('question_bank.import');
+            Route::get('/question_bank/template', [QuestionBankImportController::class, 'downloadTemplate'])
+                ->name('question_bank.template');
             Route::post('/question-bank/get-questions', [QuestionBankController::class, 'getQuestions'])
-                ->name('question-bank.get-questions');
+                ->name('question_bank.get_questions');
+
         });
         Route::get('/get-semesters-by-year', [ExamController::class, 'getSemestersByYear']);
 
@@ -177,21 +180,9 @@ Route::middleware(['auth'])->group(function () {
     // routes/web.php
     Route::middleware(['auth'])->group(function () {
         Route::get('/student_grades', [StudentGradeController::class, 'index'])->name('student_grades');
-        Route::get('/student_grades/detail/{academic_year_id}/{semester_id}', [StudentGradeController::class, 'detail'])->name('student_grades.detail');    });
-
-
-
-
-//        // Route cho trang nhập điểm (sửa lại bằng cách bỏ /grades thừa)
-//        Route::get('/class/{class}/subject/{subject}/semester/{semester}/create', [
-//            GradeController::class, 'create'
-//        ])->name('grades.create');
-//
-//        // Route để lưu điểm
-//        Route::post('/class/{class}/subject/{subject}/semester/{semester}/store', [GradeController::class, 'store'])
-//            ->name('grades.store');
-//
-//        Route::get('/class/{class}/subject/{subject}/semester/{semester}',
-//            [GradeController::class, 'show'])
-//            ->name('grades.show');
+        Route::get('/student_grades/detail/{academic_year_id}/{semester_id}', [StudentGradeController::class, 'detail'])->name('student_grades.detail');
+    });
 });
+
+
+

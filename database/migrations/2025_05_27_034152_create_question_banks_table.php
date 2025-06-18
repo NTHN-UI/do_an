@@ -14,7 +14,6 @@ return new class extends Migration
         Schema::create('question_banks', function (Blueprint $table) {
             $table->id();
             $table->text('content');
-            $table->enum('question_type', ['multiple_choice', 'true_false', 'essay']);
             $table->foreignId('subject_id')->constrained('subjects');
             $table->foreignId('grade_level_id')->constrained('grade_levels');
             $table->foreignId('teacher_id')->constrained('users');
