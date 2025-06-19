@@ -19,8 +19,12 @@ use PhpOffice\PhpSpreadsheet\IOFactory;
 
 class QuestionBankImportController extends Controller
 {
-    public function showImportForm()
+    public function showImportForm(Request $request)
     {
+        if ($request->has('return_to')) {
+            session(['import_return_to' => $request->return_to]);
+        }
+
         return view('question_bank.import');
     }
 
@@ -39,6 +43,8 @@ class QuestionBankImportController extends Controller
 
         DB::beginTransaction();
         try {
+            $importedCount = 0;
+
             foreach ($rows as $index => $row) {
                 if ($index === 0) continue; // Skip header
 
@@ -78,11 +84,20 @@ class QuestionBankImportController extends Controller
                     $row[8] ?? null, // Đáp án D
                     strtoupper($row[9] ?? 'A') // Mặc định đáp án A nếu không có
                 );
+                $importedCount++;
+
             }
 
             DB::commit();
-            return back()->with('success', 'Import thành công!');
+            if (session('import_return_to') === 'exam') {
+                session()->forget('import_return_to');
+                return redirect()->route('exams.create')->with([
+                    'success' => "Import thành công {$importedCount} câu hỏi!",
+                    'open_question_bank' => true
+                ]);
+            }
 
+            return back()->with('success', "Import thành công {$importedCount} câu hỏi!");
         } catch (\Exception $e) {
             DB::rollBack();
             return back()->with('error', 'Lỗi: ' . $e->getMessage());

@@ -8,7 +8,7 @@
             </div>
             <div class="modal-body">
                 <div class="row mb-3">
-                    <div class="col-md-4">
+                    <div class="col-md-3">
                         <select id="filterSubject" class="form-select">
                             <option value="">Lọc theo môn học</option>
                             @foreach($subjects as $subject)
@@ -16,7 +16,7 @@
                             @endforeach
                         </select>
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-3">
                         <select id="filterGrade" class="form-select">
                             <option value="">Lọc theo khối</option>
                             @foreach($gradeLevels as $grade)
@@ -24,8 +24,13 @@
                             @endforeach
                         </select>
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-3">
                         <input type="text" id="searchQuestion" class="form-control" placeholder="Tìm kiếm câu hỏi...">
+                    </div>
+                    <div class="col-md-3 text-end">
+                        <a href="{{ route('question_bank.import') }}?return_to=exam" class="btn btn-primary-color">
+                            <i class="fas fa-file-import"></i> Import câu Hỏi
+                        </a>
                     </div>
                 </div>
 
@@ -33,8 +38,9 @@
                     <table class="table table-hover">
                         <thead>
                         <tr>
-                            <th width="50px">Chọn</th>
+                            <th>Chọn</th>
                             <th>Câu hỏi</th>
+                            <th>Đáp án</th>
                             <th>Môn</th>
                             <th>Khối</th>
                             <th>Điểm</th>
@@ -47,6 +53,20 @@
                                     <input type="checkbox" class="question-checkbox" value="{{ $question->id }}">
                                 </td>
                                 <td>{!! Str::limit($question->content, 150) !!}</td>
+                                <td>
+                                    @if($question->options->isNotEmpty())
+                                        <div class="answer-container">
+                                            @foreach($question->options as $option)
+                                                <div class="answer-option @if($option->is_correct) text-success fw-bold @endif">
+                                                    <span class="option-letter">{{ chr(65 + $option->order) }}.</span>
+                                                    <span class="option-content">{{ $option->content }}</span>
+                                                </div>
+                                            @endforeach
+                                        </div>
+                                    @else
+                                        <span class="text-muted fst-italic">không có đáp án </span>
+                                    @endif
+                                </td>
                                 <td>{{ $question->subject->name ?? '' }}</td>
                                 <td>Khối {{ $question->gradeLevel->grade_number ?? '' }}</td>
                                 <td>{{ $question->default_marks ?? 1 }}</td>
@@ -55,13 +75,16 @@
                         </tbody>
                     </table>
                 </div>
+                <div class="d-flex justify-content-center">
+                    @if($questionBanks instanceof \Illuminate\Pagination\AbstractPaginator)
+                        {{ $questionBanks->links('pagination::bootstrap-5') }}
+                    @endif
+                </div>
             </div>
+
             <div class="modal-footer">
-                <a href="{{ route('question_bank.import') }}" class="btn btn-success">
-                    <i class="fas fa-file-import"></i> Import Câu Hỏi
-                </a>
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
-                <button type="button" class="btn btn-primary" id="addSelectedQuestions">Thêm câu hỏi đã chọn</button>
+                <button type="button" class="btn btn-outline-primary-color" data-bs-dismiss="modal">Đóng</button>
+                <button type="button" class="btn btn-primary-color" id="addSelectedQuestions">Thêm câu hỏi đã chọn</button>
             </div>
         </div>
     </div>

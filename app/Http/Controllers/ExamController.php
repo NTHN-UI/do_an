@@ -542,25 +542,28 @@ class ExamController extends Controller
                             }
 
                             $currentQuestion = [
-                                'content' => $matches[2],
+                                'content' => trim($matches[2]),
                                 'marks' => 1, // Mặc định
                                 'options' => [],
-                                'correct_option' => 0 // Mặc định
+                                'correct_option' => null // Khởi tạo null
                             ];
                         }
                         // Phát hiện đáp án
-                        elseif (preg_match('/^([A-D])\.\s*(.+)/', $text, $matches) && $currentQuestion) {
-                            $optionIndex = ord($matches[1]) - ord('A');
-                            $currentQuestion['options'][$optionIndex] = [
-                                'content' => $matches[2],
-                                'is_correct' => false
-                            ];
+                        elseif (preg_match('/^([A-D])\.\s*(.+)/i', $text, $matches) && $currentQuestion) {
+                            $optionIndex = ord(strtoupper($matches[1])) - ord('A');
+                            $optionContent = trim($matches[2]);
+                            $isCorrect = strpos($optionContent, '(*)') !== false;
 
-                            // Đánh dấu đáp án đúng
-                            if (strpos($matches[2], '(*)') !== false) {
+                            // Nếu là đáp án đúng, gán correct_option và loại bỏ dấu (*)
+                            if ($isCorrect) {
                                 $currentQuestion['correct_option'] = $optionIndex;
-                                $currentQuestion['options'][$optionIndex]['content'] = str_replace('(*)', '', $matches[2]);
+                                $optionContent = str_replace('(*)', '', $optionContent);
                             }
+
+                            $currentQuestion['options'][$optionIndex] = [
+                                'content' => $optionContent,
+                                'is_correct' => $isCorrect
+                            ];
                         }
                     }
                 }
@@ -583,7 +586,6 @@ class ExamController extends Controller
             ], 500);
         }
     }
-
 
 
     private function getElementText($element)

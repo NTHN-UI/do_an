@@ -152,6 +152,8 @@ Route::middleware(['auth'])->group(function () {
                 ->name('question_bank.template');
             Route::post('/question-bank/get-questions', [QuestionBankController::class, 'getQuestions'])
                 ->name('question_bank.get_questions');
+            Route::get('/question_bank/filter', [QuestionBankController::class, 'filter'])
+                ->name('question_bank.filter');
 
         });
         Route::get('/get-semesters-by-year', [ExamController::class, 'getSemestersByYear']);

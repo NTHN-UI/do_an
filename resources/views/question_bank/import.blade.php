@@ -14,12 +14,12 @@
                                 <label>Chọn file Excel</label>
                                 <input type="file" class="form-control" name="import_file" required>
                                 <small class="text-muted">
-                                    <a href="{{ route('question_bank.template') }}" class="text-primary">
+                                    <a href="{{ route('question_bank.template') }}" class="text-primary-color">
                                         <i class="fas fa-download"></i> Tải file mẫu
                                     </a>
                                 </small>
                             </div>
-                            <button type="submit" class="btn btn-primary">
+                            <button type="submit" class="btn btn-primary-color">
                                 <i class="fas fa-upload"></i> Import Câu Hỏi
                             </button>
                         </form>

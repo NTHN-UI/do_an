@@ -13,11 +13,26 @@ class QuestionBankController extends Controller
 
     public function getQuestions(Request $request)
     {
-        $questionIds = $request->input('ids');
+        $request->validate([
+            'ids' => 'required|array',
+            'ids.*' => 'exists:question_banks,id'
+        ]);
 
-        $questions = QuestionBank::with('options')
-            ->whereIn('id', $questionIds)
-            ->get();
+        $questions = QuestionBank::with(['subject', 'gradeLevel', 'options'])
+            ->whereIn('id', $request->ids)
+            ->get()
+            ->map(function($question) {
+                return [
+                    'content' => $question->content,
+                    'marks' => $question->default_marks ?? 1,
+                    'options' => $question->options->map(function($option) {
+                        return [
+                            'content' => $option->content,
+                            'is_correct' => $option->is_correct
+                        ];
+                    })->toArray()
+                ];
+            });
 
         return response()->json($questions);
     }

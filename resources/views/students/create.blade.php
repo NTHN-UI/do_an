@@ -179,5 +179,6 @@
             // Khởi tạo trạng thái ban đầu
             toggleEntryScoreField();
         });
+
     </script>
 @endpush
