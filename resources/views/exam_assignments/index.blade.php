@@ -30,6 +30,8 @@
                             <th>Lớp</th>
                             <th>Thời gian</th>
                             <th>Trạng thái</th>
+                            <th>Hành động</th>
+
                         </tr>
                         </thead>
                         <tbody>
@@ -64,6 +66,16 @@
                                         <div class="small text-muted">
                                             Kết thúc: {{ $end->diffForHumans() }}
                                         </div>
+                                    @endif
+                                </td>
+                                <td class="text-center">
+                                    @if(now() > $assignment->end_time)
+                                        <a href="{{ route('exam_assignments.class_results', $assignment->id) }}"
+                                           class="btn btn-sm btn-primary-color">
+                                            <i class="fas fa-chart-bar"></i> Xem kết quả
+                                        </a>
+                                    @else
+                                        <span class="text-muted">Chưa kết thúc</span>
                                     @endif
                                 </td>
                             </tr>

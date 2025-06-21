@@ -87,8 +87,14 @@ Route::middleware(['auth'])->group(function () {
             Route::post('/change_class/{id}', 'changeClassStudent')->name('change_class');
             Route::post('/advance_class', 'advanceClassStudents')->name('advance_class');
         });
-    });
+        Route::prefix('grades/admin')->name('grades.admin_')->group(function () {
+            Route::get('/', [GradeController::class, 'adminViewAllGrades'])->name('grades');
+            Route::get('/export', [GradeController::class, 'exportAllGrades'])->name('export');
+            Route::get('/get-classes-by-year-admin', [GradeController::class, 'getClassesByYearAdmin'])
+                ->name('grades.get_classes_by_year_admin');
+        });
 
+    });
     Route::middleware(['auth'])->group(function () {
         // Nhóm route cho tài liệu (documents)
         Route::middleware([TeacherMiddleware::class])->group(function () {
@@ -113,6 +119,7 @@ Route::middleware(['auth'])->group(function () {
                 // API hỗ trợ
                 Route::get('/get-semesters-by-year', 'getSemestersByYear')->name('get_semesters_by_year');
                 Route::get('/get-classes-by-year', 'getClassesByYear')->name('get_classes_by_year');
+
             });
     });
     Route::middleware('auth')->middleware([TeacherMiddleware::class])->group(function () {
@@ -169,6 +176,10 @@ Route::middleware(['auth'])->group(function () {
             // Lưu thông tin giao đề
             Route::post('/store/{exam}', [ExamAssignmentController::class, 'store'])
                 ->name('store');
+            Route::get('/{assignment}', [ExamAssignmentController::class, 'show'])
+                ->name('exam_assignments.show');
+            Route::get('/{assignment}/results', [ExamAssignmentController::class, 'classResults'])
+                ->name('class_results');
 
         });
     });
@@ -183,7 +194,14 @@ Route::middleware(['auth'])->group(function () {
     Route::middleware(['auth'])->group(function () {
         Route::get('/student_grades', [StudentGradeController::class, 'index'])->name('student_grades');
         Route::get('/student_grades/detail/{academic_year_id}/{semester_id}', [StudentGradeController::class, 'detail'])->name('student_grades.detail');
+   ;
     });
+    Route::get('/grades/get-semesters', [GradeController::class, 'getSemesters'])
+        ->name('grades.get-semesters');
+
+    // Route lấy lớp được phân công (nếu chưa có)
+    Route::get('/grades/get-assigned-classes', [GradeController::class, 'getAssignedClasses'])
+        ->name('grades.get-assigned-classes');
 });
 
 

@@ -91,13 +91,9 @@ class QuestionBankImportController extends Controller
             DB::commit();
             if (session('import_return_to') === 'exam') {
                 session()->forget('import_return_to');
-                return redirect()->route('exams.create')->with([
-                    'success' => "Import thành công {$importedCount} câu hỏi!",
-                    'open_question_bank' => true
-                ]);
+                return redirect()->route('exams.create')->with('success', "Import thành công {$importedCount} câu hỏi!")
+                    ->with('open_question_bank', true);
             }
-
-            return back()->with('success', "Import thành công {$importedCount} câu hỏi!");
         } catch (\Exception $e) {
             DB::rollBack();
             return back()->with('error', 'Lỗi: ' . $e->getMessage());

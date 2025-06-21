@@ -114,7 +114,7 @@
                                     <td class="text-center fw-bold text-primary-color">
                                         @if(isset($result['semester1']['average']))
                                             {{ number_format($result['semester1']['average'], 1) }}
-                                            @if(isset($result['semester1']['classification']) && $result['semester1']['classification'] !== 'Chưa đủ điểm')
+                                            @if(isset($result['semester1']['classification']) && $result['semester1']['classification'] !== '')
                                                 <br><small class="text-muted">({{ $result['semester1']['classification'] }})</small>
                                             @endif
                                         @else
@@ -124,7 +124,7 @@
                                     <td class="text-center fw-bold text-primary-color">
                                         @if(isset($result['semester2']['average']))
                                             {{ number_format($result['semester2']['average'], 1) }}
-                                            @if(isset($result['semester2']['classification']) && $result['semester2']['classification'] !== 'Chưa đủ điểm')
+                                            @if(isset($result['semester2']['classification']) && $result['semester2']['classification'] !== '')
                                                 <br><small class="text-muted">({{ $result['semester2']['classification'] }})</small>
                                             @endif
                                         @else
@@ -134,7 +134,7 @@
                                     <td class="text-center fw-bold text-primary-color">
                                         @if(isset($result['yearly']['average']))
                                             {{ number_format($result['yearly']['average'], 1) }}
-                                            @if(isset($result['yearly']['classification']) && $result['yearly']['classification'] !== 'Chưa đủ điểm')
+                                            @if(isset($result['yearly']['classification']) && $result['yearly']['classification'] !== '')
                                                 <br><small class="text-muted">({{ $result['yearly']['classification'] }})</small>
                                             @endif
                                         @else
@@ -156,3 +156,4 @@
         @endif
     </div>
 @endsection
+

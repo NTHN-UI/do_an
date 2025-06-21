@@ -347,43 +347,95 @@
 
 @push('scripts')
     <script>
-        // Hàm kiểm tra và cập nhật trạng thái nút tải file
-        function updateDownloadButton() {
-            const academicYear = $('#academic_year_id').val();
-            const classId = $('#class_id').val();
-            const semesterId = $('#semester_id').val();
-            const $btnDownload = $('#btn-download');
+        $(document).ready(function(){
+            // Hàm cập nhật nút download template
+            function updateDownloadButton() {
+                const academicYear = $('#academic_year_id').val();
+                const classId = $('#class_id').val();
+                const semesterId = $('#semester_id').val();
+                const $btnDownload = $('#btn-download');
 
-            if (academicYear && classId && semesterId) {
-                // Cập nhật link download
-                const downloadUrl = "{{ route('grades.exportTemplate') }}" +
-                    `?academic_year_id=${academicYear}&class_id=${classId}&semester_id=${semesterId}`;
+                if (academicYear && classId && semesterId) {
+                    // Cập nhật link download
+                    const downloadUrl = "{{ route('grades.exportTemplate') }}" +
+                        `?academic_year_id=${academicYear}&class_id=${classId}&semester_id=${semesterId}`;
 
-                // Thay thế button bằng link download
-                $btnDownload.replaceWith(`
-                <a href="${downloadUrl}" class="btn btn-primary-color btn-lg px-4" id="btn-download">
-                    <i class="fas fa-download me-2"></i>Tải file mẫu
-                </a>
-            `);
-            } else {
-                // Đảm bảo luôn có nút disabled khi không đủ điều kiện
-                if ($btnDownload.length && !$btnDownload.prop('disabled')) {
-                    $btnDownload.replaceWith(`
+                    // Thay thế button bằng link download nếu chưa có
+                    if ($btnDownload.is('button')) {
+                        $btnDownload.replaceWith(`
+                    <a href="${downloadUrl}" class="btn btn-primary-color btn-lg px-4" id="btn-download">
+                        <i class="fas fa-download me-2"></i>Tải file mẫu
+                    </a>
+                    `);
+                    } else {
+                        // Nếu đã là thẻ a thì chỉ cập nhật href
+                        $btnDownload.attr('href', downloadUrl);
+                    }
+                } else {
+                    // Đảm bảo luôn có nút disabled khi không đủ điều kiện
+                    if ($btnDownload.is('a')) {
+                        $btnDownload.replaceWith(`
                     <button class="btn btn-outline-secondary btn-lg px-4" id="btn-download" disabled
                             title="Vui lòng chọn đầy đủ năm học, lớp và học kỳ">
                         <i class="fas fa-download me-2"></i>Tải file mẫu
                     </button>
-                `);
+                    `);
+                    } else {
+                        $btnDownload.prop('disabled', true);
+                    }
                 }
             }
-        }
 
-        $(document).ready(function(){
-            // Gọi khi trang load lần đầu
-            updateDownloadButton();
+            // Xử lý khi năm học thay đổi
+            $('#academic_year_id').change(function() {
+                const yearId = $(this).val();
 
-            // Xử lý khi thay đổi bộ lọc
-            $("#academic_year_id, #class_id, #semester_id").on("change", function() {
+                // Reset các dropdown phụ thuộc
+                $('#class_id').empty().append('<option value="">-- Chọn lớp --</option>');
+                $('#semester_id').empty().append('<option value="">-- Chọn học kỳ --</option>');
+
+                if (yearId) {
+                    // Load danh sách lớp mà giáo viên được phân công
+                    $.ajax({
+                        url: '{{ route("grades.get-assigned-classes") }}',
+                        type: 'GET',
+                        data: {
+                            academic_year_id: yearId,
+                            teacher_id: {{ Auth::id() }}
+                        },
+                        success: function(response) {
+                            const classSelect = $('#class_id');
+                            response.forEach(function(classItem) {
+                                classSelect.append(
+                                    `<option value="${classItem.id}">${classItem.name}</option>`
+                                );
+                            });
+                        }
+                    });
+
+                    // Load danh sách học kỳ
+                    $.ajax({
+                        url: '{{ route("grades.get-semesters") }}',
+                        type: 'GET',
+                        data: { academic_year_id: yearId },
+                        success: function(response) {
+                            const semesterSelect = $('#semester_id');
+                            response.forEach(function(semester) {
+                                semesterSelect.append(
+                                    `<option value="${semester.id}">${semester.name}</option>`
+                                );
+                            });
+                            // Thêm option "Cả năm"
+                            semesterSelect.append('<option value="0">Cả năm</option>');
+                        }
+                    });
+                }
+
+                updateDownloadButton();
+            });
+
+            // Xử lý khi lớp hoặc học kỳ thay đổi
+            $('#class_id, #semester_id').change(function() {
                 updateDownloadButton();
 
                 if ($('#academic_year_id').val() && $('#class_id').val() && $('#semester_id').val()) {
@@ -399,50 +451,78 @@
                             // Tách và lấy phần nội dung cần thiết từ response
                             var newContent = $(response).find('#grades-container').html();
                             $('#grades-container').html(newContent);
-
-                            // Cập nhật lại nút download sau khi tải xong
-                            updateDownloadButton();
                         },
                         error: function() {
                             $('#grades-container').html('<div class="alert alert-danger">Có lỗi xảy ra khi tải dữ liệu</div>');
                         }
                     });
                 }
-                // Cập nhật lại hàm updateImportModalInfo
-                function updateImportModalInfo() {
-                    const academicYear = $('#academic_year_id').val();
-                    const classId = $('#class_id').val();
-                    const semesterId = $('#semester_id').val();
+                updateDownloadButton();
+            });
 
-                    if (academicYear && classId && semesterId) {
-                        // Lấy thông tin từ các dropdown
-                        const className = $('#class_id option:selected').text();
-                        const semesterName = $('#semester_id option:selected').text();
-                        const academicYearName = $('#academic_year_id option:selected').text();
+            // Xử lý khi lớp hoặc học kỳ thay đổi
+            $('#class_id, #semester_id').change(function() {
+                updateDownloadButton();
 
-                        // Lấy tên môn học từ tiêu đề bảng điểm (lấy môn đầu tiên)
-                        const subjectName = $('#dataTable thead th.text-center').eq(2).text().trim();
+                if ($('#academic_year_id').val() && $('#class_id').val() && $('#semester_id').val()) {
+                    // Hiển thị loading indicator
+                    $('#grades-container').html('<div class="text-center py-5"><div class="spinner-border text-primary" role="status"></div></div>');
 
-                        // Cập nhật thông tin trong modal
-                        $('#import-class-name').text(className);
-                        $('#import-subject-name').text(subjectName);
-                        $('#import-semester-name').text(semesterName);
-                        $('#import-year-name').text(academicYearName);
-                    } else {
-                        $('#import-class-name').text('Chưa chọn');
-                        $('#import-subject-name').text('Chưa chọn');
-                        $('#import-semester-name').text('Chưa chọn');
-                        $('#import-year-name').text('Chưa chọn');
-                    }
+                    // Lấy dữ liệu bằng AJAX
+                    $.ajax({
+                        url: $('#filter-form').attr('action'),
+                        method: 'GET',
+                        data: $('#filter-form').serialize(),
+                        success: function(response) {
+                            // Tách và lấy phần nội dung cần thiết từ response
+                            var newContent = $(response).find('#grades-container').html();
+                            $('#grades-container').html(newContent);
+                        },
+                        error: function() {
+                            $('#grades-container').html('<div class="alert alert-danger">Có lỗi xảy ra khi tải dữ liệu</div>');
+                        }
+                    });
                 }
+            });
 
-                // Gọi khi mở modal để đảm bảo thông tin luôn mới nhất
-                $('#importModal').on('show.bs.modal', function() {
-                    updateImportModalInfo();
-                });
+            // Gọi khi trang load lần đầu
+            updateDownloadButton();
 
-                // Xử lý hiển thị tên file khi chọn
-            $('#fileInput').on('change', function () {
+            // Cập nhật thông tin import modal
+            function updateImportModalInfo() {
+                const academicYear = $('#academic_year_id').val();
+                const classId = $('#class_id').val();
+                const semesterId = $('#semester_id').val();
+
+                if (academicYear && classId && semesterId) {
+                    // Lấy thông tin từ các dropdown
+                    const className = $('#class_id option:selected').text();
+                    const semesterName = $('#semester_id option:selected').text();
+                    const academicYearName = $('#academic_year_id option:selected').text();
+
+                    // Lấy tên môn học từ tiêu đề bảng điểm (lấy môn đầu tiên)
+                    const subjectName = $('#dataTable thead th.text-center').eq(2).text().trim();
+
+                    // Cập nhật thông tin trong modal
+                    $('#import-class-name').text(className);
+                    $('#import-subject-name').text(subjectName);
+                    $('#import-semester-name').text(semesterName);
+                    $('#import-year-name').text(academicYearName);
+                } else {
+                    $('#import-class-name').text('Chưa chọn');
+                    $('#import-subject-name').text('Chưa chọn');
+                    $('#import-semester-name').text('Chưa chọn');
+                    $('#import-year-name').text('Chưa chọn');
+                }
+            }
+
+            // Gọi khi mở modal import
+            $('#importModal').on('show.bs.modal', function() {
+                updateImportModalInfo();
+            });
+
+            // Xử lý hiển thị tên file khi chọn
+            $('#fileInput').on('change', function() {
                 let fileName = $(this).val().split('\\').pop();
                 if (fileName) {
                     $(this).addClass('is-valid');
@@ -452,53 +532,50 @@
             });
 
             // Xử lý import điểm
-                $('#importModal').on('click', '.btn-primary-color', function() {
-                    const fileInput = $('#fileInput')[0];
-                    const academicYearId = $('#academic_year_id').val();
-                    const classId = $('#class_id').val();
-                    const semesterId = $('#semester_id').val();
-                    const subjectName = $('#import-subject-name').text();
-                    const forceUpdate = $('#forceUpdate').is(':checked') ? 1 : 0; // Gửi dạng số
+            $('#importModal').on('click', '.btn-primary-color', function() {
+                const fileInput = $('#fileInput')[0];
+                const academicYearId = $('#academic_year_id').val();
+                const classId = $('#class_id').val();
+                const semesterId = $('#semester_id').val();
+                const subjectName = $('#import-subject-name').text();
+                const forceUpdate = $('#forceUpdate').is(':checked') ? 1 : 0;
 
-                    if (!academicYearId || !classId || !semesterId) {
-                        showAlert('danger', 'Vui lòng chọn đầy đủ năm học, lớp và học kỳ trước khi import');
-                        return;
-                    }
+                if (!academicYearId || !classId || !semesterId) {
+                    showAlert('danger', 'Vui lòng chọn đầy đủ năm học, lớp và học kỳ trước khi import');
+                    return;
+                }
 
-                    if (!fileInput.files || !fileInput.files[0]) {
-                        showAlert('danger', 'Vui lòng chọn file Excel để import');
-                        return;
-                    }
+                if (!fileInput.files || !fileInput.files[0]) {
+                    showAlert('danger', 'Vui lòng chọn file Excel để import');
+                    return;
+                }
 
-                    const formData = new FormData();
-                    formData.append('grades_file', fileInput.files[0]);
-                    formData.append('class_id', classId);
-                    formData.append('semester_id', semesterId);
-                    formData.append('academic_year_id', academicYearId);
-                    formData.append('subject_name', subjectName);
-                    formData.append('force_update', forceUpdate);
-                    formData.append("_token", window.csrfToken);
+                const formData = new FormData();
+                formData.append('grades_file', fileInput.files[0]);
+                formData.append('class_id', classId);
+                formData.append('semester_id', semesterId);
+                formData.append('academic_year_id', academicYearId);
+                formData.append('subject_name', subjectName);
+                formData.append('force_update', forceUpdate);
+                formData.append("_token", "{{ csrf_token() }}");
 
-
-                    $.ajax({
+                $.ajax({
                     url: '{{ route('grades.import') }}',
                     method: 'POST',
                     data: formData,
                     processData: false,
                     contentType: false,
-                    headers: {
-                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                    },
                     beforeSend: function() {
-                        $('.btn-primary-color', $('#importModal')).prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Đang import...');
+                        $('.btn-primary-color', $('#importModal')).prop('disabled', true)
+                            .html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Đang import...');
                     },
-                        success: function(response) {
-                            showAlert('success', response.message);
-                            $('#importModal').modal('hide');
-                            setTimeout(() => {
-                                window.location.reload();
-                            }, 2000);
-                        },
+                    success: function(response) {
+                        showAlert('success', response.message);
+                        $('#importModal').modal('hide');
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 2000);
+                    },
                     error: function(xhr) {
                         let errorMessage = 'Đã xảy ra lỗi không xác định.';
                         if (xhr.responseJSON && xhr.responseJSON.message) {
@@ -509,27 +586,31 @@
                         showAlert('danger', errorMessage);
                     },
                     complete: function() {
-                        $('.btn-primary-color', $('#importModal')).prop('disabled', false).html('<i class="fas fa-check me-2"></i>Xác nhận Import');
+                        $('.btn-primary-color', $('#importModal')).prop('disabled', false)
+                            .html('<i class="fas fa-check me-2"></i>Xác nhận Import');
                     }
                 });
-                function showAlert(type, message) {
-                    const alertContainer = $('#app-alert-container');
-                    if (alertContainer.length === 0) {
-                        $('body').prepend('<div id="app-alert-container" class="position-fixed top-0 start-50 translate-middle-x p-3" style="z-index: 1060;"></div>');
-                    }
-                    const alertHtml = `
-        <div class="alert alert-${type} alert-dismissible fade show" role="alert">
-            ${message}
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-    `;
-                    $('#app-alert-container').append(alertHtml);
-                    setTimeout(() => {
-                        $('#app-alert-container').find('.alert').first().alert('close');
-                    }, 5000);
-                }
             });
-        });
+
+            // Hàm hiển thị thông báo
+            function showAlert(type, message) {
+                const alertContainer = $('#app-alert-container');
+                if (alertContainer.length === 0) {
+                    $('body').prepend('<div id="app-alert-container" class="position-fixed top-0 start-50 translate-middle-x p-3" style="z-index: 1060;"></div>');
+                }
+
+                const alertHtml = `
+                <div class="alert alert-${type} alert-dismissible fade show" role="alert">
+                    ${message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            `;
+
+                $('#app-alert-container').append(alertHtml);
+                setTimeout(() => {
+                    $('#app-alert-container').find('.alert').first().alert('close');
+                }, 5000);
+            }
         });
     </script>
 @endpush

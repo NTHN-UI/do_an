@@ -3,7 +3,6 @@
 @section('content')
     <div class="container rounded-3 shadow p-4">
         <div class="d-flex justify-content-between align-items-center mb-4">
-            {{-- Tiêu đề và thông tin bài thi --}}
             <div>
                 <h3 class="m-0 text-primary-color">Đề thi: {{ $exam->title }}</h3>
                 <div class="text-muted mt-1">

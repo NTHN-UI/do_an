@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Exam;
 use App\Models\ExamAssignment;
 use App\Models\ClassModel;
+use App\Models\ExamResult;
 use Illuminate\Http\Request;
 
 class ExamAssignmentController extends Controller
@@ -80,5 +81,29 @@ class ExamAssignmentController extends Controller
         }
 
         return view('exams.take', compact('exam', 'questions', 'assignment'));
+    }
+    // Thêm vào ExamAssignmentController
+    public function classResults(ExamAssignment $assignment)
+    {
+        // Kiểm tra quyền
+        if ($assignment->exam->teacher_id !== auth()->id()) {
+            abort(403);
+        }
+
+        // Lấy danh sách học sinh với kết quả
+        $students = $assignment->class->students()
+            ->with(['examResults' => function($query) use ($assignment) {
+                $query->where('exam_assignment_id', $assignment->id);
+            }])
+            ->get();
+
+        // Thêm dòng này để tạo biến $results
+        $results = ExamResult::where('exam_assignment_id', $assignment->id)->get();
+
+        return view('exam_assignments.class_results', [
+            'assignment' => $assignment,
+            'students' => $students,
+            'results' => $results // Thêm biến này
+        ]);
     }
 }

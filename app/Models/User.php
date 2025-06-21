@@ -105,6 +105,10 @@ class User extends Authenticatable
             ->withPivot('academic_year_id');
     }
 
+    public function examResults()
+    {
+        return $this->hasMany(ExamResult::class, 'student_id');
+    }
     public function classes()
     {
         return $this->belongsToMany(ClassModel::class, 'student_classes', 'user_id', 'class_id')

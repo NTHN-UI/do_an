@@ -241,14 +241,16 @@
             // Initialize question numbering
             updateQuestionNumbers();
 
-            @if(session('open_question_bank'))
-                @if(session('success'))
-                    alert('{{ session('success') }}');
-                @endif
-                    $('#questionBankModal').modal('show');
-                    loadQuestionBank();
-            @endif
+            @if(session('open_question_bank') && session('success'))
+            // Hiển thị thông báo thành công dưới dạng toast hoặc message
+            toastr.success('{{ session('success') }}');
 
+            // Mở modal ngân hàng câu hỏi
+            $('#questionBankModal').modal('show');
+
+            // Load lại danh sách câu hỏi
+            loadQuestionBank();
+            @endif
             // Function to initialize form controls
             function initFormControls() {
                 // Disable semester dropdown initially
