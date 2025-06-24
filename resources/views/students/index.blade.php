@@ -77,8 +77,8 @@
                         </div>
                         <div class="col-md-4 d-flex align-items-end gap-2 justify-content-end">
                             <!-- Nút Import -->
-                            <div class="flex-shrink-0">                            <!-- Import Button -->
-                            <button class="btn btn-primary-color me-2 action-btn" onclick="$('#real-import-btn').click()"
+                            <div class="flex-shrink-0">
+                            <button type="button" class="btn btn-primary-color me-2 action-btn" onclick="$('#real-import-btn').click()"
                                     {{ !$academicYearId ? 'disabled' : '' }}
                                     title="{{ !$academicYearId ? 'Vui lòng chọn năm học trước' : 'Import học sinh' }}">
                                 <i class="fas fa-file-import me-1"></i> Import
@@ -143,13 +143,14 @@
             @include('students.partials.pagination', ['students' => $students])
         </div>
     </div>
+
 @endsection
 
 @push('scripts')
     <script>
             $(document).ready(function () {
                 let timer;
-                $('#search-input').on('keyup', function() {
+                $('#search-input').on('keyup', function () {
                     clearTimeout(timer);
                     timer = setTimeout(() => {
                         $('#search-form').submit();
@@ -158,7 +159,7 @@
 
                 // Reset search input if needed (add a clear button if you want)
                 @if(request('search'))
-                $('.btn-outline-secondary').click(function() {
+                $('.btn-outline-secondary').click(function () {
                     $('#search-input').val('');
                     $('#search-form').submit();
                 });
@@ -166,8 +167,6 @@
                 const academicYearSelect = $('#academic_year_id');
                 const gradeLevelSelect = $('#grade_level_id');
                 const inputFile = $("#real-import-btn");
-
-
 
                 function toggleActionButtons() {
                     const yearSelected = academicYearSelect.val();
@@ -227,7 +226,7 @@
                         paginationContainer.html(response.pagination);
 
                         // Thêm sự kiện click cho phân trang AJAX
-                        $(document).off('click', '.pagination a').on('click', '.pagination a', function(e) {
+                        $(document).off('click', '.pagination a').on('click', '.pagination a', function (e) {
                             e.preventDefault();
                             const url = $(this).attr('href');
                             loadPage(url, grade_id, academic_year_id);
@@ -261,58 +260,73 @@
                         console.error("Failed to load page: ", error);
                     }
                 }
-                // Xử lý import file
-                inputFile.on("change", function() {
+
+                // Xử lý khi người dùng chọn file
+                inputFile.on('change', function () {
                     if (!this.files.length) return;
 
-                    const academicYearId = academicYearSelect.val();
-                    const gradeLevelId = gradeLevelSelect.val();
+                    const academicYearId = $('#academic_year_id').val();
+                    const gradeLevelId = $('#grade_level_id').val();
+                    const file = this.files[0];
 
-                    if (!academicYearId) {
-                        alert('Vui lòng chọn năm học trước khi import');
+                    if (!academicYearId || !gradeLevelId) {
+                        alert("Vui lòng chọn năm học và khối học trước khi import");
+                        this.value = '';
                         return;
                     }
 
                     const formData = new FormData();
                     formData.append('file', this.files[0]);
-                    formData.append('academic_year_id', academicYearId);
-                    formData.append('grade_level_id', gradeLevelId || '');
+                    formData.append('academic_year_id', $('#academic_year_id').val());
+                    formData.append('grade_level_id', $('#grade_level_id').val());
                     formData.append('_token', '{{ csrf_token() }}');
 
                     $.ajax({
-                        url: '{{ route("students.import") }}',
+                        url: "{{ route('students.import') }}",
                         type: 'POST',
                         data: formData,
                         processData: false,
                         contentType: false,
-                        success: function(response) {
-                            if (response.success) {
-                                render(gradeLevelSelect.val(), academicYearSelect.val())
+                        success: function (response) {
+                            let html = `<div class="text-start"><p>${response.message}</p>`;
 
-                            } else {
-                                alert('Lỗi: ' + response.message);
+                            if (response.errors && response.errors.length > 0) {
+                                html += `<div class="mt-3">
+                    <h6 class="text-danger">Chi tiết lỗi:</h6>
+                    <div class="text-danger" style="max-height: 200px; overflow-y: auto;">
+                        <ul class="mb-0">`;
+
+                                response.errors.forEach(error => {
+                                    html += `<li>${error}</li>`;
+                                });
+
+                                html += `</ul></div></div>`;
                             }
+
+                            html += `</div>`;
                         },
-                        error: function(xhr) {
-                            alert('Lỗi: ' + (xhr.responseJSON?.message || 'Vui lòng thử lại'));
+                        error: function (xhr) {
+                            alert("Có lỗi khi import");
+                            console.error("Import error: ", xhr.responseText);
                         },
-                        complete: function() {
-                            inputFile.val(''); // Reset input file
+                        complete: function () {
+                            $('#real-import-btn').val('');
                         }
                     });
                 });
-            });
-            // Cập nhật link export template khi thay đổi select
-            $('#academic_year_id, #grade_level_id').change(function() {
-                const academicYearId = $('#academic_year_id').val();
-                const gradeLevelId = $('#grade_level_id').val();
 
-                if (academicYearId && gradeLevelId) {
-                    const url = "{{ route('students.export.template') }}" +
-                        "?academic_year_id=" + academicYearId +
-                        "&grade_level_id=" + gradeLevelId;
-                    $('#export-template-link').attr('href', url);
-                }
+
+                $('#academic_year_id, #grade_level_id').change(function() {
+                    const academicYearId = $('#academic_year_id').val();
+                    const gradeLevelId = $('#grade_level_id').val();
+
+                    if (academicYearId && gradeLevelId) {
+                        const url = "{{ route('students.export.template') }}" +
+                            "?academic_year_id=" + academicYearId +
+                            "&grade_level_id=" + gradeLevelId;
+                        $('#export-template-link').attr('href', url);
+                    }
+                });
             });
     </script>
 @endpush

@@ -15,6 +15,49 @@ class ClassController extends Controller
     /**
      * Display a listing of the resource.
      */
+    private function getValidationRules(bool $isUpdate = false, ClassModel $class = null): array
+    {
+        return [
+            'name' => [
+                'required',
+                'string',
+                'max:100',
+                function ($attribute, $value, $fail) use ($isUpdate, $class) {
+                    $query = ClassModel::where('school_id', auth()->user()->school_id)
+                        ->where('name', $value)
+                        ->where('grade_level_id', request('grade_level_id'))
+                        ->where('academic_year_id', request('academic_year_id'));
+
+                    if ($isUpdate) {
+                        $query->where('id', '!=', $class->id);
+                    }
+
+                    if ($query->exists()) {
+                        $fail('Lớp học đã tồn tại trong khối và năm học đã chọn');
+                    }
+                }
+            ],
+            'grade_level_id' => [
+                'required',
+                Rule::exists('grade_levels', 'id')->where('school_id', auth()->user()->school_id)
+            ],
+            'academic_year_id' => [
+                'required',
+                Rule::exists('academic_years', 'id')->where('school_id', auth()->user()->school_id)
+            ]
+        ];
+    }
+
+    private function getValidationMessages(): array
+    {
+        return [
+            'name.required' => 'Tên lớp học không được để trống',
+            'name.max' => 'Tối đa 50 ký tự',
+            'grade_level_id.required' => 'Vui lòng chọn khối học',
+            'academic_year_id.required' => 'Vui lòng chọn năm học',
+            'name.unique_class' => 'Lớp học đã tồn tại trong khối và năm học đã chọn'
+        ];
+    }
     public function index(Request $request)
     {
         // Lấy danh sách năm học
@@ -62,44 +105,17 @@ class ClassController extends Controller
     {
         $school = auth()->user()->school;
 
-        $messages = [
-            'name.required' => 'Tên lớp học không được để trống',
-            'name.max' => 'Tối đa 50 ký tự',
-            'grade_level_id.required' => 'Vui lòng chọn khối học',
-            'academic_year_id.required' => 'Vui lòng chọn năm học',
-            'name.unique_class' => 'Lớp học đã tồn tại trong khối và năm học đã chọn'
-        ];
         // Lấy năm học từ session nếu không có trong request
         $academicYearId = $request->input('academic_year_id', session('selected_academic_year_id'));
 
         // Thêm vào request để validation
         $request->merge(['academic_year_id' => $academicYearId]);
 
-        $validator = Validator::make($request->all(), [
-            'name' => [
-                'required',
-                'string',
-                'max:100',
-                function ($attribute, $value, $fail) use ($request, $school) {
-                    if (ClassModel::where('school_id', $school->id)
-                        ->where('name', $value)
-                        ->where('grade_level_id', $request->grade_level_id)
-                        ->where('academic_year_id', $request->academic_year_id)
-                        ->exists()) {
-                        $fail('Lớp học đã tồn tại trong khối và năm học đã chọn');
-                    }
-                }
-            ],
-            'grade_level_id' => [
-                'required',
-                Rule::exists('grade_levels', 'id')->where('school_id', $school->id)
-            ],
-            'academic_year_id' => [
-                'required',
-                Rule::exists('academic_years', 'id')->where('school_id', $school->id)
-            ]
-        ], $messages);
-
+        $validator = Validator::make(
+            $request->all(),
+            $this->getValidationRules(),
+            $this->getValidationMessages()
+        );
         if ($validator->fails()) {
             return redirect()->back()
                 ->withErrors($validator)
@@ -155,39 +171,11 @@ class ClassController extends Controller
         $class = ClassModel::where('school_id', $school->id)
             ->findOrFail($id);
 
-        $messages = [
-            'name.required' => 'Tên lớp học không được để trống',
-            'name.max' => 'Tối đa 50 ký tự',
-            'grade_level_id.required' => 'Vui lòng chọn khối học',
-            'academic_year_id.required' => 'Vui lòng chọn năm học',
-                'name.unique_class' => 'Lớp học đã tồn tại trong khối và năm học đã chọn'
-        ];
-
-        $validator = Validator::make($request->all(), [
-            'name' => [
-                'required',
-                'string',
-                'max:100',
-                function ($attribute, $value, $fail) use ($request, $school, $class) {
-                    if (ClassModel::where('school_id', $school->id)
-                        ->where('name', $value)
-                        ->where('grade_level_id', $request->grade_level_id)
-                        ->where('academic_year_id', $request->academic_year_id)
-                        ->where('id', '!=', $class->id) // Loại trừ lớp hiện tại
-                        ->exists()) {
-                        $fail('Lớp học đã tồn tại trong khối và năm học đã chọn');
-                    }
-                }
-            ],
-            'grade_level_id' => [
-                'required',
-                Rule::exists('grade_levels', 'id')->where('school_id', $school->id)
-            ],
-            'academic_year_id' => [
-                'required',
-                Rule::exists('academic_years', 'id')->where('school_id', $school->id)
-            ]
-        ], $messages);
+        $validator = Validator::make(
+            $request->all(),
+            $this->getValidationRules(true, $class),
+            $this->getValidationMessages()
+        );
 
         if ($validator->fails()) {
             return redirect()->back()
@@ -215,12 +203,14 @@ class ClassController extends Controller
         try {
             $dependencies = [];
 
+            // Kiểm tra học sinh
             if ($class->students()->exists()) {
                 $dependencies[] = 'Học sinh';
             }
 
-            if ($class->teachers()->exists()) {
-                $dependencies[] = 'Giáo viên';
+            // Kiểm tra phân công giáo viên (sử dụng đúng tên quan hệ)
+            if ($class->teacherAssignments()->exists()) {
+                $dependencies[] = 'Giáo viên được phân công';
             }
 
             if (!empty($dependencies)) {
@@ -228,14 +218,13 @@ class ClassController extends Controller
                 return redirect()->back()->with('error', $message);
             }
 
-            $school_id = $class->school_id;
             $class->delete();
 
             return redirect()->route('classes.index')
-                ->with('success', 'Xóa lớp học thành công!');
+                ->with('success', 'Xóa lớp học "' . $class->name . '" thành công!');
         } catch (\Exception $e) {
             return redirect()->back()
-                ->with('error', 'Có lỗi xảy ra: ' . $e->getMessage());
+                ->with('error', 'Xóa lớp học thất bại: ' . $e->getMessage());
         }
     }
 }

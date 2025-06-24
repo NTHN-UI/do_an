@@ -15,8 +15,11 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 use Maatwebsite\Excel\Facades\Excel;
+use PhpOffice\PhpSpreadsheet\Exception;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class StudentController extends Controller
@@ -25,6 +28,120 @@ class StudentController extends Controller
      * Display a listing of the resource.
      */
 
+    private function getValidationRules(Request $request, bool $isUpdate = false, User $student = null): array
+    {
+        $rules = [
+            'full_name' => [
+                'required',
+                'string',
+                'max:50',
+                'regex:/^[\p{L}\s\-]+$/u'
+            ],
+            'phone' => [
+                'nullable',
+                'string',
+                'regex:/^(0[3|5|7|8|9])[0-9]{8,9}$/',
+                function ($attribute, $value, $fail) use ($isUpdate, $student) {
+                    if ($value) {
+                        $cleanNumber = preg_replace('/[^0-9]/', '', $value);
+                        if (!in_array(strlen($cleanNumber), [10, 11])) {
+                            $fail('Số điện thoại phải có 10 hoặc 11 số');
+                        }
+
+                        $query = User::where('phone', $cleanNumber)
+                            ->where('school_id', auth()->user()->school_id);
+
+                        if ($isUpdate && $student) {
+                            $query->where('id', '!=', $student->id);
+                        }
+
+                        if ($query->exists()) {
+                            $fail('Số điện thoại đã được sử dụng');
+                        }
+                    }
+                }
+            ],
+            'gender' => [
+                'required',
+                'in:Nam,Nữ,Khác'
+            ],
+            'date_of_birth' => [
+                'required'
+            ],
+            'address' => [
+                'nullable',
+                'string',
+                'max:255',
+                'regex:/^[\p{L}0-9\s\-\/]+$/u'
+            ],
+            'academic_year_id' => [
+                'required',
+                Rule::exists('academic_years', 'id')->where('school_id', auth()->user()->school_id)
+            ],
+            'grade_level_id' => [
+                'required',
+                Rule::exists('grade_levels', 'id')->where('school_id', auth()->user()->school_id)
+            ],
+            'guardian_name' => [
+                'nullable',
+                'string',
+                'max:50'
+            ],
+            'guardian_phone' => [
+                'nullable',
+                'string',
+                'regex:/^(0[3|5|7|8|9])[0-9]{8,9}$/'
+            ],
+            'guardian_email' => [
+                'required',
+                'email',
+                Rule::unique('users', 'guardian_email')->ignore($isUpdate ? $student->id : null)
+            ],
+
+        ];
+        $gradeLevel = GradeLevel::find($request->grade_level_id);
+        if ($gradeLevel && $gradeLevel->grade_number == 10) {
+            $rules['entry_score'] = 'required|numeric|min:0|max:50';
+        }
+
+        return $rules;
+    }
+
+    private function getValidationMessages(): array
+    {
+        return [
+            'full_name.required' => 'Họ và tên không được để trống',
+            'full_name.max' => 'Họ và tên không được vượt quá 50 ký tự',
+            'full_name.regex' => 'Họ và tên chỉ được chứa chữ cái, khoảng trắng và dấu gạch ngang',
+
+            'phone.regex' => 'Số điện thoại phải bắt đầu bằng 03, 05, 07, 08 hoặc 09',
+
+            'gender.required' => 'Vui lòng chọn giới tính',
+
+            'date_of_birth.required' => 'Ngày sinh không được để trống',
+
+            'address.max' => 'Địa chỉ không được vượt quá 255 ký tự',
+            'address.regex' => 'Địa chỉ không được chứa ký tự đặc biệt',
+
+            'academic_year_id.required' => 'Vui lòng chọn năm học',
+
+            'grade_level_id.required' => 'Vui lòng chọn khối lớp',
+
+            'guardian_name.max' => 'Tên người giám hộ không được vượt quá 50 ký tự',
+
+            'guardian_phone.regex' => 'Số điện thoại người giám hộ không hợp lệ',
+
+            'guardian_email.required' => 'Email phụ huynh không để trống',
+            'guardian_email.email' => 'Email phụ huynh không hợp lệ',
+            'guardian_email.unique' => 'Email phụ huynh đã được sử dụng',
+
+            'entry_score.required' => 'Vui lòng nhập điểm đầu vào cho khối 10',
+            'entry_score.numeric' => 'Điểm đầu vào phải là số',
+            'entry_score.min' => 'Điểm đầu vào không được nhỏ hơn 0',
+            'entry_score.max' => 'Điểm đầu vào không được lớn hơn 50',
+
+        ];
+    }
 
     public function index(Request $request)
     {
@@ -146,61 +263,43 @@ class StudentController extends Controller
             ->orderBy('grade_number', 'asc')
             ->get();
 
+        // Lấy thông tin grade level nếu có
+        $selectedGradeLevel = $gradeLevelId ? GradeLevel::find($gradeLevelId) : null;
+
         return view('students.create', [
             'classes' => $classes,
             'currentAcademicYear' => $currentAcademicYear,
             'selectedAcademicYearId' => $academicYearId,
             'selectedGradeLevelId' => $gradeLevelId,
+            'selectedGradeLevel' => $selectedGradeLevel,
             'academicYears' => $academicYears,
             'gradeLevels' => $gradeLevels,
-            'showEntryScoreField' => $gradeLevelId == 10 // Sử dụng biến đã lấy ở trên
+            'showEntryScoreField' => $selectedGradeLevel && $selectedGradeLevel->grade_number == 10
         ]);
     }
-
     /**
      * Store a newly created resource in storage.
      */
     public function store(Request $request)
     {
         try {
-            $validated = $request->validate([
-                'full_name' => 'required|string|max:255',
-                'address' => 'nullable|string',
-                'phone' => [
-                    'nullable',
-                    'string',
-                    'regex:/^0\d{9}$/', // đúng 10 số bắt đầu bằng 0
-                    function ($attribute, $value, $fail) {
-                        if ($value && User::where('phone', $value)
-                                ->where('school_id', auth()->user()->school_id)
-                                ->exists()) {
-                            $fail('Số điện thoại đã tồn tại trong trường.');
-                        }
-                    },
+            $validator = Validator::make(
+                $request->all(),
+                $this->getValidationRules($request),
+                $this->getValidationMessages()
+            );
 
-                ],
+            if ($validator->fails()) {
+                return redirect()->back()
+                    ->withErrors($validator)
+                    ->withInput();
+            }
 
-                'gender' => 'nullable|in:Nam,Nữ,Khác',
-                'date_of_birth' => 'nullable|date',
-                'academic_year_id' => 'required|exists:academic_years,id,school_id,' . auth()->user()->school_id,
-                'grade_level_id' => 'required|exists:grade_levels,id,school_id,' . auth()->user()->school_id,
-                'guardian_name' => 'nullable|string|max:255',
-                'guardian_email' => 'nullable|email|unique:users,guardian_email',
-                'guardian_phone' => 'nullable|string|max:20',
+            $validated = $validator->validated();
 
-            ]);
-            // Tạo mảng rules mới chỉ cho entry_score nếu là khối 10
-            $entryScoreRules = [];
-            // Tìm grade => "Khối 10"
-
-
-            if ($request->grade_level_id == 1) {
-                $entryScoreRules = ['entry_score' => 'required|numeric|min:0|max:50'];
-
-                // Validate riêng cho entry_score
-                $request->validate($entryScoreRules);
-
-                // Thêm vào dữ liệu đã validate
+            // Xử lý điểm đầu vào cho khối 10
+            $gradeLevel = GradeLevel::find($request->grade_level_id);
+            if ($gradeLevel && $gradeLevel->grade_number == 10) {
                 $validated['entry_score'] = $request->entry_score;
             }
 
@@ -208,35 +307,26 @@ class StudentController extends Controller
             $validated['school_id'] = auth()->user()->school_id;
             $validated['is_active'] = $request->has('is_active');
 
-            // Lấy thông tin trường học
+            // Tạo email tự động
             $school = School::find(auth()->user()->school_id);
-
-            // Xử lý tên trường để tạo domain
             $schoolName = $school->name;
-            // Loại bỏ dấu và chuyển thành chữ thường không dấu
             $slug = Str::slug(mb_strtolower($schoolName));
             $slugParts = explode('-', $slug);
             $slugParts = array_slice($slugParts, 1, (count($slugParts) - 1));
             $schoolDomain = join('', $slugParts) . '.edu.vn';
 
-            // Tạo email tự động theo định dạng: tên.họ+tên đệm@domain
             $fullName = $validated['full_name'];
             $nameParts = explode(' ', $fullName);
-
-            // Lấy tên (phần cuối)
             $lastName = array_pop($nameParts);
-            $lastName = mb_strtolower(Str::ascii($lastName)); // Chuyển thành không dấu
+            $lastName = mb_strtolower(Str::ascii($lastName));
 
-            // Lấy chữ cái đầu của họ và tên đệm
             $firstLetters = '';
             foreach ($nameParts as $part) {
                 $firstLetters .= mb_substr($part, 0, 1);
             }
-            $firstLetters = mb_strtolower(Str::ascii($firstLetters)); // Chuyển thành không dấu
+            $firstLetters = mb_strtolower(Str::ascii($firstLetters));
 
             $username = $lastName . '.' . $firstLetters;
-
-            // Kiểm tra nếu email đã tồn tại thì thêm số vào cuối
             $email = $username . '@' . $schoolDomain;
             $originalEmail = $email;
             $counter = 1;
@@ -246,9 +336,9 @@ class StudentController extends Controller
             }
 
             $validated['email'] = $email;
-
-            // Đặt mật khẩu mặc định là 12345678
             $validated['password'] = Hash::make('12345678');
+
+            // Tạo học sinh và gắn vào lớp học
             $student = User::create($validated);
             $student->studentGrades()->attach($request->academic_year_id, [
                 'grade_id' => $request->grade_level_id,
@@ -256,9 +346,12 @@ class StudentController extends Controller
             ]);
 
             return redirect()->route('students.index')->with('success', 'Học sinh đã được thêm thành công.');
+
         } catch (\Exception $e) {
             Log::error('Error creating student: ' . $e->getMessage());
-            return back()->with('error', 'Đã xảy ra lỗi khi thêm học sinh: ' . $e->getMessage());
+            return back()
+                ->with('error', 'Đã xảy ra lỗi khi thêm học sinh: ' . $e->getMessage())
+                ->withInput(); // Giữ lại dữ liệu đã nhập khi có lỗi
         }
     }
 
@@ -283,6 +376,7 @@ class StudentController extends Controller
         if ($student->school_id !== auth()->user()->school_id || !$student->isStudent()) {
             abort(403, 'Không được phép sửa học sinh từ trường khác');
         }
+
 
         $currentAcademicYear = AcademicYear::where('school_id', auth()->user()->school_id)
             ->latest()
@@ -313,39 +407,33 @@ class StudentController extends Controller
                 abort(403, 'Không được phép cập nhật học sinh từ trường khác');
             }
 
-            $validated = $request->validate([
-                'full_name' => 'required|string|max:255',
-                'address' => 'nullable|string',
-                'phone' => [
-                    'nullable',
-                    'string',
-                    'regex:/^0\d{9}$/', // đúng 10 số bắt đầu bằng 0
-                    function ($attribute, $value, $fail) use ($student) {
-                        if ($value && User::where('phone', $value)
-                                ->where('school_id', auth()->user()->school_id)
-                                ->where('id', '!=', $student->id) // Loại trừ bản ghi hiện tại
-                                ->exists()) {
-                            $fail('Số điện thoại đã tồn tại trong trường.');
-                        }
-                    },
-                ],
+            $validator = Validator::make(
+                $request->all(),
+                $this->getValidationRules($request, true, $student),
+                $this->getValidationMessages()
+            );
 
-                'gender' => 'nullable|in:Nam,Nữ,Khác',
-                'date_of_birth' => 'nullable|date',
-                'guardian_name' => 'nullable|string|max:255',
-                'guardian_email' => 'nullable|email|unique:users,guardian_email,' . $student->id,
-                'guardian_phone' => 'nullable|string|max:20',
-            ]);
+            if ($validator->fails()) {
+                return redirect()->back()
+                    ->withErrors($validator)
+                    ->withInput();
+            }
+
+            $validated = $validator->validated();
 
             if ($student->studentGrades->first()?->grade_id == 1) {
-                $entryScoreRules = ['entry_score' => 'required|numeric|min:0|max:50'];
+                $request->validate([
+                    'entry_score' => 'required|numeric|min:0|max:50'
+                ], [
+                    'entry_score.required' => 'Vui lòng nhập điểm đầu vào cho khối 10',
+                    'entry_score.numeric' => 'Điểm đầu vào phải là số',
+                    'entry_score.min' => 'Điểm đầu vào không được nhỏ hơn 0',
+                    'entry_score.max' => 'Điểm đầu vào không được lớn hơn 50'
+                ]);
 
-                // Validate riêng cho entry_score
-                $request->validate($entryScoreRules);
-
-                // Thêm vào dữ liệu đã validate
                 $validated['entry_score'] = $request->entry_score;
             }
+
 
             $validated['is_active'] = $request->has('is_active');
             $validated['email'] = $student->email; // Giữ nguyên email cũ
@@ -368,130 +456,92 @@ class StudentController extends Controller
     public function destroy(User $student)
     {
     }
+
     /**
      * Xử lý import học sinh từ file Excel
      */
-    public function importDirect(Request $request)
+    public function exportTemplate(Request $request)
     {
         $request->validate([
-            'file' => 'required|mimes:xlsx,xls',
-            'academic_year_id' => 'required|exists:academic_years,id,school_id,' . auth()->user()->school_id,
-            'grade_level_id' => 'required|exists:grade_levels,id,school_id,' . auth()->user()->school_id,
+            'academic_year_id' => 'required|exists:academic_years,id',
+            'grade_level_id' => 'required|exists:grade_levels,id'
         ]);
-        try {
 
-            // Kiểm tra xem có phải khối 10 không
-            $gradeLevel = GradeLevel::find($request->grade_level_id);
-            $isGrade10 = $gradeLevel && $gradeLevel->grade_number == 10;
-            if ($isGrade10) {
-                // Kiểm tra file có cột điểm đầu vào không
-                $fileData = Excel::toArray(new StudentsImport(
-                    auth()->user()->school_id,
-                    $request->academic_year_id,
-                    $request->grade_level_id
-                ), $request->file('file'))[0];
+        $gradeLevelId = $request->grade_level_id;
+        $fileName = 'student_import_template_' . $gradeLevelId . '.xlsx';
 
-                $hasEntryScoreColumn = isset($fileData[0]['diem_dau_vao']) ||
-                    isset($fileData[0]['diemdauvao']) ||
-                    isset($fileData[0]['diem dau vao']);
+        return Excel::download(new StudentsTemplateExport($gradeLevelId), $fileName);
+    }
 
-                if (!$hasEntryScoreColumn) {
-                    return response()->json([
-                        'success' => false,
-                        'message' => 'File import thiếu cột điểm đầu vào (bắt buộc cho khối 10)'
-                    ], 422);
-                }
-            }
-
-            $import = new StudentsImport(
-                auth()->user()->school_id,
-                $request->academic_year_id,
-                $request->grade_level_id
-            );
-
-            Excel::import($import, $request->file('file'));
-
-            $message = 'Import thành công ' . $import->getImportedCount() . ' học sinh';
-            if ($import->getErrors()) {
-                $message .= '<br>Có lỗi với một số dòng: <br>' . implode('<br>', $import->getErrors());
-            }
-
-            return response()->json([
-                'success' => true,
-                'message' => $message
+        public function importDirect(Request $request)
+        {
+            $request->validate([
+                'file' => 'required|mimes:xlsx,xls|max:5120',
+                'academic_year_id' => 'required|exists:academic_years,id',
+                'grade_level_id' => 'required|exists:grade_levels,id'
             ]);
 
-        } catch (\Exception $e) {
-            Log::error("Error in StudentController@importDirect: " . $e->getMessage());
-            return response()->json([
-                'success' => false,
-                'message' => 'Lỗi: ' . $e->getMessage()
-            ], 500);
-        }
-    }
+            try {
+                $import = new StudentsImport(
+                    $request->academic_year_id,
+                    $request->grade_level_id
+                );
 
-    /**
-     * Export danh sách học sinh
-     */
-    public function export(Request $request): BinaryFileResponse
-    {
-        $request->validate([
-            'academic_year_id' => 'nullable|exists:academic_years,id,school_id,' . auth()->user()->school_id,
-            'grade_level_id' => 'nullable|exists:grade_levels,id,school_id,' . auth()->user()->school_id,
-        ]);
+                Excel::import($import, $request->file('file'));
 
-        $schoolId = auth()->user()->school_id;
-        $academicYearId = $request->academic_year_id;
-        $gradeLevelId = $request->grade_level_id;
+                $importedCount = $import->getRowCount();
+                $failures = $import->failures();
+                $errors = [];
 
-        return Excel::download(
-            new StudentsExport($schoolId, $academicYearId, $gradeLevelId),
-            'danh-sach-hoc-sinh-' . now()->format('Y-m-d') . '.xlsx'
-        );
-    }
-
-    /**
-     * Export file mẫu để nhập học sinh
-     */
-    public function exportTemplate(): BinaryFileResponse
-    {
-        $academicYearId = request()->input('academic_year_id');
-        $gradeLevelId = request()->input('grade_level_id');
-
-        return Excel::download(
-            new StudentsTemplateExport($academicYearId, $gradeLevelId),
-            'mau-nhap-hoc-sinh.xlsx'
-        );
-    }
-
-    public function getStudentsByGrade(Request $request)
-    {
-        try {
-            if ($request->ajax()) {
-                $grade_id = $request->input('grade_id');
-                $academic_year_id = $request->input('academic_year_id');
-
-                $students = User::join('grade_users', 'users.id', '=', 'grade_users.user_id')
-                    ->where('grade_id', '=', $grade_id)
-                    ->where('academic_year_id', '=', $academic_year_id)
-                    ->select('users.id', 'users.full_name', 'users.email',
-                        'users.phone', 'users.is_active', 'users.school_id')
-                    ->with(['school' => function ($query) {
-                        $query->select('id', 'name');
-                    }])
-                    ->paginate(10);
+                foreach ($failures as $failure) {
+                    $errors[] = "Dòng {$failure->row()}: {$failure->errors()[0]}";
+                }
 
                 return response()->json([
                     'success' => true,
-                    'data' => view('students.partials.results', ['students' => $students])->render(),
-                    'pagination' => view('students.partials.pagination', ['students' => $students])->render()
+                    'imported_count' => $importedCount,
+                    'errors' => $errors,
+                    'message' => "Đã import thành công {$importedCount} học sinh." .
+                        (count($errors) ? " Có " . count($errors) . " lỗi xảy ra." : '')
+                ]);
+
+            } catch (\Exception $e) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Lỗi khi import file: ' . $e->getMessage()
+                ], 500);
+            }
+        }
+
+        public function getStudentsByGrade(Request $request)
+        {
+            try {
+                if ($request->ajax()) {
+                    $grade_id = $request->input('grade_id');
+                    $academic_year_id = $request->input('academic_year_id');
+
+                    $students = User::join('grade_users', 'users.id', '=', 'grade_users.user_id')
+                        ->where('grade_id', '=', $grade_id)
+                        ->where('academic_year_id', '=', $academic_year_id)
+                        ->select('users.id', 'users.full_name', 'users.email',
+                            'users.phone', 'users.is_active', 'users.school_id')
+                        ->with(['school' => function ($query) {
+                            $query->select('id', 'name');
+                        }])
+                        ->paginate(10);
+
+                    return response()->json([
+                        'success' => true,
+                        'data' => view('students.partials.results', ['students' => $students])->render(),
+                        'pagination' => view('students.partials.pagination', ['students' => $students])->render()
+                    ]);
+                }
+            } catch (\Exception $ex) {
+                Log::error('Error in StudentController@getStudentsByGrade: ' . $ex->getMessage());
+                return response()->json([
+
+                'error' => 'Có lỗi xảy ra',
                 ]);
             }
-        } catch (\Exception $ex) {
-            Log::error('Error in StudentController@getStudentsByGrade: ' . $ex->getMessage());
-            return response()->json([
-                'error' => 'Có lỗi xảy ra',
-            ]);
         }
     }
-}

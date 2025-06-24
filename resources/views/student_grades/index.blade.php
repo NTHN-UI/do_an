@@ -221,7 +221,10 @@
                                     <div class="alert alert-info alert-custom-info mt-4 rounded-2 shadow-sm">
                                         <div class="row">
                                             <div class="col-md-6">
-                                                <strong>Điểm trung bình cả năm:</strong> <strong class="text-primary-color">{{ number_format($yearlyResults['yearly_avg'] ?? 'N/A', 1) }}</strong>
+                                                <strong>Điểm trung bình cả năm:</strong>
+                                                <strong class="text-primary-color">
+                                                    {{ is_numeric($yearlyResults['yearly_avg'] ?? null) ? number_format((float)$yearlyResults['yearly_avg'], 1) : 'N/A' }}
+                                                </strong>
                                             </div>
                                             <div class="col-md-6">
                                                 <strong>Xếp loại:</strong> <strong class="text-primary-color">{{ $yearlyResults['classification'] ?? 'N/A' }}</strong>

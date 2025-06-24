@@ -14,8 +14,8 @@
         </div>
 
         <!-- Filter Section -->
-        <div class="card shadow-sm border-0 mb-4">
-            <div class="card-body p-4">
+        <div class="card shadow-sm border-0 mb-3">
+            <div class="card-body p-3">
                 <form method="GET" action="{{ route('grades.index') }}" id="filter-form">
                     <div class="row g-4">
                         <div class="col-lg-4 col-md-6">
@@ -23,7 +23,7 @@
                                 <label for="academic_year_id" class="form-label fw-semibold">
                                    Năm học
                                 </label>
-                                <select class="form-select form-select-lg border-2" id="academic_year_id" name="academic_year_id" required>
+                                <select class="form-select border-2" id="academic_year_id" name="academic_year_id" required>
                                     <option value="">-- Chọn năm học --</option>
                                     @foreach($academicYears as $year)
                                         <option value="{{ $year->id }}" {{ $selectedAcademicYearId == $year->id ? 'selected' : '' }}>
@@ -38,7 +38,7 @@
                             <div class="form-group">
                                 <label for="class_id" class="form-label fw-semibold">Lớp học
                                 </label>
-                                <select class="form-select form-select-lg border-2" id="class_id" name="class_id" required>
+                                <select class="form-select border-2" id="class_id" name="class_id" required>
                                     <option value="">-- Chọn lớp --</option>
                                     @foreach($assignedClasses as $classId => $assignments)
                                         @php $class = $assignments->first()->class; @endphp
@@ -54,7 +54,7 @@
                             <div class="form-group">
                                 <label for="semester_id" class="form-label fw-semibold">Học kỳ
                                 </label>
-                                <select class="form-select form-select-lg border-2" id="semester_id" name="semester_id" required>
+                                <select class="form-select border-2" id="semester_id" name="semester_id" required>
                                     <option value="">-- Chọn học kỳ --</option>
                                     @foreach($semesters as $semester)
                                         <option value="{{ $semester->id }}" {{ $selectedSemesterId == $semester->id ? 'selected' : '' }}>
@@ -66,8 +66,8 @@
                         </div>
                     </div>
 
-                    <div class="d-flex justify-content-end mt-4 download-container">
-                        <button class="btn btn-outline-secondary btn-lg px-4" id="btn-download" disabled
+                    <div class="d-flex justify-content-end mt-3 download-container">
+                        <button class="btn btn-outline-secondary px-3" id="btn-download" disabled
                                 title="Vui lòng chọn đầy đủ năm học, lớp và học kỳ">
                             <i class="fas fa-download me-2"></i>Tải file mẫu
                         </button>
@@ -357,7 +357,7 @@
 
                 if (academicYear && classId && semesterId) {
                     // Cập nhật link download
-                    const downloadUrl = "{{ route('grades.exportTemplate') }}" +
+                    const downloadUrl = "{{ route('grades.export.template') }}" +
                         `?academic_year_id=${academicYear}&class_id=${classId}&semester_id=${semesterId}`;
 
                     // Thay thế button bằng link download nếu chưa có

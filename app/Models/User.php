@@ -162,7 +162,7 @@ class User extends Authenticatable
 
     public function studentGrades()
     {
-        return $this->belongsToMany(AcademicYear::class, 'grade_users', 'user_id', 'academic_year_id');
+        return $this->belongsToMany(AcademicYear::class, 'grade_users', 'academic_year_id','grade_id');
     }
 
     public function subject()

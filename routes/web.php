@@ -59,17 +59,15 @@ Route::middleware(['auth'])->group(function () {
         Route::resource('classes', ClassController::class);
         Route::resource('grade_levels', GradeLevelController::class);
         Route::resource('semesters', SemesterController::class);
-        Route::resource('students', StudentController::class);
         Route::resource('teachers', TeacherController::class);
         Route::resource('teacher_assignments', TeacherAssignmentController::class);
+        Route::resource('students', StudentController::class);
+        Route::post('students/import', [StudentController::class, 'importDirect'])->name('students.import');
+        Route::get('students/export/template', [StudentController::class, 'exportTemplate'])->name('students.export.template');
+        Route::get('students/export', [StudentController::class, 'export'])->name('students.export');
 
-        Route::prefix('students')->name('students.')->controller(StudentController::class)->group(function () {
-            Route::post('/import', 'importDirect')->name('import');
-            Route::get('/export-template', 'exportTemplate')->name('export.template');
-            Route::get('/export', 'export')->name('export');
-            Route::post('/get-by-grades', 'getStudentsByGrade')->name('getStudentsByGrade');
 
-        });
+
 
         Route::get('/teachers/{teacher}/assignments/create', [TeacherAssignmentController::class, 'create'])
             ->name('teacher_assignments.create');
@@ -112,7 +110,7 @@ Route::middleware(['auth'])->group(function () {
             ->prefix('grades')->name('grades.')
             ->middleware([TeacherMiddleware::class])->group(function () {
                 Route::get('/', 'index')->name('index');
-                Route::get('/grades/export-template', 'exportTemplate')->name('exportTemplate');
+                Route::get('/export-template', 'exportTemplate')->name('export.template'); // Corrected line
                 Route::post('/import', 'import')->name('import');
                 Route::get('/student/{student}', 'viewAllGrades')->name('student_grades');
                 Route::get('/homeroom-grades', 'homeroomGrades')->name('homeroom');
@@ -202,6 +200,7 @@ Route::middleware(['auth'])->group(function () {
     // Route lấy lớp được phân công (nếu chưa có)
     Route::get('/grades/get-assigned-classes', [GradeController::class, 'getAssignedClasses'])
         ->name('grades.get-assigned-classes');
+
 });
 
 

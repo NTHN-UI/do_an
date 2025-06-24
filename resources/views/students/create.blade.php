@@ -29,31 +29,31 @@
                             </label>
                         </div>
                     </div>
-                        <div class="col-md-12">
-                                <label for="full_name" class="form-label">Họ và tên <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control @error('full_name') is-invalid @enderror"
-                                       id="full_name" name="full_name" value="{{ old('full_name') }}" required>
-                                @error('full_name')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
-                            <input type="hidden" name="email" value="">
                     <div class="col-md-12">
-                                <label for="phone" class="form-label">Số điện thoại</label>
-                                <input type="text" class="form-control @error('phone') is-invalid @enderror" id="phone"
-                                       name="phone" value="{{ old('phone') }}">
-                                @error('phone')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
+                        <label for="full_name" class="form-label">Họ và tên <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control @error('full_name') is-invalid @enderror"
+                               id="full_name" name="full_name" value="{{ old('full_name') }}">
+                        @error('full_name')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
+                    <input type="hidden" name="email" value="">
                     <div class="col-md-12">
-                                <label for="date_of_birth" class="form-label">Ngày sinh</label>
-                                <input type="date" class="form-control @error('date_of_birth') is-invalid @enderror"
-                                       id="date_of_birth" name="date_of_birth" value="{{ old('date_of_birth') }}">
-                                @error('date_of_birth')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
+                        <label for="phone" class="form-label">Số điện thoại</label>
+                        <input type="text" class="form-control @error('phone') is-invalid @enderror" id="phone"
+                               name="phone" value="{{ old('phone') }}">
+                        @error('phone')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
+                    <div class="col-md-12">
+                        <label for="date_of_birth" class="form-label">Ngày sinh</label>
+                        <input type="date" class="form-control @error('date_of_birth') is-invalid @enderror"
+                               id="date_of_birth" name="date_of_birth" value="{{ old('date_of_birth') }}">
+                        @error('date_of_birth')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
                     <div class="col-md-12">
 
                         <label for="gender" class="form-label">Giới tính</label>
@@ -75,9 +75,10 @@
                         </div>
                     </div>
                     <div class="col-md-12">
-                        <label for="academic_year_id" class="form-label">Năm học <span class="text-danger">*</span></label>
+                        <label for="academic_year_id" class="form-label">Năm học <span
+                                class="text-danger">*</span></label>
                         <select class="form-select @error('academic_year_id') is-invalid @enderror"
-                                id="academic_year_id" name="academic_year_id" required>
+                                id="academic_year_id" name="academic_year_id">
                             <option value="">-- Chọn năm học --</option>
                             @foreach($academicYears as $year)
                                 <option value="{{ $year->id }}"
@@ -90,30 +91,26 @@
                         <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
                     </div>
-                    <div class="col-md-12">
-                        <label for="grade_level_id" class="form-label">Khối học <span class="text-danger">*</span></label>
-                        <select class="form-select @error('grade_level_id') is-invalid @enderror"
-                                id="grade_level_id" name="grade_level_id" required>
+                    <div class="mb-3">
+                        <label for="grade_level_id" class="form-label">Khối học*</label>
+                        <select name="grade_level_id" class="form-select" id="grade_level_id" required>
                             <option value="">-- Chọn khối --</option>
                             @foreach($gradeLevels as $grade)
                                 <option value="{{ $grade->id }}"
-                                    {{ old('grade_level_id', $selectedGradeLevelId ?? null) == $grade->id ? 'selected' : '' }}>
+                                    @selected(old('grade_level_id') == $grade->id)>
                                     Khối {{ $grade->grade_number }}
                                 </option>
                             @endforeach
                         </select>
-                        @error('grade_level_id')
-                        <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
+                        @error('grade_level_id')<div class="text-danger">{{ $message }}</div>@enderror
                     </div>
-                    <div class="col-md-12">
-                        <label for="entry_score" class="form-label">Điểm đầu vào</label>
-                        <input type="number" step="0.01"
-                               class="form-control @error('entry_score') is-invalid @enderror"
-                               id="entry_score" name="entry_score" value="{{ old('entry_score') }}">
-                        @error('entry_score')
-                        <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
+
+                    <div id="entry_score_field" class="mb-3" style="display:none;">
+                        <label for="entry_score" class="form-label">Điểm đầu vào*</label>
+                        <input type="number" step="0.1" class="form-control" id="entry_score"
+                               name="entry_score" value="{{ old('entry_score') }}"
+                               min="0" max="50">
+                        @error('entry_score')<div class="text-danger">{{ $message }}</div>@enderror
                     </div>
                     <input type="hidden" name="password" value="12345678">
                     <div class="col-md-12">
@@ -124,22 +121,34 @@
                         <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
                     </div>
-                            <h5 class="text-primary-color mt-2">Thông tin phụ huynh</h5>
+                    <h5 class="text-primary-color mt-2">Thông tin phụ huynh</h5>
                     <div class="col-md-12">
-                                <label for="guardian_name" class="form-label">Tên phụ huynh</label>
-                                <input type="text" class="form-control" id="guardian_name" name="guardian_name"
-                                       value="{{ old('guardian_name') }}">
-                            </div>
+                        <label for="guardian_name" class="form-label">Tên phụ huynh</label>
+                        <input type="text" class="form-control @error('guardian_name') is-invalid @enderror"
+                               id="guardian_name" name="guardian_name"
+                               value="{{ old('guardian_name') }}">
+                        @error('address')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
                     <div class="col-md-12">
-                                <label for="guardian_email" class="form-label">Email phụ huynh</label>
-                                <input type="email" class="form-control" id="guardian_email" name="guardian_email"
-                                       value="{{ old('guardian_email') }}">
-                            </div>
+                        <label for="guardian_email" class="form-label">Email phụ huynh</label>
+                        <input type="email" class="form-control  @error('guardian_email') is-invalid @enderror"
+                               id="guardian_email" name="guardian_email"
+                               value="{{ old('guardian_email') }}">
+                        @error('guardian_email')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
                     <div class="col-md-12">
-                                <label for="guardian_phone" class="form-label">Số điện thoại phụ huynh</label>
-                                <input type="text" class="form-control" id="guardian_phone" name="guardian_phone"
-                                       value="{{ old('guardian_phone') }}">
-                            </div>
+                        <label for="guardian_phone" class="form-label">Số điện thoại phụ huynh</label>
+                        <input type="text" class="form-control  @error('guardian_phone') is-invalid @enderror"
+                               id="guardian_phone" name="guardian_phone"
+                               value="{{ old('guardian_phone') }}">
+                        @error('guardian_phone')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
 
                     <div class="d-flex justify-content-end mt-2">
                         <a href="{{ route('students.index') }}" class="btn btn-outline-primary-color me-2">Đóng</a>
@@ -151,34 +160,36 @@
         </div>
     </div>
 @endsection
-@push('script')
+@push('scripts')
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const gradeLevelSelect = document.querySelector('select[name="grade_level_id"]');
-            const entryScoreField = document.getElementById('entry_score');
+        $(document).ready(function() {
+            // Xử lý thay đổi khối học
+            $('#grade_level_id').change(function() {
+                const gradeId = $(this).val();
+                const entryScoreField = $('#entry_score_field');
 
-            if (!gradeLevelSelect || !entryScoreField) return;
-
-            // Hàm xử lý hiển thị/ẩn trường điểm
-            const toggleEntryScoreField = () => {
-                const isGrade10 = gradeLevelSelect.value === 10;
-                const formGroup = entryScoreField.closest('.form-group');
-
-                if (formGroup) {
-                    formGroup.style.display = isGrade10 ? 'block' : 'none';
-                    entryScoreField.required = isGrade10;
-
-                    // Reset giá trị khi ẩn đi
-                    if (!isGrade10) entryScoreField.value = '';
+                if (!gradeId) {
+                    entryScoreField.hide();
+                    return;
                 }
-            };
 
-            // Lắng nghe sự kiện thay đổi
-            gradeLevelSelect.addEventListener('change', toggleEntryScoreField);
+                // Kiểm tra có phải khối 10 không
+                const isGrade10 = $(this).find('option:selected').text().includes('10');
+                $('#entry_score_field').toggle(isGrade10);
 
-            // Khởi tạo trạng thái ban đầu
-            toggleEntryScoreField();
+                if (isGrade10) {
+                    entryScoreField.show();
+                    $('#entry_score').prop('required', true);
+                } else {
+                    entryScoreField.hide();
+                    $('#entry_score').prop('required', false).val('');
+                }
+            });
+
+            // Kích hoạt kiểm tra khi load trang nếu có giá trị cũ
+            @if(old('grade_level_id'))
+            $('#grade_level_id').val('{{ old('grade_level_id') }}').trigger('change');
+            @endif
         });
-
     </script>
 @endpush

@@ -125,7 +125,18 @@
 
             @if(Auth::check())
                 @if(Auth::user()->isSchoolAdmin())
-                    <!-- Quản lý học tập -->
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="academicDropdown" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-calendar-alt me-1"></i> Quản lý năm học
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="{{ route('academic_years.index') }}">
+                                    <i class="fas fa-calendar-check me-2"></i> Năm học</a></li>
+                            <li><a class="dropdown-item" href="{{ route('semesters.index') }}">
+                                    <i class="fas fa-calendar-week me-2"></i> Học kỳ</a></li>
+                        </ul>
+                    </li>
+
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="learningDropdown" role="button" data-bs-toggle="dropdown">
                             <i class="fas fa-book-open me-1"></i> Quản lý học tập
@@ -138,7 +149,18 @@
                         </ul>
                     </li>
 
-                    <!-- Quản lý phân công -->
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="usersDropdown" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-users-cog me-1"></i> Quản lý người dùng
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="{{ route('teachers.index') }}">
+                                    <i class="fas fa-chalkboard-teacher me-2"></i> Giáo viên</a></li>
+                            <li><a class="dropdown-item" href="{{ route('students.index') }}">
+                                    <i class="fas fa-user-graduate me-2"></i> Học sinh</a></li>
+                        </ul>
+                    </li>
+
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="assignmentDropdown" role="button" data-bs-toggle="dropdown">
                             <i class="fas fa-tasks me-1"></i> Quản lý phân công
@@ -153,31 +175,6 @@
                         </ul>
                     </li>
 
-                    <!-- Quản lý người dùng -->
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="usersDropdown" role="button" data-bs-toggle="dropdown">
-                            <i class="fas fa-users-cog me-1"></i> Quản lý người dùng
-                        </a>
-                        <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="{{ route('teachers.index') }}">
-                                    <i class="fas fa-chalkboard-teacher me-2"></i> Giáo viên</a></li>
-                            <li><a class="dropdown-item" href="{{ route('students.index') }}">
-                                    <i class="fas fa-user-graduate me-2"></i> Học sinh</a></li>
-                        </ul>
-                    </li>
-
-                    <!-- Quản lý năm học -->
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="academicDropdown" role="button" data-bs-toggle="dropdown">
-                            <i class="fas fa-calendar-alt me-1"></i> Quản lý năm học
-                        </a>
-                        <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="{{ route('academic_years.index') }}">
-                                    <i class="fas fa-calendar-check me-2"></i> Năm học</a></li>
-                            <li><a class="dropdown-item" href="{{ route('semesters.index') }}">
-                                    <i class="fas fa-calendar-week me-2"></i> Học kỳ</a></li>
-                        </ul>
-                    </li>
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="resultsDropdown" role="button" data-bs-toggle="dropdown">
                             <i class="fas fa-chart-line me-1"></i> Kết quả học tập
@@ -185,19 +182,6 @@
                         <ul class="dropdown-menu">
                             <li><a class="dropdown-item" href="{{ route('grades.admin_grades') }}">
                                     <i class="fas fa-table me-2"></i> Xem điểm toàn trường</a></li>
-                        </ul>
-                    </li>
-                @endif
-
-                @if(Auth::user()->isTeacher() || Auth::user()->isStudent())
-                    <!-- Tài liệu học tập -->
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="resourcesDropdown" role="button" data-bs-toggle="dropdown">
-                            <i class="fas fa-book-reader me-1"></i> Tài liệu học tập
-                        </a>
-                        <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="{{ route('documents.index') }}">
-                                    <i class="fas fa-file-alt me-2"></i> Tài liệu học tập</a></li>
                         </ul>
                     </li>
                 @endif
@@ -218,20 +202,40 @@
                         </ul>
                     </li>
                 @endif
-
-                @if(Auth::user()->isStudent())
-                    <!-- Điểm số -->
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
-                            <i class="fas fa-star-half-alt me-1"></i> Điểm số
-                        </a>
-                        <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="{{ route('student_grades') }}">
-                                    <i class="fas fa-list-ol me-2"></i> Tất cả năm</a></li>
-                        </ul>
-                    </li>
-                @endif
-
+                    @if(Auth::user()->isStudent())
+                        <!-- Điểm số -->
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                                <i class="fas fa-star-half-alt me-1"></i> Điểm số
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="{{ route('student_grades') }}">
+                                        <i class="fas fa-list-ol me-2"></i> Tất cả năm</a></li>
+                            </ul>
+                        </li>
+                    @endif
+                    @if(Auth::user()->isTeacher())
+                        <!-- Quản lý đề thi -->
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                                <i class="fas fa-file-signature me-1"></i> Quản lý đề thi
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="{{ route('exams.index') }}">
+                                        <i class="fas fa-file-alt me-2"></i> Đề thi</a></li>
+                                <li><a class="dropdown-item" href="{{ route('exam_assignments.index') }}">
+                                        <i class="fas fa-tasks me-2"></i> Đề thi đã giao</a></li>
+                            </ul>
+                        </li>
+                    @elseif(Auth::user()->isStudent())
+                        <!-- Nhận đề thi -->
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ route('student_exams.assigned_exams') }}">
+                                <i class="fas fa-file-download me-1"></i> Nhận đề
+                            </a>
+                        </li>
+                    @endif
+            @endif
                 @if(Auth::user()->isHomeroomTeacher(session('academic_year_id')))
                     <!-- Thông báo -->
                     <li class="nav-item dropdown">
@@ -246,29 +250,18 @@
                         </ul>
                     </li>
                 @endif
-
-                @if(Auth::user()->isTeacher())
-                    <!-- Quản lý đề thi -->
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
-                            <i class="fas fa-file-signature me-1"></i> Quản lý đề thi
-                        </a>
-                        <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="{{ route('exams.index') }}">
-                                    <i class="fas fa-file-alt me-2"></i> Đề thi</a></li>
-                            <li><a class="dropdown-item" href="{{ route('exam_assignments.index') }}">
-                                    <i class="fas fa-tasks me-2"></i> Đề thi đã giao</a></li>
-                        </ul>
-                    </li>
-                @elseif(Auth::user()->isStudent())
-                    <!-- Nhận đề thi -->
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ route('student_exams.assigned_exams') }}">
-                            <i class="fas fa-file-download me-1"></i> Nhận đề
-                        </a>
-                    </li>
-                @endif
-            @endif
+                    @if(Auth::user()->isTeacher() || Auth::user()->isStudent())
+                        <!-- Tài liệu học tập -->
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="resourcesDropdown" role="button" data-bs-toggle="dropdown">
+                                <i class="fas fa-book-reader me-1"></i> Tài liệu học tập
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="{{ route('documents.index') }}">
+                                        <i class="fas fa-file-alt me-2"></i> Tài liệu học tập</a></li>
+                            </ul>
+                        </li>
+                    @endif
         </ul>
 
         <!-- Phần bên phải -->

@@ -248,8 +248,7 @@ class ClassAssignmentController extends Controller
             DB::commit();
 
             // Tạo thông báo chi tiết
-            $message = "Đã phân công $totalStudents học sinh vào $classCount lớp ";
-            $message .= $isGrade10 ? "theo điểm đầu vào:" : "theo thứ tự tên:";
+            $message = "Đã phân công $totalStudents học sinh ";
 
             return redirect()
                 ->route('class_assignments.index', ['academic_year_id' => $academicYearId])

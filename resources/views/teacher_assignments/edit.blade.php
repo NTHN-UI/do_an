@@ -29,7 +29,7 @@
 
                 <div class="col-md-12">
                     <label class="form-label">Lớp học <span class="text-danger">*</span></label>
-                    <select name="class_id" class="form-select" required>
+                    <select name="class_id" class="form-select" >
                         @foreach($classes as $class)
                             <option value="{{ $class->id }}"
                                 {{ $teacherAssignment->class_id == $class->id ? 'selected' : '' }}>
@@ -39,7 +39,6 @@
                     </select>
                 </div>
 
-                <!-- Môn học - chỉ hiển thị, không cho sửa, nhưng vẫn gửi giá trị -->
                 <div class="col-md-12">
                     <label class="form-label">Môn học <span class="text-danger">*</span></label>
 

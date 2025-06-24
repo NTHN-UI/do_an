@@ -1,340 +1,207 @@
 <?php
 
+// app/Imports/StudentsImport.php
 namespace App\Imports;
 
-use App\Models\School;
 use App\Models\User;
-use App\Models\AcademicYear;
+use App\Models\School;
 use App\Models\GradeLevel;
+use App\Models\AcademicYear;
 use Carbon\Carbon;
-use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Log;
-use Maatwebsite\Excel\Concerns\ToCollection;
-use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Hash;
+use Maatwebsite\Excel\Concerns\ToModel;
+use Maatwebsite\Excel\Concerns\WithHeadingRow;
+use Maatwebsite\Excel\Concerns\WithValidation;
+use Maatwebsite\Excel\Concerns\SkipsOnFailure;
+use Maatwebsite\Excel\Concerns\SkipsFailures;
+use Maatwebsite\Excel\Concerns\Importable;
+use PhpOffice\PhpSpreadsheet\Exception;
 use PhpOffice\PhpSpreadsheet\Shared\Date;
 
-class StudentsImport implements ToCollection, WithHeadingRow
+class StudentsImport implements ToModel, WithHeadingRow, WithValidation, SkipsOnFailure
 {
-    protected $schoolId;
+    use Importable, SkipsFailures;
+
     protected $academicYearId;
     protected $gradeLevelId;
-    protected $importedCount = 0;
+    protected $school;
+    protected $gradeNumber;
     protected $errors = [];
-    protected $isGrade10 = false;
 
-    public function __construct($schoolId, $academicYearId, $gradeLevelId)
+    public function __construct($academicYearId, $gradeLevelId)
     {
-        $this->schoolId = $schoolId;
         $this->academicYearId = $academicYearId;
         $this->gradeLevelId = $gradeLevelId;
 
-        // Kiểm tra xem có phải khối 10 không
+        $this->school = School::find(auth()->user()->school_id);
         $gradeLevel = GradeLevel::find($gradeLevelId);
-        $this->isGrade10 = $gradeLevel && $gradeLevel->grade_number == 10;
+        $this->gradeNumber = $gradeLevel ? $gradeLevel->grade_number : null;
+    }
+    protected $rowCount = 0;
+
+    public function getRowCount()
+    {
+        return $this->rowCount;
     }
 
-    public function collection(Collection $rows)
+    public function model(array $row)
+
     {
-        $lineNumber = 2;
-        $school = School::find($this->schoolId);
+        $this->rowCount++;
 
-        if (!$school) {
-            $this->errors[] = "Không tìm thấy thông tin trường học";
-            return;
+        // Validate ngày sinh
+        $dateOfBirth = $this->transformDate($row['ngay_sinh']);
+        if (!$dateOfBirth) {
+            throw new \Exception("Dòng {$this->rowCount}: Ngày sinh không hợp lệ");
+        }
+        // Generate email
+        $email = $this->generateEmail($row['ho_va_ten']);
+
+        // Generate password
+        $password = Hash::make('12345678'); // Default password
+
+        $studentData = [
+            'full_name' => $row['ho_va_ten'],
+            'email' => $email,
+            'password' => $password,
+            'gender' => $row['gioi_tinh'] ?? null,
+            'date_of_birth' => $this->transformDate($row['ngay_sinh']),
+            'phone' => $row['so_dien_thoai'] ?? null,
+            'address' => $row['dia_chi'] ?? null,
+            'guardian_name' => $row['ten_phu_huynh'] ?? null,
+            'guardian_phone' => $row['sdt_phu_huynh'] ?? null,
+            'guardian_email' => $row['email_phu_huynh'] ?? null,
+            'role' => User::ROLE_STUDENT,
+            'school_id' => $this->school->id,
+            'is_active' => true,
+            'academic_year_id' => $this->academicYearId,
+
+        ];
+
+        // Add entry score if grade 10
+        if ($this->gradeNumber == 10 && isset($row['diem_dau_vao'])) {
+            $studentData['entry_score'] = $row['diem_dau_vao'];
         }
 
-        // Kiểm tra năm học và khối học có tồn tại không
-        $academicYear = AcademicYear::find($this->academicYearId);
-        $gradeLevel = GradeLevel::find($this->gradeLevelId);
+        $student = new User($studentData);
+        $student->studentGrades()->attach($this->gradeLevelId, [
+            'academic_year_id' => $this->academicYearId,
+            'school_id' => $this->school->id,
+            'grade_id' => $this->gradeLevelId
 
-        if (!$academicYear || !$gradeLevel) {
-            $this->errors[] = "Năm học hoặc khối học không tồn tại";
-            return;
+        ]);
+        return $student;
+    }
+
+        public function rules(): array
+    {
+        $rules = [
+            'ho_va_ten' => 'required|string|max:50',
+            'ngay_sinh' => [
+                'required',
+                function ($attribute, $value, $fail) {
+                    $date = $this->transformDate($value);
+                    if (!$date) {
+                        $fail('Ngày sinh không hợp lệ. Định dạng phải là dd/mm/yyyy');
+                    }
+                }
+            ],
+            'gioi_tinh' => 'nullable|in:Nam,Nữ,Khác',
+            'email_phu_huynh' => 'required|email',
+        ];
+
+        // Thêm rule cho điểm đầu vào nếu là khối 10
+        if ($this->gradeNumber == 10) {
+            $rules['diem_dau_vao'] = 'required|numeric|min:0|max:50';
         }
 
-        $schoolName = $school->name;
+        return $rules;
+    }
+
+    public function customValidationMessages()
+    {
+        return [
+            'ho_va_ten.required' => 'Họ và tên là bắt buộc',
+            'ho_va_ten.max' => 'Họ và tên không quá 50 ký tự',
+            'ngay_sinh.required' => 'Ngày sinh là bắt buộc',
+            'ngay_sinh.date' => 'Ngày sinh không hợp lệ',
+            'gioi_tinh.in' => 'Giới tính phải là Nam, Nữ hoặc Khác',
+            'email_phu_huynh.required' => 'Email phụ huynh là bắt buộc',
+            'email_phu_huynh.email' => 'Email phụ huynh không hợp lệ',
+            'diem_dau_vao.required' => 'Điểm đầu vào là bắt buộc cho khối 10',
+            'diem_dau_vao.numeric' => 'Điểm đầu vào phải là số',
+            'diem_dau_vao.min' => 'Điểm đầu vào tối thiểu là 0',
+            'diem_dau_vao.max' => 'Điểm đầu vào tối đa là 50',
+        ];
+    }
+
+    protected function generateEmail($fullName)
+    {
+        $schoolName = $this->school->name;
         $slug = Str::slug(mb_strtolower($schoolName));
         $slugParts = explode('-', $slug);
         $slugParts = array_slice($slugParts, 1, (count($slugParts) - 1));
         $schoolDomain = join('', $slugParts) . '.edu.vn';
 
-        foreach ($rows as $row) {
-            try {
-                // Kiểm tra trường bắt buộc
-                if (empty($row['ho_ten'])) {
-                    $this->errors[] = "Dòng $lineNumber: Thiếu họ tên";
-                    $lineNumber++;
-                    continue;
-                }
-                // Xử lý điểm đầu vào nếu là khối 10
-                if (!isset($row['diem_dau_vao'])) {
-                    $this->errors[] = "Dòng $lineNumber: Thiếu điểm đầu vào (bắt buộc cho khối 10)";
-                    $lineNumber++;
-                    continue;
-                }
-
-                $entryScore = $this->validateEntryScore($row['diem_dau_vao'], $lineNumber);
-
-
-                // Validate số điện thoại học sinh
-                $phone = $this->validatePhone($row['so_dien_thoai'] ?? null, $lineNumber);
-                if ($phone === false) {
-                    $lineNumber++;
-                    continue;
-                }
-
-                // Validate email phụ huynh
-                $guardianEmail = $row['email_phu_huynh'] ?? null;
-                if ($guardianEmail && !filter_var($guardianEmail, FILTER_VALIDATE_EMAIL)) {
-                    $this->errors[] = "Dòng $lineNumber: Email phụ huynh không hợp lệ";
-                    $lineNumber++;
-                    continue;
-                }
-
-                // Validate số điện thoại phụ huynh
-                $guardianPhone = $this->validatePhone($row['so_dien_thoai_phu_huynh'] ?? null, $lineNumber, true);
-                if ($guardianPhone === false) {
-                    $lineNumber++;
-                    continue;
-                }
-
-                // Create email
-                $email = $this->generateEmail($row['ho_ten'], $schoolDomain);
-
-                // Process gender with better validation
-                $gender = $this->mapGender($row['gioi_tinh_namnukhac'] ?? null);
-
-                // Process date with better validation
-                $dateOfBirth = $this->parseDate($row['ngay_sinh_ddmmyyyy'] ?? null);
-
-
-                // Tạo học sinh
-                $student = User::create([
-                    'full_name' => $row['ho_ten'],
-                    'email' => $email,
-                    'phone' =>  $phone,
-                    'gender' => $gender,
-                    'date_of_birth' => $dateOfBirth,
-                    'address' => $row['dia_chi'] ?? null,
-                    'guardian_name' => $row['ten_phu_huynh'] ?? null,
-                    'guardian_email' => $guardianEmail,
-                    'guardian_phone' => $guardianPhone,
-                    'password' => Hash::make('12345678'),
-                    'role' => User::ROLE_STUDENT,
-                    'school_id' => $this->schoolId,
-                    'is_active' => true,
-                    'entry_score' => $entryScore,
-
-                ]);
-
-                $student->studentGrades()->attach($this->academicYearId, [
-                    'grade_id' => $this->gradeLevelId,
-                    'school_id' => Auth::user()->school_id
-                ]);
-
-                $this->importedCount++;
-                $lineNumber++;
-
-            } catch (\Exception $e) {
-                $this->errors[] = "Dòng $lineNumber: " . $e->getMessage();
-                $lineNumber++;
-                continue;
-            }
-        }
-    }
-    protected function validateEntryScore($score, $lineNumber)
-    {
-        if (is_null($score) || $score === '') {
-            $this->errors[] = "Dòng $lineNumber: Điểm đầu vào không được để trống";
-            return false;
-        }
-
-        if (!is_numeric($score)) {
-            $this->errors[] = "Dòng $lineNumber: Điểm đầu vào phải là số";
-            return false;
-        }
-
-        $score = (float)$score;
-
-        if ($score < 0 || $score > 50) {
-            $this->errors[] = "Dòng $lineNumber: Điểm đầu vào phải từ 0 đến 50";
-            return false;
-        }
-
-        return $score;
-    }
-    /**
-     * Normalize row keys to handle different column name formats
-     */
-
-    protected function validatePhone($phone, $lineNumber, $isGuardian = false)
-    {
-        if (empty($phone)) {
-            return null;
-        }
-
-        // Xóa dấu cách, ký tự không phải số
-        $phone = preg_replace('/\D/', '', $phone);
-
-        // Kiểm tra định dạng số điện thoại
-        if (strlen($phone) < 9 || strlen($phone) > 11) {
-            $prefix = $isGuardian ? "Số điện thoại phụ huynh" : "Số điện thoại";
-            $this->errors[] = "Dòng $lineNumber: $prefix không hợp lệ (phải từ 9-11 chữ số)";
-            return false;
-        }
-
-        // Kiểm tra số điện thoại đã tồn tại
-        $column = $isGuardian ? 'guardian_phone' : 'phone';
-        if (User::where($column, $phone)->exists()) {
-            $prefix = $isGuardian ? "Số điện thoại phụ huynh" : "Số điện thoại";
-            $this->errors[] = "Dòng $lineNumber: $prefix đã tồn tại trong hệ thống";
-            return false;
-        }
-
-        return $phone;
-    }
-    protected function normalizeRowKeys($row)
-    {
-        $normalized = [];
-        foreach ($row as $key => $value) {
-            $normalizedKey = mb_strtolower(str_replace([' ', '_', '-'], '', $key));
-            $normalized[$normalizedKey] = $value;
-        }
-
-        // Map normalized keys to expected keys
-        $mapping = [
-            'hoten' => 'ho_ten',
-            'sodienthoai' => 'so_dien_thoai',
-            'dienthoai' => 'so_dien_thoai',
-            'gioitinh' => 'gioi_tinh',
-            'ngaysinh' => 'ngay_sinh',
-            'diachi' => 'dia_chi',
-            'tenphuhuynh' => 'ten_phu_huynh',
-            'emailphuhuynh' => 'email_phu_huynh',
-            'sodienthoaiphuhuynh' => 'so_dien_thoai_phu_huynh',
-            'dienthoaiphuhuynh' => 'so_dien_thoai_phu_huynh',
-        ];
-
-        $result = [];
-        foreach ($normalized as $key => $value) {
-            if (isset($mapping[$key])) {
-                $result[$mapping[$key]] = $value;
-            } else {
-                $result[$key] = $value;
-            }
-        }
-
-        return $result;
-    }
-
-    /**
-     * Generate email from name
-     */
-    protected function generateEmail($fullName, $domain)
-    {
         $nameParts = explode(' ', $fullName);
         $lastName = array_pop($nameParts);
         $lastName = mb_strtolower(Str::ascii($lastName));
-        $firstLetters = '';
 
+        $firstLetters = '';
         foreach ($nameParts as $part) {
             $firstLetters .= mb_substr($part, 0, 1);
         }
-
         $firstLetters = mb_strtolower(Str::ascii($firstLetters));
+
         $username = $lastName . '.' . $firstLetters;
-        $email = $username . '@' . $domain;
+        $email = $username . '@' . $schoolDomain;
+        $originalEmail = $email;
         $counter = 1;
 
         while (User::where('email', $email)->exists()) {
-            $email = $username . $counter . '@' . $domain;
+            $email = $username . $counter . '@' . $schoolDomain;
             $counter++;
         }
 
         return $email;
     }
 
-    /**
-     * Improved gender mapping
-     */
-    protected function mapGender($gender)
+    protected function transformDate($value)
     {
-        if (empty($gender)) {
+        // Nếu giá trị rỗng hoặc null
+        if (empty($value)) {
             return null;
         }
 
-        $gender = mb_strtolower(trim($gender));
-
-        // Remove any special characters
-        $gender = preg_replace('/[^a-z0-9\p{L}]/u', '', $gender);
-
-        if (in_array($gender, ['nam', 'male', 'trai'])) {
-            return 'Nam';
-        } elseif (in_array($gender, ['nữ', 'nu', 'nu', 'female', 'gái'])) {
-            return 'Nữ';
-        } else {
-            return 'Khác';
-        }
-    }
-
-    /**
-     * Improved date parsing
-     */
-    protected function parseDate($date)
-    {
-        if (empty($date)) {
-            return null;
-        }
-
-        // If it's an Excel date (serial number)
-        if (is_numeric($date)) {
+        // Nếu là số (định dạng Excel)
+        if (is_numeric($value)) {
             try {
-                return Date::excelToDateTimeObject($date)->format('Y-m-d');
+                return Date::excelToDateTimeObject($value)->format('Y-m-d');
             } catch (\Exception $e) {
-                $this->errors[] = "Định dạng ngày Excel không hợp lệ: " . $date;
                 return null;
             }
         }
 
-        // Try common date formats
-        $formats = [
-            'd/m/Y', 'd/m/y', // Vietnamese common format
-            'm/d/Y', 'm/d/y', // US format
-            'Y-m-d',           // ISO format
-            'd-m-Y', 'd-m-y',  // European format
-            'd.m.Y', 'd.m.y',  // German format
-        ];
-
-        foreach ($formats as $format) {
-            try {
-                $dateObj = Carbon::createFromFormat($format, $date);
-                if ($dateObj) {
-                    return $dateObj->format('Y-m-d');
-                }
-            } catch (\Exception $e) {
-                continue;
-            }
-        }
-
-        // Try to parse as natural date
         try {
-            return Carbon::parse($date)->format('Y-m-d');
+            // Thử định dạng d/m/Y (ví dụ: 15/01/2005)
+            if (preg_match('/^\d{1,2}\/\d{1,2}\/\d{4}$/', $value)) {
+                return Carbon::createFromFormat('d/m/Y', $value)->format('Y-m-d');
+            }
+
+            // Thử định dạng Y-m-d (ví dụ: 2005-01-15)
+            if (preg_match('/^\d{4}-\d{1,2}-\d{1,2}$/', $value)) {
+                return Carbon::createFromFormat('Y-m-d', $value)->format('Y-m-d');
+            }
+
+            // Thử định dạng m/d/Y (ví dụ: 1/15/2005)
+            if (preg_match('/^\d{1,2}\/\d{1,2}\/\d{4}$/', $value)) {
+                return Carbon::createFromFormat('m/d/Y', $value)->format('Y-m-d');
+            }
         } catch (\Exception $e) {
-            $this->errors[] = "Không thể xác định định dạng ngày: " . $date;
-            return null;
+            Log::error("Lỗi chuyển đổi ngày sinh: " . $value . " - " . $e->getMessage());
         }
-    }
 
-    public function getImportedCount()
-    {
-        return $this->importedCount;
-    }
-
-    public function getErrors()
-    {
-        return $this->errors;
+        return null; // Trả về null nếu không chuyển đổi được
     }
 }

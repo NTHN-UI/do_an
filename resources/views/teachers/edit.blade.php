@@ -33,7 +33,7 @@
                         <label for="full_name" class="form-label">Họ và tên <span class="text-danger">*</span></label>
                         <input type="text" name="full_name" id="full_name"
                                class="form-control @error('full_name') is-invalid @enderror"
-                               value="{{ old('full_name', $teacher->full_name) }}" required>
+                               value="{{ old('full_name', $teacher->full_name) }}" >
                         @error('full_name')
                         <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
@@ -65,7 +65,7 @@
                         <label for="phone" class="form-label">Số điện thoại <span class="text-danger">*</span></label>
                         <input type="tel" name="phone" id="phone"
                                class="form-control @error('phone') is-invalid @enderror"
-                               value="{{ old('phone', $teacher->phone) }}" required>
+                               value="{{ old('phone', $teacher->phone) }}" >
                         @error('phone')
                         <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
@@ -73,7 +73,7 @@
                     <div class="col-md-12">
                         <label for="gender" class="form-label">Giới tính <span class="text-danger">*</span></label>
                         <select name="gender" id="gender"
-                                class="form-select @error('gender') is-invalid @enderror" required>
+                                class="form-select @error('gender') is-invalid @enderror" >
                             <option value="">-- Chọn --</option>
                             <option value="Nam" {{ old('gender', $teacher->gender) == 'Nam' ? 'selected' : '' }}>Nam</option>
                             <option value="Nữ" {{ old('gender', $teacher->gender) == 'Nữ' ? 'selected' : '' }}>Nữ</option>
@@ -87,7 +87,7 @@
                         <label for="date_of_birth" class="form-label">Ngày sinh <span class="text-danger">*</span></label>
                         <input type="date" name="date_of_birth" id="date_of_birth"
                                class="form-control @error('date_of_birth') is-invalid @enderror"
-                               value="{{ old('date_of_birth', $teacher->date_of_birth->format('Y-m-d')) }}" required>
+                               value="{{ old('date_of_birth', $teacher->date_of_birth->format('Y-m-d')) }}" >
                         @error('date_of_birth')
                         <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
@@ -103,7 +103,7 @@
                         <label for="address" class="form-label">Địa chỉ <span class="text-danger">*</span></label>
                         <input type="text" name="address" id="address"
                                class="form-control @error('address') is-invalid @enderror"
-                               value="{{ old('address', $teacher->address) }}" required>
+                               value="{{ old('address', $teacher->address) }}" >
                         @error('address')
                         <div class="invalid-feedback">{{ $message }}</div>
                         @enderror

@@ -47,7 +47,7 @@
                 </div>
 
                 <div class="d-flex justify-content-end align-items-center mt-3">
-                    <a href="{{ route('classes.index', $class->id) }}" class="btn btn-primary-color me-2">
+                    <a href="{{ route('classes.index', $class->id) }}" class="btn btn-outline-primary-color me-2">
                         Đóng
                     </a>
                     <button type="submit" class="btn btn-primary-color">

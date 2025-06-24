@@ -8,7 +8,9 @@ use App\Models\TeacherAssignment;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Password;
 
 
@@ -17,6 +19,75 @@ class TeacherController extends Controller
     /**
      * Display a listing of the resource.
      */
+    private function getValidationRules(bool $isUpdate = false, User $teacher = null): array
+    {
+        $rules = [
+            'full_name' => [
+                'required',
+                'string',
+                'max:50',
+                'regex:/^[\p{L}\s\-]+$/u'
+            ],
+            'phone' => [
+                'required',
+                'string',
+                'regex:/^(0[3|5|7|8|9])[0-9]{8,9}$/',
+                function ($attribute, $value, $fail) {
+                    $cleanNumber = preg_replace('/[^0-9]/', '', $value);
+                    if (!in_array(strlen($cleanNumber), [10, 11])) {
+                        $fail('Số điện thoại phải có 10 hoặc 11 số');
+                    }
+                },
+                Rule::unique('users')->where(function ($query) {
+                    return $query->where('school_id', auth()->user()->school_id);
+                })->ignore($isUpdate ? $teacher->id : null)
+            ],
+            'gender' => [
+                'required',
+                'in:Nam,Nữ,Khác'
+            ],
+            'date_of_birth' => [
+                'required'
+            ],
+            'address' => [
+                'required',
+                'string',
+                'max:100',
+                'regex:/^[\p{L}0-9\s\-\/]+$/u'
+            ],
+            'subject_id' => [
+                'required',
+                Rule::exists('subjects', 'id')->where('school_id', auth()->user()->school_id)
+            ]
+        ];
+
+        return $rules;
+    }
+
+    private function getValidationMessages(): array
+    {
+        return [
+            'full_name.required' => 'Họ và tên không được để trống',
+            'full_name.max' => 'Họ và tên không được vượt quá 50 ký tự',
+            'full_name.regex' => 'Họ và tên chỉ được chứa chữ cái, khoảng trắng và dấu gạch ngang',
+
+            'phone.required' => 'Số điện thoại không được để trống',
+            'phone.regex' => 'Số điện thoại phải bắt đầu bằng 03, 05, 07, 08 hoặc 09',
+            'phone.unique' => 'Số điện thoại này đã được sử dụng',
+
+            'gender.required' => 'Vui lòng chọn giới tính',
+
+
+            'date_of_birth.required' => 'Ngày sinh không được để trống',
+
+            'address.required' => 'Địa chỉ không được để trống',
+            'address.max' => 'Địa chỉ không được vượt quá 100 ký tự',
+            'address.regex' => 'Địa chỉ không được chứa ký tự đặc biệt',
+
+            'subject_id.required' => 'Vui lòng chọn môn học giảng dạy',
+
+        ];
+    }
     public function index(Request $request)
     {
         $search = $request->input('search');
@@ -48,15 +119,17 @@ class TeacherController extends Controller
      */
     public function store(Request $request)
     {
-        $request->validate([
-            'full_name' => 'required|string|max:255',
-            'phone' => 'required|string|max:20|unique:users,phone,NULL,id,school_id,'.auth()->user()->school_id,
-            'gender' => 'required|in:Nam,Nữ,Khác',
-            'date_of_birth' => 'required|date',
-            'address' => 'required|string',
-            'subject_id' => 'required|exists:subjects,id',
-        ]);
+        $validator = Validator::make(
+            $request->all(),
+            $this->getValidationRules(),
+            $this->getValidationMessages()
+        );
 
+        if ($validator->fails()) {
+            return redirect()->back()
+                ->withErrors($validator)
+                ->withInput();
+        }
         // Lấy thông tin trường học
         $school = School::find(auth()->user()->school_id);
 
@@ -150,10 +223,17 @@ class TeacherController extends Controller
             ->where('role', User::ROLE_TEACHER)
             ->findOrFail($id);
 
-//        if (!$teacher->is_active) {
-//            return redirect()->route('teachers.index')
-//                ->with('error', 'Không thể cập nhật giáo viên đã ngừng hoạt động');
-//        }
+        $validator = Validator::make(
+            $request->all(),
+            $this->getValidationRules(true, $teacher),
+            $this->getValidationMessages()
+        );
+
+        if ($validator->fails()) {
+            return redirect()->back()
+                ->withErrors($validator)
+                ->withInput();
+        }
 
         $request->validate([
             'full_name' => 'required|string|max:255',

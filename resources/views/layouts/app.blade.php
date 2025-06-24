@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quản lý trường học</title>
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="icon" type="image/png" href="{{ asset('build/assets/img/education_4207253.png') }}">
@@ -67,8 +69,6 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.21/lodash.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" async></script>
-    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
-    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script>
         $(document).ready(function () {
             window.csrfToken = "{{ csrf_token() }}"
@@ -91,34 +91,7 @@
             }
         });
         @endif
-            MathJax = {
-            tex: {
-                inlineMath: [['$', '$'], ['\\(', '\\)']],
-                displayMath: [['$$', '$$'], ['\\[', '\\]']],
-                processEscapes: true,
-                packages: {'[+]': ['ams', 'color', 'boldsymbol']}
-            },
-            options: {
-                ignoreHtmlClass: 'tex2jax_ignore',
-                processHtmlClass: 'tex2jax_process'
-            },
-            loader: {
-                load: ['[tex]/ams', '[tex]/color', '[tex]/boldsymbol']
-            },
-            startup: {
-                ready: () => {
-                    MathJax.startup.defaultReady();
-                    // Tự động render khi có nội dung mới được thêm vào
-                    MathJax.startup.promise.then(() => {
-                        document.addEventListener('DOMNodeInserted', () => {
-                            if (typeof MathJax !== 'undefined') {
-                                MathJax.typesetPromise();
-                            }
-                        });
-                    });
-                }
-            }
-        };
+
     </script>
 
     @stack('scripts')

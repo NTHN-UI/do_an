@@ -27,7 +27,6 @@
                 </div>
             </div>
             <div class="mt-3 d-flex justify-content-end">
-
                 <a href="{{ route('academic_years.index') }}" class="btn btn-primary-color me-2">
                     Đóng
                 </a>

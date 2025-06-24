@@ -16,14 +16,14 @@
         </div>
 
         <!-- Filter Section -->
-        <div class="card shadow-sm border-0 mb-4">
-            <div class="card-body p-4">
+        <div class="card shadow-sm border-0 mb-3">
+            <div class="card-body p-3">
                 <form method="GET" action="{{ route('grades.admin_grades') }}" id="filter-form">
                     <div class="row g-4">
                         <div class="col-lg-4 col-md-6">
                             <div class="form-group">
                                 <label for="academic_year_id" class="form-label fw-semibold">Năm học</label>
-                                <select class="form-select form-select-lg border-2" id="academic_year_id" name="academic_year_id" required>
+                                <select class="form-select border-2" id="academic_year_id" name="academic_year_id" required>
                                     <option value="">-- Chọn năm học --</option>
                                     @foreach($academicYears as $year)
                                         <option value="{{ $year->id }}" {{ $selectedAcademicYearId == $year->id ? 'selected' : '' }}>
@@ -37,7 +37,7 @@
                         <div class="col-lg-4 col-md-6">
                             <div class="form-group">
                                 <label for="class_id" class="form-label fw-semibold">Lớp học</label>
-                                <select class="form-select form-select-lg border-2" id="class_id" name="class_id" required>
+                                <select class="form-select border-2" id="class_id" name="class_id" required>
                                     <option value="">-- Chọn lớp --</option>
                                     @if($selectedAcademicYearId)
                                         @foreach($classes as $class)
@@ -52,7 +52,7 @@
                         <div class="col-lg-4 col-md-12">
                             <div class="form-group">
                                 <label for="semester_id" class="form-label fw-semibold">Học kỳ</label>
-                                <select class="form-select form-select-lg border-2" id="semester_id" name="semester_id" required>
+                                <select class="form-select border-2" id="semester_id" name="semester_id" required>
                                     <option value="">-- Chọn học kỳ --</option>
                                     @if($selectedAcademicYearId)
                                         @foreach($semesters as $semester)
@@ -70,9 +70,8 @@
                     </div>
 
 
-                    <div class="d-flex justify-content-end mt-4">
-                        <button type="submit" class="btn btn-primary-color btn-lg px-4">
-                            <i class="fas fa-search me-2"></i>Xem kết quả
+                    <div class="d-flex justify-content-end mt-3">
+                        <button type="submit" class="btn btn-primary-color px-3">Xem kết quả
                         </button>
                     </div>
                 </form>

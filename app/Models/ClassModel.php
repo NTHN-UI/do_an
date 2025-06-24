@@ -42,10 +42,10 @@ class ClassModel extends Model
 
     public function teachers()
     {
-        return $this->belongsToMany(User::class, 'teacher_classes')
-            ->withPivot('subject_id', 'academic_year_id');
+        return $this->belongsToMany(User::class, 'teacher_assignments', 'class_id', 'teacher_id')
+            ->withPivot(['subject_id', 'academic_year_id', 'is_homeroom'])
+            ->withTimestamps();
     }
-
     public function homeroomTeacher()
     {
         return $this->hasOne(TeacherAssignment::class, 'class_id')

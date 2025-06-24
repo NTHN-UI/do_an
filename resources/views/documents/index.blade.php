@@ -15,7 +15,7 @@
             <div class="d-flex align-items-center gap-3">
                 @if(Auth::user()->isTeacher())
                     <a href="{{ route('documents.create') }}" class="btn btn-primary-color text-white px-3 py-2 rounded-pill shadow-sm hover-lift">
-                        <i class="fas fa-cloud-upload-alt me-2"></i>Tải lên tài liệu
+                       Tải lên tài liệu
                     </a>
                 @endif
             </div>
@@ -26,7 +26,7 @@
                 <form method="GET" action="{{ route('documents.index') }}" id="searchForm">
                     <div class="row g-4 align-items-end">
                         <div class="col-md-3">
-                            <div class="input-group input-group-lg">
+                            <div class="input-group">
                             <span class="input-group-text bg-white border-primary-subtle rounded-start-3">
                                 <i class="fas fa-search text-primary-color opacity-75"></i>
                             </span>
@@ -37,7 +37,7 @@
                         </div>
 
                         <div class="col-md-3">
-                            <select name="subject_id" id="subject_id" class="form-select form-select-lg border-primary-subtle shadow-sm rounded-3">
+                            <select name="subject_id" id="subject_id" class="form-select border-primary-subtle shadow-sm rounded-3">
                                 <option value="">--Tất cả môn học--</option>
                                 @foreach($subjects as $subject)
                                     <option value="{{ $subject->id }}" {{ request('subject_id') == $subject->id ? 'selected' : '' }}>
@@ -50,7 +50,7 @@
                         @if(Auth::user()->isStudent())
                             <div class="col-md-3">
                                 <label for="teacher_id" class="form-label fw-semibold text-secondary">Giáo viên</label>
-                                <select name="teacher_id" id="teacher_id" class="form-select form-select-lg border-primary-subtle shadow-sm rounded-3">
+                                <select name="teacher_id" id="teacher_id" class="form-select border-primary-subtle shadow-sm rounded-3">
                                     <option value="">--Tất cả giáo viên--</option>
                                     @foreach($teachers as $teacher)
                                         <option value="{{ $teacher->id }}" {{ request('teacher_id') == $teacher->id ? 'selected' : '' }}>
@@ -62,7 +62,7 @@
                         @endif
                     </div>
 
-                    <div class="row mt-4">
+                    <div class="row mt-3">
                         <div class="col-12">
                             <div class="d-flex flex-wrap gap-2 align-items-center">
                                 <span class="text-muted fw-semibold me-2">Lọc nhanh:</span>
