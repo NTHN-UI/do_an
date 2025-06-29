@@ -21,7 +21,7 @@
             <form action="{{ route('schools.store') }}" method="POST">
                 @csrf
 
-                <div class="form-group">
+                <div class="form-group mt-2">
                     <label for="name">Tên trường <span class="text-danger">*</span></label>
                     <input type="text" class="form-control @error('name') is-invalid @enderror"
                            id="name" name="name" value="{{ old('name') }}" >
@@ -30,7 +30,7 @@
                     @enderror
                 </div>
 
-                <div class="form-group">
+                <div class="form-group mt-2">
                     <label for="address">Địa chỉ <span class="text-danger">*</span></label>
                     <input type="text" class="form-control @error('address') is-invalid @enderror"
                            id="address" name="address" value="{{ old('address') }}" >
@@ -39,7 +39,7 @@
                     @enderror
                 </div>
 
-                <div class="form-group">
+                <div class="form-group mt-2">
                     <label for="province">Tỉnh/Thành <span class="text-danger">*</span></label>
                     <select class="form-select @error('province') is-invalid @enderror"
                             id="province" name="province">
@@ -55,7 +55,7 @@
                     @enderror
                 </div>
 
-                <div class="form-group">
+                <div class="form-group mt-2">
                     <label for="district">Quận/Huyện <span class="text-danger">*</span></label>
                     <select class="form-select @error('district') is-invalid @enderror"
                             id="district" name="district" disabled>
@@ -67,7 +67,7 @@
                 </div>
 
                 <div class="d-flex justify-content-end mt-3">
-                    <a href="{{ route('schools.index') }}" class="btn btn-secondary me-2">Đóng</a>
+                    <a href="{{ route('schools.index') }}" class="btn btn-outline-primary-color me-2">Đóng</a>
                     <button type="submit" class="btn btn-primary-color">Lưu
                     </button>
                 </div>

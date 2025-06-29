@@ -66,7 +66,7 @@
                         </div>
 
                         <div class="d-flex justify-content-end">
-                            <a href="{{ route('home.index') }}" class="btn btn-primary">
+                            <a href="{{ route('home.index') }}" class="btn btn-primary-color">
                                 Đóng
                             </a>
                         </div>

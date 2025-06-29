@@ -19,8 +19,10 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header bg-primary-color">
-                <h5 class="modal-title" id="logoutModalLabel"><i class="fas fa-sign-out-alt me-2"></i> Xác nhận đăng xuất</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                <h5 class="modal-title" id="logoutModalLabel"><i class="fas fa-sign-out-alt me-2"></i> Xác nhận đăng
+                    xuất</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                        aria-label="Close"></button>
             </div>
             <div class="modal-body text-center py-4">
                 <i class="fas fa-question-circle fa-4x mb-3 text-primary-color"></i>
@@ -42,28 +44,37 @@
     </div>
 </div>
 <body>
-@include('partials.navbar')
+@include('partials.sidebar')
 
-<div class="content">
-    <main>
+<!-- Main Content Area -->
+<div class="main-content">
+    <main class="container-fluid px-4 py-3">
+        <!-- Alert Container (fixed position) -->
         <div id="app-alert-container" class="position-fixed top-0 start-50 translate-middle-x p-3" style="z-index: 1060;"></div>
 
-    </main>@yield('content')
+        <!-- Dynamic Content Section -->
+        <div class="content-wrapper mt-4">
+            @yield('content')
+        </div>
 
-    @if(session('success') || session('error') || session('info'))
-        <div class="toast text-white border-0 position-fixed"
-             style="background-color: {{ session('success') ? '#013066' : (session('error') ? '#dc3545' : '#0d6efd') }}; top: 5rem; right: 1rem; max-width: 235px; z-index: 9999;"
-             role="alert" aria-live="assertive" aria-atomic="true" data-bs-delay="5000" data-bs-autohide="true">
-            <div class="d-flex">
-                <div class="toast-body small">
-                    {{ session('success') ?? session('error') ?? session('info') }} {{-- Hiển thị thông báo đầu tiên tìm thấy --}}
-                </div>
-                <div class="toast-header bg-transparent border-0"> {{-- Thêm toast-header --}}
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
+        <!-- Toast Notification -->
+        @if(session('success') || session('error') || session('info'))
+            <div class="toast-container position-fixed end-0 p-3" style="top: 8px;">
+                <div class="toast text-white border-0 show"
+                     style="background-color: {{ session('success') ? '#013066' : (session('error') ? '#dc3545' : '#0d6efd') }};"
+                     role="alert" aria-live="assertive" aria-atomic="true">
+                    <div class="d-flex">
+                        <div class="toast-body small">
+                            <i class="fas {{ session('success') ? 'fa-check-circle' : (session('error') ? 'fa-exclamation-circle' : 'fa-info-circle') }} me-2"></i>
+                            {{ session('success') ?? session('error') ?? session('info') }}
+                        </div>
+                        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                    </div>
                 </div>
             </div>
-        </div>
-    @endif
+        @endif
+    </main>
+</div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -95,6 +106,5 @@
     </script>
 
     @stack('scripts')
-</div>
 </body>
 </html>

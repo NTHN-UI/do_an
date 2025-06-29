@@ -21,7 +21,7 @@
                 <form method="GET" action="{{ route('grades.admin_grades') }}" id="filter-form">
                     <div class="row g-4">
                         <div class="col-lg-4 col-md-6">
-                            <div class="form-group">
+                            <div class="form-group mt-2">
                                 <label for="academic_year_id" class="form-label fw-semibold">Năm học</label>
                                 <select class="form-select border-2" id="academic_year_id" name="academic_year_id" required>
                                     <option value="">-- Chọn năm học --</option>
@@ -35,7 +35,7 @@
                         </div>
 
                         <div class="col-lg-4 col-md-6">
-                            <div class="form-group">
+                            <div class="form-group mt-2">
                                 <label for="class_id" class="form-label fw-semibold">Lớp học</label>
                                 <select class="form-select border-2" id="class_id" name="class_id" required>
                                     <option value="">-- Chọn lớp --</option>
@@ -50,7 +50,7 @@
                         </div>
 
                         <div class="col-lg-4 col-md-12">
-                            <div class="form-group">
+                            <div class="form-group mt-2">
                                 <label for="semester_id" class="form-label fw-semibold">Học kỳ</label>
                                 <select class="form-select border-2" id="semester_id" name="semester_id" required>
                                     <option value="">-- Chọn học kỳ --</option>

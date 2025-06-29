@@ -19,7 +19,7 @@
                 <form method="GET" action="{{ route('grades.index') }}" id="filter-form">
                     <div class="row g-4">
                         <div class="col-lg-4 col-md-6">
-                            <div class="form-group">
+                            <div class="form-group mt-2">
                                 <label for="academic_year_id" class="form-label fw-semibold">
                                    Năm học
                                 </label>
@@ -35,7 +35,7 @@
                         </div>
 
                         <div class="col-lg-4 col-md-6">
-                            <div class="form-group">
+                            <div class="form-group mt-2">
                                 <label for="class_id" class="form-label fw-semibold">Lớp học
                                 </label>
                                 <select class="form-select border-2" id="class_id" name="class_id" required>
@@ -51,7 +51,7 @@
                         </div>
 
                         <div class="col-lg-4 col-md-12">
-                            <div class="form-group">
+                            <div class="form-group mt-2">
                                 <label for="semester_id" class="form-label fw-semibold">Học kỳ
                                 </label>
                                 <select class="form-select border-2" id="semester_id" name="semester_id" required>
@@ -86,7 +86,7 @@
                             </h5>
                             <small class="text-muted">Dữ liệu được cập nhật theo thời gian thực</small>
                         </div>
-                        <button type="button" class="btn btn-primary-color btn-lg px-4" data-bs-toggle="modal" data-bs-target="#importModal">
+                        <button type="button" class="btn btn-primary-color px-2" data-bs-toggle="modal" data-bs-target="#importModal">
                             <i class="fas fa-upload me-2"></i>Import điểm
                         </button>
                     </div>
@@ -305,7 +305,7 @@
                         </div>
                     </div>
 
-                    <div class="form-group">
+                    <div class="form-group mt-2">
                         <label for="fileInput" class="form-label fw-semibold text-primary-color">
                             <i class="fas fa-file-excel me-1"></i>Chọn file Excel
                         </label>
@@ -363,7 +363,7 @@
                     // Thay thế button bằng link download nếu chưa có
                     if ($btnDownload.is('button')) {
                         $btnDownload.replaceWith(`
-                    <a href="${downloadUrl}" class="btn btn-primary-color btn-lg px-4" id="btn-download">
+                    <a href="${downloadUrl}" class="btn btn-primary-color px-2" id="btn-download">
                         <i class="fas fa-download me-2"></i>Tải file mẫu
                     </a>
                     `);

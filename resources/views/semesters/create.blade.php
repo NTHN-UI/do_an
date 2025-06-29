@@ -3,9 +3,7 @@
 @section('content')
     <div class="container rounded-3 shadow p-4">
         <div class="d-flex align-items-center mb-4">
-            <a href="{{ url()->previous() }}" class="btn text-primary-color btn-sm me-3" title="Quay lại">
-                <i class="fas fa-arrow-left"></i>
-            </a>
+
             <h3 class="mb-0 text-primary-color">Thêm mới học kỳ</h3>
         </div>
         <div class="card-body">
@@ -13,8 +11,8 @@
                 @csrf
                 <input type="hidden" name="academic_year_id" value="{{ $selectedYearId }}">
 
-                <div class="form-group">
-                    <label for="name">Tên học kỳ <span class="text-danger">*</span></label>
+                <div class="form-group mt-2">
+                    <label for="name" class="mb-2">Tên học kỳ <span class="text-danger">*</span></label>
                     <input type="text" name="name" class="form-control @error('name') is-invalid @enderror"
                            value="{{ old('name') }}">
                     @error('name')
@@ -22,8 +20,8 @@
                     @enderror
                 </div>
 
-                        <div class="form-group">
-                            <label for="start_date">Ngày bắt đầu <span class="text-danger">*</span></label>
+                        <div class="form-group mt-2">
+                            <label for="start_date"  class="mb-2">Ngày bắt đầu <span class="text-danger">*</span></label>
                             <input type="date" name="start_date"
                                    class="form-control @error('start_date') is-invalid @enderror"
                                    value="{{ old('start_date') }}" >
@@ -32,8 +30,8 @@
                             @enderror
                         </div>
 
-                        <div class="form-group">
-                            <label for="end_date">Ngày kết thúc <span class="text-danger">*</span></label>
+                        <div class="form-group mt-2">
+                            <label for="end_date"  class="mb-2">Ngày kết thúc <span class="text-danger">*</span></label>
                             <input type="date" name="end_date"
                                    class="form-control @error('end_date') is-invalid @enderror"
                                    value="{{ old('end_date') }}" >
@@ -56,7 +54,7 @@
                 </div>
 
                 <div class="d-flex justify-content-end mt-3">
-                    <a href="{{ route('semesters.index') }}" class="btn btn-secondary me-2">Đóng</a>
+                    <a href="{{ route('semesters.index') }}" class="btn btn-outline-primary-color me-2">Đóng</a>
                     <button type="submit" class="btn btn-primary-color">
                         Lưu
                     </button>

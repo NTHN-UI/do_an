@@ -6,11 +6,11 @@
             <i class="fas fa-trash"></i>
         </button>
     </div>
-    <div class="form-group">
+    <div class="form-group mt-2">
         <label>Nội dung câu hỏi *</label>
         <textarea class="form-control question-content" name="questions[{{ $index }}][content]" required>{{ old("questions.$index.content", $question->content ?? '') }}</textarea>
     </div>
-    <div class="form-group">
+    <div class="form-group mt-2">
         <label>Điểm *</label>
         <input type="number" step="0.1" min="0.1" class="form-control"
                name="questions[{{ $index }}][marks]"
@@ -27,7 +27,7 @@
         @endphp
 
         @foreach($options as $optIdx => $option)
-            <div class="form-group">
+            <div class="form-group mt-2">
                 <input type="hidden" name="questions[{{ $index }}][options][{{ $optIdx }}][id]" value="{{ $option->id ?? '' }}">
                 <label>Đáp án {{ chr(65 + $optIdx) }} *</label>
                 <div class="input-group">

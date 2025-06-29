@@ -12,7 +12,7 @@
                 <form method="POST" action="{{ route('class_assignments.auto_assign') }}">
                     @csrf
 
-                    <div class="form-group">
+                    <div class="form-group mt-2">
                         <label for="grade_level_id" class="col-md-3 col-form-label">Khối lớp</label>
                             <select name="grade_level_id" id="grade_level_id" class="form-select @error('grade_level_id') is-invalid @enderror" >
                                 <option value="">-- Chọn khối --</option>
@@ -28,7 +28,7 @@
                         </div>
 
 
-                    <div class="form-group">
+                    <div class="form-group mt-2">
                         <label for="academic_year_id" class="col-md-3 col-form-label">Năm học</label>
                             <select name="academic_year_id" id="academic_year_id" class="form-select  @error('academic_year_id') is-invalid @enderror" >
                                 @foreach($academicYears as $year)

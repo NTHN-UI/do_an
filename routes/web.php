@@ -1,38 +1,41 @@
 <?php
 
+use App\Http\Controllers\AcademicYearController;
 use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\ClassAssignmentController;
+use App\Http\Controllers\ClassController;
+use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\ExamAssignmentController;
 use App\Http\Controllers\ExamController;
+use App\Http\Controllers\GradeController;
+use App\Http\Controllers\GradeLevelController;
+use App\Http\Controllers\HomeController;
+use App\Http\Controllers\HomeroomTeacherController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\QuestionBankController;
 use App\Http\Controllers\QuestionBankImportController;
-use App\Http\Controllers\StudentExamController;
-use App\Http\Controllers\StudentGradeController;
-use App\Http\Middleware\AdminMiddleware;
-use App\Http\Controllers\AcademicYearController;
-use App\Http\Controllers\ClassAssignmentController;
-use App\Http\Controllers\ClassController;
-use App\Http\Controllers\GradeController;
-use App\Http\Controllers\GradeLevelController;
-use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\SchoolAdminController;
 use App\Http\Controllers\SchoolController;
 use App\Http\Controllers\SemesterController;
 use App\Http\Controllers\StudentController;
+use App\Http\Controllers\StudentExamController;
+use App\Http\Controllers\StudentGradeController;
 use App\Http\Controllers\TeacherAssignmentController;
 use App\Http\Controllers\TeacherController;
+
+use App\Http\Middleware\AdminMiddleware;
 use App\Http\Middleware\SuperAdminMiddleware;
 use App\Http\Middleware\TeacherMiddleware;
+use App\Http\Middleware\HomeroomMiddleware;
+
 use Illuminate\Support\Facades\Route;
 
 // routes/web.php
 
 // Profile routes
 
-Route::get('/', function () {
-    return view('home.index');
-})->name('home.index');
+Route::get('/', [HomeController::class, 'index'])->name('home.index');
 
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 Route::get("/login", [LoginController::class, 'showLoginForm']);
@@ -59,14 +62,12 @@ Route::middleware(['auth'])->group(function () {
         Route::resource('classes', ClassController::class);
         Route::resource('grade_levels', GradeLevelController::class);
         Route::resource('semesters', SemesterController::class);
+        Route::resource('students', StudentController::class);
         Route::resource('teachers', TeacherController::class);
         Route::resource('teacher_assignments', TeacherAssignmentController::class);
-        Route::resource('students', StudentController::class);
         Route::post('students/import', [StudentController::class, 'importDirect'])->name('students.import');
         Route::get('students/export/template', [StudentController::class, 'exportTemplate'])->name('students.export.template');
         Route::get('students/export', [StudentController::class, 'export'])->name('students.export');
-
-
 
 
         Route::get('/teachers/{teacher}/assignments/create', [TeacherAssignmentController::class, 'create'])
@@ -93,8 +94,13 @@ Route::middleware(['auth'])->group(function () {
         });
 
     });
+
+    Route::middleware(HomeroomMiddleware::class)->group(function () {
+        Route::resource('students', StudentController::class)->only([
+            'show', 'edit', 'update'
+        ]);    });
+
     Route::middleware(['auth'])->group(function () {
-        // Nhóm route cho tài liệu (documents)
         Route::middleware([TeacherMiddleware::class])->group(function () {
             Route::resource('documents', DocumentController::class)->except('index', 'show');
         });
@@ -119,6 +125,10 @@ Route::middleware(['auth'])->group(function () {
                 Route::get('/get-classes-by-year', 'getClassesByYear')->name('get_classes_by_year');
 
             });
+
+        Route::prefix('homeroom_teacher')->name('homeroom_teacher.')->group(function () {
+            Route::get('/', [HomeroomTeacherController::class, 'index'])->name('index');
+        });
     });
     Route::middleware('auth')->middleware([TeacherMiddleware::class])->group(function () {
         // Thông báo giáo viên chủ nhiệm
@@ -181,7 +191,7 @@ Route::middleware(['auth'])->group(function () {
 
         });
     });
-    Route::middleware(['auth'])->prefix('student_exams')->name('student_exams.')->group(function() {
+    Route::middleware(['auth'])->prefix('student_exams')->name('student_exams.')->group(function () {
         Route::get('/assigned-exams', [StudentExamController::class, 'assignedExams'])->name('assigned_exams');
         Route::get('/', [StudentExamController::class, 'index'])->name('index');
         Route::get('/{assignment}', [StudentExamController::class, 'show'])->name('show');
@@ -191,8 +201,7 @@ Route::middleware(['auth'])->group(function () {
     // routes/web.php
     Route::middleware(['auth'])->group(function () {
         Route::get('/student_grades', [StudentGradeController::class, 'index'])->name('student_grades');
-        Route::get('/student_grades/detail/{academic_year_id}/{semester_id}', [StudentGradeController::class, 'detail'])->name('student_grades.detail');
-   ;
+        Route::get('/student_grades/detail/{academic_year_id}/{semester_id}', [StudentGradeController::class, 'detail'])->name('student_grades.detail');;
     });
     Route::get('/grades/get-semesters', [GradeController::class, 'getSemesters'])
         ->name('grades.get-semesters');
@@ -200,6 +209,8 @@ Route::middleware(['auth'])->group(function () {
     // Route lấy lớp được phân công (nếu chưa có)
     Route::get('/grades/get-assigned-classes', [GradeController::class, 'getAssignedClasses'])
         ->name('grades.get-assigned-classes');
+
+
 
 });
 

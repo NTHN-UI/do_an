@@ -22,7 +22,7 @@
                 @csrf
                 @method('PUT')
 
-                <div class="form-group">
+                <div class="form-group mt-2">
                     <label for="full_name">Tên đầy đủ *</label>
                     <input id="full_name" type="text" class="form-control @error('full_name') is-invalid @enderror"
                            name="full_name" value="{{ old('full_name', $admin->full_name) }}" >
@@ -31,7 +31,7 @@
                     @enderror
                 </div>
 
-                <div class="form-group">
+                <div class="form-group mt-2">
                     <label for="email">Email *</label>
                     <input id="email" type="email" class="form-control @error('email') is-invalid @enderror"
                            name="email" value="{{ old('email', $admin->email) }}" >
@@ -40,7 +40,7 @@
                     @enderror
                 </div>
 
-                <div class="form-group">
+                <div class="form-group mt-2">
                     <label for="school_id">Trường *</label>
                     <select id="school_id" class="form-control @error('school_id') is-invalid @enderror"
                             name="school_id" >
@@ -57,7 +57,7 @@
                     @enderror
                 </div>
 
-                <div class="form-group">
+                <div class="form-group mt-2">
                     <label for="password">Mật khẩu mới</label>
                     <input id="password" type="password" class="form-control @error('password') is-invalid @enderror"
                            name="password" autocomplete="new-password">
@@ -67,7 +67,7 @@
                     @enderror
                 </div>
 
-                <div class="form-group">
+                <div class="form-group mt-2">
                     <label for="password-confirm">Xác nhận mật khẩu</label>
                     <input id="password-confirm" type="password" class="form-control"
                            name="password_confirmation" autocomplete="new-password">

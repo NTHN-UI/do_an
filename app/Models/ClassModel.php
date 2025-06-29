@@ -25,7 +25,12 @@ class ClassModel extends Model
 
     public function gradeLevel()
     {
-        return $this->belongsTo(GradeLevel::class);
+        return $this->belongsTo(GradeLevel::class, 'grade_level_id');
+    }
+
+    public function studentClasses()
+    {
+        return $this->hasMany(StudentClass::class, 'class_id');
     }
 
     public function academicYear()
@@ -33,13 +38,12 @@ class ClassModel extends Model
         return $this->belongsTo(AcademicYear::class);
     }
 
+
     public function students()
     {
         return $this->belongsToMany(User::class, 'student_classes', 'class_id', 'user_id')
-            ->withPivot('academic_year_id')
-            ->withTimestamps();
+            ->withPivot('academic_year_id');
     }
-
     public function teachers()
     {
         return $this->belongsToMany(User::class, 'teacher_assignments', 'class_id', 'teacher_id')
@@ -51,7 +55,6 @@ class ClassModel extends Model
         return $this->hasOne(TeacherAssignment::class, 'class_id')
             ->where('is_homeroom', true);
     }
-    // File: app/Models/ClassModel.php
 
     public function teacherAssignments()
     {
@@ -61,5 +64,8 @@ class ClassModel extends Model
     {
         return $this->morphMany(ExamAssignment::class, 'assignable');
     }
-
+    public function class()
+    {
+        return $this->belongsTo(ClassModel::class, 'class_id');
+    }
 }

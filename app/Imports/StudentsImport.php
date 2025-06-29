@@ -8,6 +8,7 @@ use App\Models\School;
 use App\Models\GradeLevel;
 use App\Models\AcademicYear;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Hash;
 use Maatwebsite\Excel\Concerns\ToModel;
@@ -85,12 +86,17 @@ class StudentsImport implements ToModel, WithHeadingRow, WithValidation, SkipsOn
         }
 
         $student = new User($studentData);
-        $student->studentGrades()->attach($this->gradeLevelId, [
-            'academic_year_id' => $this->academicYearId,
-            'school_id' => $this->school->id,
-            'grade_id' => $this->gradeLevelId
-
+        $student->save();
+        DB::transaction(function () use ($student) {
+            // Cách 1: Sử dụng query builder
+            DB::table('grade_users')->insert([
+                'user_id' => $student->id, // ĐẢM BẢO CÓ ID
+                'grade_id' => $this->gradeLevelId,
+                'academic_year_id' => $this->academicYearId,
+                'school_id' => $this->school->id
         ]);
+        });
+
         return $student;
     }
 

@@ -10,7 +10,7 @@
                 <form method="GET" action="{{ route('grades.homeroom') }}" id="filter-form">
                     <div class="row g-4">
                         <div class="col-lg-4 col-md-6">
-                            <div class="form-group">
+                            <div class="form-group mt-2">
                                 <label for="academic_year_id" class="form-label fw-semibold">Năm học</label>
                                 <select class="form-select border-2 rounded-3" id="academic_year_id" name="academic_year_id" onchange="this.form.submit()">
                                     @foreach($homeroomClasses->unique('academic_year_id') as $assignment)
@@ -24,7 +24,7 @@
                         </div>
 
                         <div class="col-lg-4 col-md-6">
-                            <div class="form-group">
+                            <div class="form-group mt-2">
                                 <label for="class_id" class="form-label fw-semibold">Lớp chủ nhiệm</label>
                                 <select class="form-select border-2 rounded-3" id="class_id" name="class_id" onchange="this.form.submit()">
                                     @foreach($homeroomClasses->where('academic_year_id', $selectedAcademicYearId) as $assignment)

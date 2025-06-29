@@ -3,9 +3,7 @@
 @section('content')
     <div class="container rounded-3 shadow p-4">
         <div class="d-flex align-items-center mb-4">
-            <a href="{{ url()->previous() }}" class="btn text-primary-color btn-sm me-3" title="Quay lại">
-                <i class="fas fa-arrow-left"></i>
-            </a>
+
             <h3 class="mb-0">Sửa thông tin lớp học</h3>
         </div>
         <div class="card-body">
@@ -14,7 +12,7 @@
                 @method('PUT')
                 <input type="hidden" name="academic_year_id" value="{{ $selectedYearId }}">
 
-                <div class="form-group">
+                <div class="form-group mt-2">
                     <label for="name">Tên Lớp *</label>
                     <input id="name" type="text" class="form-control @error('name') is-invalid @enderror"
                            name="name" value="{{ old('name', $class->name) }}" autofocus>
@@ -23,7 +21,7 @@
                     @enderror
                 </div>
 
-                <div class="form-group">
+                <div class="form-group mt-2">
                     <label>Trường</label>
                     <input type="hidden" name="school_id" value="{{ Auth::user()->school->id }}">
                     <div class="form-control bg-light">
@@ -31,7 +29,7 @@
                     </div>
                 </div>
 
-                <div class="form-group">
+                <div class="form-group mt-2">
                     <label for="grade_level_id">Khối *</label>
                     <select id="grade_level_id" name="grade_level_id" class="form-control @error('grade_level_id') is-invalid @enderror" >
                         <option value="">-- Chọn khối --</option>

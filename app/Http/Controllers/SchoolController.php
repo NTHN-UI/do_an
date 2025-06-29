@@ -7,6 +7,7 @@ use App\Models\School;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
+use MongoDB\Driver\Session;
 
 class SchoolController extends Controller
 {
@@ -63,9 +64,8 @@ class SchoolController extends Controller
             'address.max' => 'Tối đa 50 ký tự',
             'district.required' => 'Quận/Huyện không được để trống',
             'province.required' => 'Tỉnh/Thành không được để trống',
-
-
         ];
+
         $validator = Validator::make($request->all(), [
             'name' => 'required|max:50',
             'address' => 'required|string|max:50',
@@ -130,9 +130,8 @@ class SchoolController extends Controller
             'district.max' => 'Tối đa 50 ký tự',
             'province.required' => 'Tỉnh/Thành không được để trống',
             'province.max' => 'Tối đa 50 ký tự',
-
-
         ];
+
         $validator = Validator::make($request->all(), [
             'name' => 'required|max:50',
             'address' => 'required|string|max:50',

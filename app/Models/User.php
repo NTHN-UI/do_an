@@ -3,6 +3,7 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Helpers\DateHelper;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -109,19 +110,22 @@ class User extends Authenticatable
     {
         return $this->hasMany(ExamResult::class, 'student_id');
     }
+    public function studentClasses()
+    {
+        return $this->hasMany(StudentClass::class);
+    }
+    public function getCurrentClass($year){
+        return $this->studentClasses()
+            ->whereHas('academicYear', function ($query) use ($year) {
+                $query->where('year', $year);
+            })
+            ->first();
+    }
     public function classes()
     {
         return $this->belongsToMany(ClassModel::class, 'student_classes', 'user_id', 'class_id')
             ->withPivot('academic_year_id');
     }
-
-    public function studentClasses()
-    {
-        return $this->belongsToMany(ClassModel::class, 'student_classes', 'user_id', 'class_id')
-            ->withPivot('academic_year_id')
-            ->withTimestamps();
-    }
-
     public function assignments()
     {
         return $this->hasMany(TeacherAssignment::class, 'teacher_id');
@@ -162,14 +166,15 @@ class User extends Authenticatable
 
     public function studentGrades()
     {
-        return $this->belongsToMany(AcademicYear::class, 'grade_users', 'academic_year_id','grade_id');
+        return $this->belongsToMany(GradeLevel::class, 'grade_users', 'user_id', 'grade_id')
+            ->withPivot(['academic_year_id', 'school_id']);
     }
+
 
     public function subject()
     {
         return $this->belongsTo(Subject::class);
     }
-
     public function isHomeroomTeacherOfClass($classId)
     {
         return $this->teacherAssignments()
@@ -177,7 +182,16 @@ class User extends Authenticatable
             ->where('is_homeroom', true)
             ->exists();
     }
+    public function isHomeroomTeacherOf(string $id)
+    {
+        $student = $this->with('studentClasses')->findOrFail($id);
+        if ($student->role !== 'student') return false;
 
+        return TeacherAssignment::where('teacher_id', $this->id)
+            ->where('class_id', $student->getCurrentClass(DateHelper::getCurrentAcademicYear())->class_id)
+            ->where('is_homeroom', 1)
+            ->exists();
+    }
     public function isHomeroomTeacher($academicYearId = null)
     {
         $query = $this->teacherAssignments()
@@ -185,8 +199,17 @@ class User extends Authenticatable
 
         if ($academicYearId) {
             $query->where('academic_year_id', $academicYearId);
+        } elseif (session()->has('academic_year_id')) {
+            $query->where('academic_year_id', session('academic_year_id'));
         }
+
         return $query->exists();
+    }
+    public function homeroomTeacher()
+    {
+        return $this->hasOne(TeacherAssignment::class)
+            ->where('is_homeroom', true)
+            ->with('teacher');
     }
 
     public function taughtClasses()
@@ -214,7 +237,10 @@ class User extends Authenticatable
     {
         return $this->teacherAssignments()->exists();
     }
-
+    public function grades()
+    {
+        return $this->hasMany(Grade::class, 'student_id');
+    }
     protected function casts(): array
     {
         return [

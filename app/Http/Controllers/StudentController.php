@@ -168,7 +168,7 @@ class StudentController extends Controller
                 ->with(['school:id,name'])
                 ->latest('created_at')
                 ->paginate(10)
-                ->appends($request->except('page')); // Thêm dòng này để giữ bộ lọc
+                ->appends($request->except('page'));
 
             return response()->json([
                 'success' => true,
@@ -282,6 +282,7 @@ class StudentController extends Controller
      */
     public function store(Request $request)
     {
+        DB::beginTransaction();
         try {
             $validator = Validator::make(
                 $request->all(),
@@ -328,8 +329,7 @@ class StudentController extends Controller
 
             $username = $lastName . '.' . $firstLetters;
             $email = $username . '@' . $schoolDomain;
-            $originalEmail = $email;
-            $counter = 1;
+                $counter = 1;
             while (User::where('email', $email)->exists()) {
                 $email = $username . $counter . '@' . $schoolDomain;
                 $counter++;
@@ -340,22 +340,23 @@ class StudentController extends Controller
 
             // Tạo học sinh và gắn vào lớp học
             $student = User::create($validated);
-            $student->studentGrades()->attach($request->academic_year_id, [
-                'grade_id' => $request->grade_level_id,
+
+            // Thêm academic_year_id khi thêm vào grade_users
+            $student->studentGrades()->attach($request->grade_level_id, [
+                'academic_year_id' => $request->academic_year_id,
                 'school_id' => $school->id,
             ]);
 
+            DB::commit();
             return redirect()->route('students.index')->with('success', 'Học sinh đã được thêm thành công.');
-
         } catch (\Exception $e) {
-            Log::error('Error creating student: ' . $e->getMessage());
+            DB::rollBack();
+            Log::error('Error in StudentController@store:' . $e->getMessage());
             return back()
                 ->with('error', 'Đã xảy ra lỗi khi thêm học sinh: ' . $e->getMessage())
-                ->withInput(); // Giữ lại dữ liệu đã nhập khi có lỗi
+                ->withInput();
         }
     }
-
-
     /**
      * Display the specified resource.
      */
@@ -473,45 +474,52 @@ class StudentController extends Controller
         return Excel::download(new StudentsTemplateExport($gradeLevelId), $fileName);
     }
 
-        public function importDirect(Request $request)
-        {
-            $request->validate([
-                'file' => 'required|mimes:xlsx,xls|max:5120',
-                'academic_year_id' => 'required|exists:academic_years,id',
-                'grade_level_id' => 'required|exists:grade_levels,id'
+    public function importDirect(Request $request)
+    {
+        $request->validate([
+            'file' => 'required|mimes:xlsx,xls|max:5120',
+            'academic_year_id' => 'required|exists:academic_years,id',
+            'grade_level_id' => 'required|exists:grade_levels,id'
+        ]);
+
+        DB::beginTransaction();
+        try {
+            $import = new StudentsImport(
+                $request->academic_year_id,
+                $request->grade_level_id
+            );
+
+            Excel::import($import, $request->file('file'));
+
+            DB::commit();
+
+            // Lấy học sinh cuối cùng được thêm (hoặc tất cả nếu import nhiều)
+            $newStudents = User::where('role', User::ROLE_STUDENT)
+                ->where('school_id', auth()->user()->school_id)
+                ->whereHas('studentGrades', function($q) use ($request) {
+                    $q->where('grade_id', $request->grade_level_id)
+                        ->where('academic_year_id', $request->academic_year_id);
+                })
+                ->with('school')
+                ->latest()
+                ->take($import->getRowCount())
+                ->get();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Đã import thành công ' . $import->getRowCount() . ' học sinh',
+                'new_student' => $import->getRowCount() === 1 ? $newStudents->first() : null,
+                'reload' => $import->getRowCount() > 1 // Nếu import nhiều thì load lại toàn bộ
             ]);
 
-            try {
-                $import = new StudentsImport(
-                    $request->academic_year_id,
-                    $request->grade_level_id
-                );
-
-                Excel::import($import, $request->file('file'));
-
-                $importedCount = $import->getRowCount();
-                $failures = $import->failures();
-                $errors = [];
-
-                foreach ($failures as $failure) {
-                    $errors[] = "Dòng {$failure->row()}: {$failure->errors()[0]}";
-                }
-
-                return response()->json([
-                    'success' => true,
-                    'imported_count' => $importedCount,
-                    'errors' => $errors,
-                    'message' => "Đã import thành công {$importedCount} học sinh." .
-                        (count($errors) ? " Có " . count($errors) . " lỗi xảy ra." : '')
-                ]);
-
-            } catch (\Exception $e) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Lỗi khi import file: ' . $e->getMessage()
-                ], 500);
-            }
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'Lỗi khi import file: ' . $e->getMessage()
+            ], 500);
         }
+    }
 
         public function getStudentsByGrade(Request $request)
         {

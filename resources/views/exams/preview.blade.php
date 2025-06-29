@@ -83,7 +83,7 @@
                     <!-- Preview Actions -->
                     @if($isPreview)
                         <div class="card-footer bg-light">
-                            <div class="d-flex justify-content-between">
+                            <div class="d-flex justify-content-end">
                                 <form action="{{ isset($exam) ? route('exams.update', $exam->id) : route('exams.store') }}" method="POST" class="d-inline">
                                     @csrf
                                     @if(isset($exam))
@@ -115,6 +115,7 @@
                                         @endforeach
                                     @endforeach
 
+                                      <a href="{{route('exams.index')}}" class = 'btn btn-outline-primary-color me-2'>Đóng</a>
                                     <button type="submit" name="action" value="{{ isset($exam) ? 'update' : 'save' }}" class="btn btn-primary-color ml-2">{{ isset($exam) ? 'Cập nhật' : 'Lưu' }} đề thi
                                     </button>
                                 </form>

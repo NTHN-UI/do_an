@@ -23,7 +23,7 @@
                 @csrf
                 @method('PUT')
 
-                <div class="form-group">
+                <div class="form-group mt-2">
                     <label for="name">Tên trường *</label>
                     <input type="text" class="form-control @error('name') is-invalid @enderror"
                            id="name" name="name" value="{{ old('name', $school->name) }}" >
@@ -32,7 +32,7 @@
                     @enderror
                 </div>
 
-                <div class="form-group">
+                <div class="form-group mt-2">
                     <label for="address">Địa chỉ *</label>
                     <input type="text" class="form-control @error('address') is-invalid @enderror"
                            id="address" name="address" value="{{ old('address', $school->address) }}">
@@ -41,7 +41,7 @@
                     @enderror
                 </div>
 
-                <div class="form-group">
+                <div class="form-group mt-2">
                     <label for="district">Quận/Huyện *</label>
                     <input type="text" class="form-control @error('district') is-invalid @enderror"
                            id="district" name="district" value="{{ old('district', $school->district) }}" >
@@ -50,7 +50,7 @@
                     @enderror
                 </div>
 
-                <div class="form-group">
+                <div class="form-group mt-2">
                     <label for="province">Tỉnh/Thành *</label>
                     <input type="text" class="form-control @error('province') is-invalid @enderror"
                            id="province" name="province" value="{{ old('province', $school->province) }}" >

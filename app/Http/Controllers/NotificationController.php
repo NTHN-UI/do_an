@@ -14,6 +14,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 
 class NotificationController extends Controller
@@ -46,18 +47,13 @@ class NotificationController extends Controller
             ->first();
 
 
-        if (!$homeroomClass) {
-            return redirect()->back()
-                ->with('error', 'Bạn không chủ nhiệm lớp nào trong năm học này');
-        }
-
         $templates = NotificationTemplate::where('school_id', $teacher->school_id)
             ->where('is_active', true)
             ->get();
 
         return view('notifications.create', [
-            'className' => $homeroomClass->class->name, // Chỉ truyền tên lớp
-            'classId' => $homeroomClass->class_id,      // Truyền id lớp
+            'className' => $homeroomClass->class->name,
+            'classId' => $homeroomClass->class_id,
             'templates' => $templates,
             'priorities' => [
                 ['value' => 'low', 'label' => 'Thấp'],
@@ -95,7 +91,7 @@ class NotificationController extends Controller
             'academic_year_id' => $currentYear->id,
             'subject' => $request->subject,
             'content' => $request->input('content'),
-            'status' => 'draft', // Tạo bản nháp trước
+            'status' => 'draft',
             'priority' => $request->priority,
         ]);
 
@@ -131,11 +127,6 @@ class NotificationController extends Controller
 
     public function edit(Notification $notification)
     {
-        // Kiểm tra quyền: Đảm bảo giáo viên có quyền chỉnh sửa thông báo này
-        if (!auth()->user()->isHomeroomTeacherOfClass($notification->class_id) || $notification->sender_id !== auth()->user()->id) {
-            return redirect()->back()
-                ->with('error', 'Bạn không có quyền chỉnh sửa thông báo này.');
-        }
 
         // Lấy thông tin lớp chủ nhiệm hiện tại (vẫn cần để hiển thị tên lớp)
         $teacher = Auth::user();
@@ -150,19 +141,15 @@ class NotificationController extends Controller
             }])
             ->first();
 
-        if (!$homeroomClass) {
-            return redirect()->back()
-                ->with('error', 'Bạn không chủ nhiệm lớp nào trong năm học này.');
-        }
 
         $templates = NotificationTemplate::where('school_id', $teacher->school_id)
             ->where('is_active', true)
             ->get();
 
-        return view('notifications.edit', [ // <-- Trả về view edit.blade.php
-            'notification' => $notification, // <-- Truyền đối tượng thông báo hiện tại
-            'className' => $homeroomClass->class->name, // Vẫn cần để hiển thị tên lớp
-            'classId' => $homeroomClass->class_id,      // Vẫn cần
+        return view('notifications.edit', [
+            'notification' => $notification,
+            'className' => $homeroomClass->class->name,
+            'classId' => $homeroomClass->class_id,
             'templates' => $templates,
             'priorities' => [
                 ['value' => 'low', 'label' => 'Thấp'],
@@ -178,11 +165,6 @@ class NotificationController extends Controller
      */
     public function update(Request $request, Notification $notification)
     {
-        // Kiểm tra quyền tương tự như edit
-        if (!auth()->user()->isHomeroomTeacherOfClass($notification->class_id) || $notification->sender_id !== auth()->user()->id) {
-            return redirect()->back()
-                ->with('error', 'Bạn không có quyền cập nhật thông báo này.');
-        }
 
         $request->validate([
             'template_id' => 'required|exists:notification_templates,id',
@@ -199,11 +181,23 @@ class NotificationController extends Controller
             'priority' => $request->priority,
         ]);
 
-        // Xử lý file đính kèm nếu cần (có thể cần logic xóa/thêm mới file)
         if ($request->hasFile('attachments')) {
-            // ... logic để thêm hoặc thay thế file đính kèm ...
-        }
+            foreach ($notification->attachments as $attachment) {
+                Storage::delete($attachment->file_path);
+                $attachment->delete();
+            }
 
+            // Thêm file mới
+            foreach ($request->file('attachments') as $file) {
+                $path = $file->store('notifications/attachments');
+                $notification->attachments()->create([
+                    'file_name' => $file->getClientOriginalName(),
+                    'file_path' => $path,
+                    'mime_type' => $file->getClientMimeType(),
+                    'size' => $file->getSize()
+                ]);
+            }
+        }
         return redirect()->route('notifications.preview', $notification)
             ->with('success', 'Thông báo đã được cập nhật thành công!');
     }
@@ -219,37 +213,15 @@ class NotificationController extends Controller
     public function preview(Notification $notification)
     {
 
-        if (!auth()->user()->isTeacher()) {
-            abort(403, 'Chỉ giáo viên mới được xem trang này');
-        }
-
-        if (!$notification->class) {
-            return redirect()->back()
-                ->with('error', 'Lớp học không tồn tại hoặc đã bị xóa');
-        }
-
-        $studentsWithoutEmail = $notification->class->students()
-            ->where(function ($query) {
-                $query->whereNull('guardian_email')
-                    ->orWhere('guardian_email', '');
-            })
-            ->get();
-
         return view('notifications.preview', [
             'notification' => $notification,
-            'studentsWithoutEmail' => $studentsWithoutEmail
         ]);
     }
 
     public function send(Notification $notification)
     {
         $teacher = Auth::user();
-
-        // Kiểm tra quyền
-        if (!$teacher->isHomeroomTeacherOfClass($notification->class_id)) {
-            return redirect()->back()
-                ->with('error', 'Bạn không phải giáo viên chủ nhiệm lớp này');
-        }
+        $notification->load('attachments');
 
         // Lấy danh sách học sinh
         $recipients = ClassModel::find($notification->class_id)
@@ -257,11 +229,6 @@ class NotificationController extends Controller
             ->whereNotNull('guardian_email')
             ->where('guardian_email', '!=', '')
             ->get();
-
-        if ($recipients->isEmpty()) {
-            return redirect()->back()
-                ->with('error', 'Không có học sinh nào có email phụ huynh hợp lệ');
-        }
 
         // Cấu hình email
         $emailSettings = $notification->class->school->emailSettings;

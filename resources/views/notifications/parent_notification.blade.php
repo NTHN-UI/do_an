@@ -16,7 +16,16 @@
         <p>{!! nl2br(e($content)) !!}</p>
 
     </div>
-
+    @if($notification->attachments->count() > 0)
+        <div style="margin-top: 30px; border-top: 1px solid #eee; padding-top: 15px;">
+            <h4>File đính kèm:</h4>
+            <ul>
+                @foreach($notification->attachments as $attachment)
+                    <li>{{ $attachment->file_name }}</li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
     <div class="footer">
         © {{ date('Y') }} {{ config('app.name') }}. All rights reserved.
     </div>

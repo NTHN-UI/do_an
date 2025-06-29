@@ -265,7 +265,7 @@
                     const optionIdInput = option.id ? `<input type="hidden" name="questions[${index}][options][${optIdx}][id]" value="${option.id}">` : '';
 
                     optionsHtml += `
-                        <div class="form-group">
+                        <div class="form-group mt-2">
                             <label>Đáp án ${String.fromCharCode(65 + optIdx)} *</label>
                             <div class="input-group">
                                 ${optionIdInput}
@@ -293,12 +293,12 @@
                                 <i class="fas fa-trash"></i>
                             </button>
                         </div>
-                        <div class="form-group">
+                        <div class="form-group mt-2">
                             <label>Nội dung câu hỏi *</label>
                             <textarea class="form-control question-content"
                                       name="questions[${index}][content]" required>${content}</textarea>
                         </div>
-                        <div class="form-group">
+                        <div class="form-group mt-2">
                             <label>Điểm *</label>
                             <input type="number" step="0.1" min="0.1" class="form-control"
                                    name="questions[${index}][marks]" value="${marks}" required>

@@ -3,9 +3,7 @@
 @section('content')
     <div class="container rounded-3 shadow p-4">
         <div class="d-flex align-items-center mb-4">
-            <a href="{{ url()->previous() }}" class="btn text-primary-color btn-sm me-3" title="Quay lại">
-                <i class="fas fa-arrow-left"></i>
-            </a>
+
             <h3 class="mb-0 text-primary-color">Chỉnh sửa thông báo</h3>
         </div>
         <div class="card border-0 shadow-sm rounded-2">
@@ -93,7 +91,7 @@
                         @enderror
                         <small class="text-muted">Định dạng: PDF, Word, Excel, hình ảnh. Tối đa 5MB/file.</small>
 
-                        @if($notification->attachments->count() > 0) {{-- Kiểm tra có file đính kèm --}}
+                        @if($notification->attachments->count() > 0)
                         <div class="mt-2">
                             <h6>File đính kèm hiện có:</h6>
                             <ul class="list-unstyled">
@@ -119,46 +117,36 @@
 
 
 @push('scripts')
+
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Load template content when selected (chỉ cho form tạo mới)
-            document.getElementById('template_id').addEventListener('change', function() {
-                const templateId = this.value;
-                if (templateId) {
-                    const selectedOption = this.options[this.selectedIndex];
-                    document.getElementById('subject').value = selectedOption.dataset.subject;
-                    document.getElementById('content').value = selectedOption.dataset.content;
-                }
-            });
-            // Đoạn script jQuery của bạn (chỉ chạy khi chọn template)
+        $(document).ready(function() {
             $('#template_id').change(function() {
-                const templateId = $(this).val();
+                var templateId = $(this).val();
                 if (!templateId) return;
 
-                // Hiển thị loading (nếu có)
-                // $('#template-loading').removeClass('d-none'); // Bỏ comment nếu bạn có element này
+                $.get('/notifications/templates/' + templateId)
+                    .done(function(data) {
+                        $('#subject').val(data.subject);
+                        $('#content').val(data.content);
 
-                $.get(`/notifications/templates/${templateId}`, function(data) {
-                    $('#subject').val(data.subject);
-                    $('#content').val(data.content);
-
-                    // Hiển thị các biến (nếu có)
-                    // if (data.variables && data.variables.length > 0) {
-                    //     $('#template-variables').html(` // Bỏ comment nếu bạn có element này
-                    //     <div class="alert alert-info mt-3">
-                    //         <strong>Các biến có thể sử dụng:</strong>
-                    //         ${data.variables.join(', ')}
-                    //     </div>
-                    // `);
-                    // }
-
-                    // Ẩn loading
-                    // $('#template-loading').addClass('d-none'); // Bỏ comment nếu bạn có element này
-                }).fail(function() {
-                    // $('#template-loading').addClass('d-none'); // Bỏ comment nếu bạn có element này
-                    alert('Lỗi khi tải nội dung mẫu');
-                });
+                        if (data.variables && data.variables.length > 0) {
+                            $('#template-variables').remove();
+                            $('<div id="template-variables" class="alert alert-info mt-3"><strong>Các biến có thể sử dụng:</strong> ' +
+                                data.variables.join(', ') + '</div>').insertAfter('#content');
+                        }
+                    })
+                    .fail(function() {
+                        alert('Lỗi khi tải nội dung mẫu');
+                    })
+                    .always(function() {
+                        $('#template-loading').remove();
+                    });
+            });
+            $('#template_id').on('change', function() {
+                var selectedOption = $(this).find('option:selected');
+                $('#subject').val(selectedOption.data('subject'));
+                $('#content').val(selectedOption.data('content'));
             });
         });
     </script>

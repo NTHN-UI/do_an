@@ -3,9 +3,7 @@
 @section('content')
     <div class="container rounded-3 shadow p-4">
         <div class="d-flex align-items-center mb-4">
-            <a href="{{ url()->previous() }}" class="btn text-primary-color btn-sm me-3" title="Quay lại">
-                <i class="fas fa-arrow-left"></i>
-            </a>
+
             <h3 class="mb-0 text-primary-color">Thông báo đến phụ huynh</h3>
         </div>
         <div class="card border-0 shadow-sm rounded-2">
@@ -103,45 +101,44 @@
 
 
 @push('scripts')
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Load template content when selected
-            document.getElementById('template_id').addEventListener('change', function() {
-                const templateId = this.value;
+        $(document).ready(function() {
+            $('#template_id').change(function() {
+                var templateId = $(this).val();
+
                 if (templateId) {
-                    const selectedOption = this.options[this.selectedIndex];
-                    document.getElementById('subject').value = selectedOption.dataset.subject;
-                    document.getElementById('content').value = selectedOption.dataset.content;
+                    var selectedOption = $(this).find('option:selected');
+                    $('#subject').val(selectedOption.data('subject'));
+                    $('#content').val(selectedOption.data('content'));
                 }
             });
-        });
-        $('#template_id').change(function() {
-            const templateId = $(this).val();
-            if (!templateId) return;
 
-            // Hiển thị loading
-            $('#template-loading').removeClass('d-none');
+            // Phiên bản gọi API (nếu cần)
+            $('#template_id').on('change', function() {
+                var templateId = $(this).val();
+                if (!templateId) return;
 
-            $.get(`/notifications/templates/${templateId}`, function(data) {
-                $('#subject').val(data.subject);
-                $('#content').val(data.content);
+                $.get('/notifications/templates/' + templateId)
+                    .done(function(data) {
+                        $('#subject').val(data.subject);
+                        $('#content').val(data.content);
 
-                // Hiển thị các biến có thể sử dụng
-                if (data.variables && data.variables.length > 0) {
-                    $('#template-variables').html(`
-                    <div class="alert alert-info mt-3">
-                        <strong>Các biến có thể sử dụng:</strong>
-                        ${data.variables.join(', ')}
-                    </div>
-                `);
-                }
-
-                // Ẩn loading
-                $('#template-loading').addClass('d-none');
-            }).fail(function() {
-                $('#template-loading').addClass('d-none');
-                alert('Lỗi khi tải nội dung mẫu');
+                        // Hiển thị các biến có thể sử dụng
+                        if (data.variables && data.variables.length > 0) {
+                            $('#template-variables').remove();
+                            $('<div>', {
+                                id: 'template-variables',
+                                class: 'alert alert-info mt-3',
+                                html: '<strong>Các biến có thể sử dụng:</strong> ' + data.variables.join(', ')
+                            }).insertAfter('#content');
+                        }
+                    })
+                    .fail(function() {
+                        alert('Lỗi khi tải nội dung mẫu');
+                    })
+                    .always(function() {
+                        loadingIndicator.remove();
+                    });
             });
         });
     </script>

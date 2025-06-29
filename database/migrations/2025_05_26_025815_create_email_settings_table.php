@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('email_settings', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('school_id')->unique();
+            $table->foreignId('school_id')->unique()->constrained('schools')->onDelete('cascade');
             $table->string('host');
             $table->integer('port');
             $table->string('username');

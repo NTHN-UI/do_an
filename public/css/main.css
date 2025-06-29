@@ -1,3 +1,4 @@
+
 :root {
     --primary-color: #013066;
     --primary-color-hover: #1a4a8a;
@@ -32,7 +33,10 @@
     background-color: var(--primary-color);
     color: var(--bs-white);
 }
-
+.primary-select:hover {
+    background-color: var(--primary-color);
+    color: var(--bs-white);
+}
 
 .text-primary-color {
     color: var(--primary-color);

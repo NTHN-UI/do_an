@@ -71,25 +71,25 @@
             <div class="card-body p-0">
                 <div class="table-responsive">
                     <table class="table table-hover mb-0">
-                        <thead class="table-secondary text-center">
+                        <thead class="table-secondary">
                         <tr>
-                            <th class="ps-4">ID</th>
+                            <th class="ps-4">STT</th>
                             <th>Tên trường</th>
                             <th>Địa chỉ</th>
-                            <th>Quận/Huyện</th>
-                            <th>Tỉnh/Thành</th>
+                            <th class="text-center">Quận/Huyện</th>
+                            <th class="text-center">Tỉnh/Thành</th>
                             <th class="text-end pe-4"></th>
                         </tr>
                         </thead>
                         <tbody>
                         @foreach($schools as $school)
-                            <tr class="text-center">
+                            <tr>
                                 <td class="ps-4">{{ $school->id }}</td>
                                 <td>{{ $school->name }}</td>
                                 <td>{{ $school->address }}</td>
 
-                                <td>{{ $school->district }}</td>
-                                <td>{{ $school->province }}</td>
+                                <td  class="text-center">{{ $school->district }}</td>
+                                <td  class="text-center">{{ $school->province }}</td>
                                 <td class="text-end pe-4">
                                     <div class="dropdown">
                                         <button class="btn btn-sm" type="button" data-bs-toggle="dropdown"

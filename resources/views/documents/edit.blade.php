@@ -16,9 +16,9 @@
                             @method('PUT')
 
                             <div class="mb-3">
-                                <label for="title" class="form-label">Tiêu đề</label>
+                                <label for="title" class="form-label">Tiêu đề </label>
                                 <input type="text" class="form-control" id="title" name="title"
-                                       value="{{ old('title', $document->title) }}" required>
+                                       value="{{ old('title', $document->title) }}">
                             </div>
 
                             <div class="mb-3">

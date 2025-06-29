@@ -42,7 +42,7 @@
             <form method="POST" action="{{ route('school_admins.store') }}">
                 @csrf
 
-                <div class="form-group">
+                <div class="form-group mt-2">
                     <label for="full_name">Tên đầy đủ <span class="text-danger">*</span></label>
                     <input id="full_name" type="text" class="form-control @error('full_name') is-invalid @enderror"
                            name="full_name" value="{{ old('full_name') }}" autocomplete="name" autofocus>
@@ -51,7 +51,7 @@
                     @enderror
                 </div>
 
-                <div class="form-group">
+                <div class="form-group mt-2">
                     <label for="email">Email <span class="text-danger">*</span></label>
                     <input id="email" type="email" class="form-control @error('email') is-invalid @enderror"
                            name="email" value="{{ old('email') }}" autocomplete="email">
@@ -60,7 +60,7 @@
                     @enderror
                 </div>
 
-                <div class="form-group">
+                <div class="form-group mt-2">
                     <label for="school_id">Trường <span class="text-danger">*</span></label>
                     <select id="school_id" class="form-control @error('school_id') is-invalid @enderror"
                             name="school_id" >
@@ -78,7 +78,7 @@
                     @enderror
                 </div>
 
-                <div class="form-group">
+                <div class="form-group mt-2">
                     <label for="password">Mật khẩu <span class="text-danger">*</span></label>
                     <input id="password" type="password" class="form-control @error('password') is-invalid @enderror"
                            name="password"  autocomplete="new-password">
@@ -87,14 +87,14 @@
                     @enderror
                 </div>
 
-                <div class="form-group">
+                <div class="form-group mt-2">
                     <label for="password-confirm">Xác nhận mật khẩu <span class="text-danger">*</span></label>
                     <input id="password-confirm" type="password" class="form-control"
                            name="password_confirmation"  autocomplete="new-password">
                 </div>
 
                 <div class="d-flex justify-content-end mt-3">
-                    <a href="{{ route('school_admins.index') }}" class="btn btn-secondary me-2">Đóng</a>
+                    <a href="{{ route('school_admins.index') }}" class="btn btn-outline-primary-color me-2">Đóng</a>
                     <button type="submit" class="btn btn-primary-color">Lưu</button>
                 </div>
             </form>

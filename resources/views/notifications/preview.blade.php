@@ -57,21 +57,6 @@
                     </div>
                 </div>
 
-                {{-- Cảnh báo học sinh thiếu email --}}
-                @if($studentsWithoutEmail->count() > 0)
-                    <div class="alert alert-warning border border-warning rounded-3 shadow-sm" role="alert">
-                        <h5 class="alert-heading text-warning">
-                            <i class="fas fa-exclamation-triangle me-2"></i> Cảnh báo
-                        </h5>
-                        <p class="mb-0">Có **{{ $studentsWithoutEmail->count() }}** học sinh chưa có email phụ huynh:</p>
-                        <ul class="mb-0 mt-2 list-unstyled">
-                            @foreach($studentsWithoutEmail as $student)
-                                <li><i class="fas fa-user-times me-2"></i>{{ $student->full_name }}</li>
-                            @endforeach
-                        </ul>
-                    </div>
-                @endif
-
                 {{-- Nút hành động --}}
                 <div class="d-flex justify-content-end mt-4">
                     <a href="{{ route('notifications.edit', $notification->id) }}" class="btn btn-outline-primary-color me-2">Chỉnh sửa</a>

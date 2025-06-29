@@ -86,6 +86,18 @@ class ParentNotification extends Mailable
             $text
         );
     }
+    public function attachments()
+    {
+        $attachments = [];
+
+        foreach ($this->notification->attachments as $attachment) {
+            $attachments[] = Attachment::fromStorage($attachment->file_path)
+                ->as($attachment->file_name)
+                ->withMime($attachment->mime_type);
+        }
+
+        return $attachments;
+    }
 
     /**
      * Build the message.

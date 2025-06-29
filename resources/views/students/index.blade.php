@@ -20,7 +20,7 @@
         }
     </style>
     <div class="container rounded-3 shadow p-4">
-        <h3 class="mb-3 text-primary-color">Danh sách học sinh</h3>
+        <h3 class="mb-3 text-primary-color">Danh sách học si1nh</h3>
 
         <!-- Search and Add Button -->
         <div class="d-flex flex-column flex-md-row justify-content-end align-items-md-center mb-4 gap-3 header-actions">
@@ -143,7 +143,6 @@
             @include('students.partials.pagination', ['students' => $students])
         </div>
     </div>
-
 @endsection
 
 @push('scripts')
@@ -262,12 +261,11 @@
                 }
 
                 // Xử lý khi người dùng chọn file
-                inputFile.on('change', function () {
+                inputFile.on('change', function() {
                     if (!this.files.length) return;
 
                     const academicYearId = $('#academic_year_id').val();
                     const gradeLevelId = $('#grade_level_id').val();
-                    const file = this.files[0];
 
                     if (!academicYearId || !gradeLevelId) {
                         alert("Vui lòng chọn năm học và khối học trước khi import");
@@ -277,9 +275,12 @@
 
                     const formData = new FormData();
                     formData.append('file', this.files[0]);
-                    formData.append('academic_year_id', $('#academic_year_id').val());
-                    formData.append('grade_level_id', $('#grade_level_id').val());
+                    formData.append('academic_year_id', academicYearId);
+                    formData.append('grade_level_id', gradeLevelId);
                     formData.append('_token', '{{ csrf_token() }}');
+
+                    // Hiển thị loading
+                    $('#loading-spinner').removeClass('d-none');
 
                     $.ajax({
                         url: "{{ route('students.import') }}",
@@ -287,35 +288,75 @@
                         data: formData,
                         processData: false,
                         contentType: false,
-                        success: function (response) {
-                            let html = `<div class="text-start"><p>${response.message}</p>`;
+                        success: function(response) {
+                            if (response.success) {
+                                // THÊM HỌC SINH MỚI VÀO DANH SÁCH HIỆN TẠI
+                                if (response.new_student) {
+                                    // Tạo HTML cho học sinh mới
+                                    const newStudentRow = `
+                        <tr>
+                            <td>${response.new_student.id}</td>
+                            <td>${response.new_student.full_name}</td>
+                            <td>${response.new_student.email}</td>
+                            <td>${response.new_student.phone || ''}</td>
+                            <td>${response.new_student.school.name}</td>
+                            <td>${response.new_student.is_active ? 'Hoạt động' : 'Không hoạt động'}</td>
+                            <td>
+</td>
+                        </tr>
+                    `;
 
-                            if (response.errors && response.errors.length > 0) {
-                                html += `<div class="mt-3">
-                    <h6 class="text-danger">Chi tiết lỗi:</h6>
-                    <div class="text-danger" style="max-height: 200px; overflow-y: auto;">
-                        <ul class="mb-0">`;
+                                    // Thêm vào đầu bảng
+                                    $('#students-container').prepend(newStudentRow);
+                                }
 
-                                response.errors.forEach(error => {
-                                    html += `<li>${error}</li>`;
-                                });
+                                // Hoặc load lại toàn bộ danh sách nếu import nhiều
+                                if (response.reload) {
+                                    loadStudents(academicYearId, gradeLevelId);
+                                }
 
-                                html += `</ul></div></div>`;
+                                showAlert('success', response.message);
+                            } else {
+                                showAlert('danger', response.message);
                             }
-
-                            html += `</div>`;
                         },
-                        error: function (xhr) {
-                            alert("Có lỗi khi import");
-                            console.error("Import error: ", xhr.responseText);
+                        error: function(xhr) {
+                            let errorMsg = xhr.responseJSON?.message || 'Lỗi khi import file';
+                            showAlert('danger', errorMsg);
                         },
-                        complete: function () {
+                        complete: function() {
+                            $('#loading-spinner').addClass('d-none');
                             $('#real-import-btn').val('');
                         }
                     });
                 });
 
+// Hàm load lại danh sách học sinh
+                function loadStudents(academicYearId, gradeLevelId) {
+                    $.get("{{ route('students.index') }}", {
+                        academic_year_id: academicYearId,
+                        grade_level_id: gradeLevelId,
+                        ajax: true
+                    }, function(data) {
+                        $('#students-container').html(data);
+                    });
+                }
 
+                function showAlert(type, message) {
+                    const alertClass = type === 'success' ? 'alert-success' : 'alert-danger';
+                    const alertHtml = `
+        <div class="alert ${alertClass} alert-dismissible fade show" role="alert">
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    `;
+                    $('#alert-container').html(alertHtml);
+
+                    // Tự động ẩn sau 5 giây
+                    setTimeout(() => {
+                        $('.alert').alert('close');
+                    }, 5000);
+                }
                 $('#academic_year_id, #grade_level_id').change(function() {
                     const academicYearId = $('#academic_year_id').val();
                     const gradeLevelId = $('#grade_level_id').val();

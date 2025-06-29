@@ -3,9 +3,7 @@
 @section('content')
     <div class="container rounded-3 shadow p-4">
         <div class="d-flex align-items-center mb-4">
-            <a href="{{ url()->previous() }}" class="btn text-primary-color btn-sm me-3" title="Quay lại">
-                <i class="fas fa-arrow-left"></i>
-            </a>
+
             <h3 class="mb-0 text-primary-color">Tải lên tài liệu mới</h3>
         </div>
 
@@ -16,7 +14,7 @@
                 <div class="form-group mb-3">
                     <label for="title">Tiêu đề tài liệu <span class="text-danger">*</span></label>
                     <input type="text" class="form-control @error('title') is-invalid @enderror"
-                           id="title" name="title" value="{{ old('title') }}" required>
+                           id="title" name="title" value="{{ old('title') }}" >
                     @error('title')
                     <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
@@ -34,7 +32,7 @@
                 <div class="form-group mb-3">
                     <label for="subject_id">Môn học <span class="text-danger">*</span></label>
                     <select class="form-control @error('subject_id') is-invalid @enderror"
-                            id="subject_id" name="subject_id" required>
+                            id="subject_id" name="subject_id">
                         <option value="">-- Chọn môn học --</option>
                         @foreach($subjects as $subject)
                             <option value="{{ $subject->id }}" {{ old('subject_id') == $subject->id ? 'selected' : '' }}>

@@ -51,7 +51,7 @@
         }
     </style>
     <div class="container">
-        <h3 class="mb-3 text-primary-color">Danh sách Admin Trường</h3>
+        <h3 class="mb-3 text-primary-color">Danh sách Admin trường</h3>
         <div class="d-flex justify-content-end align-items-center mb-3">
             <form method="GET" action="{{ route('school_admins.index') }}" class="d-flex me-2" id="search-form">
                 <div class="input-group">
@@ -72,23 +72,23 @@
             <div class="card-body p-0">
                 <div class="table-responsive">
                     <table class="table table-hover mb-0">
-                        <thead class="table-secondary text-center">
+                        <thead class="table-secondary">
                         <tr>
                             <th class="ps-4">STT</th>
                             <th>Tên Admin</th>
                             <th>Email</th>
                             <th>Trường</th>
-                            <th class="text-end pe-4">Hành động</th>
+                            <th class="text-center">Hành động</th>
                         </tr>
                         </thead>
                         <tbody>
                         @forelse($schoolAdmins as $index => $admin)
-                            <tr class="text-center">
+                            <tr>
                                 <td class="ps-4">{{ $index + $schoolAdmins->firstItem() }}</td>
                                 <td>{{ $admin->full_name }}</td>
                                 <td>{{ $admin->email }}</td>
                                 <td>{{ $admin->school->name ?? 'N/A' }}</td>
-                                <td class="text-end pe-4">
+                                <td class="text-center ">
                                     <div class="dropdown">
                                         <button class="btn btn-sm" type="button" data-bs-toggle="dropdown"
                                                 aria-expanded="false">
