@@ -9,6 +9,9 @@
     use App\Models\Semester;
     use App\Models\User;
     use Illuminate\Http\Request;
+    use Illuminate\Support\Facades\DB;
+    use Illuminate\Support\Facades\Log;
+
     class HomeController extends Controller
     {
         public function index(Request $request)
@@ -28,32 +31,48 @@
 
         private function superAdminDashboard(Request $request)
         {
-            $schools = School::all();
+            $schools = School::paginate(10);
             return view('home.super_admin', compact('schools'));
         }
 
         private function schoolDashboard(Request $request, $schoolId)
         {
+            $latestAcademicYear = AcademicYear::where('school_id', $schoolId)
+                ->orderBy('start_date', 'desc')
+                ->first();
+
+            // Kiểm tra xem có năm học nào tồn tại không
+            if (!$latestAcademicYear) {
+                // Nếu không có năm học, chuyển hướng hoặc hiển thị thông báo lỗi
+                // Ví dụ: chuyển hướng đến trang tạo năm học cho trường đó
+                // Hoặc trả về view với thông báo rằng trường này chưa có năm học
+                return redirect()->route('academic_years.create', ['school_id' => $schoolId])
+                    ->with('error', 'Trường học này chưa có năm học nào được tạo. Vui lòng tạo năm học đầu tiên.');
+                // Hoặc
+                // return view('school_dashboard_empty', ['schoolId' => $schoolId, 'message' => 'Trường học này chưa có năm học.']);
+            }
+
             $selectedAcademicYearId = $request->input('academic_year')
-                ?: AcademicYear::where('school_id', $schoolId)
-                    ->orderBy('start_date', 'desc')
-                    ->first()->id;
+                ?: $latestAcademicYear->id;
 
             $currentAcademicYear = AcademicYear::findOrFail($selectedAcademicYearId);
 
+            // Lấy tất cả các năm học để hiển thị dropdown
             $academicYears = AcademicYear::where('school_id', $schoolId)
                 ->orderBy('start_date', 'desc')
                 ->get();
 
+            // Lấy học kỳ hiện tại của năm học được chọn
             $currentSemester = Semester::where('academic_year_id', $currentAcademicYear->id)
                 ->where('is_current', true)
                 ->first();
 
+            // Lấy tất cả học kỳ của năm học được chọn
             $semesters = Semester::where('academic_year_id', $currentAcademicYear->id)
                 ->orderBy('start_date')
                 ->get();
 
-            // Thống kê số lượng
+            // Thống kê số lượng theo năm học được chọn
             $teacherCount = User::where('school_id', $schoolId)
                 ->where('role', 'teacher')
                 ->count();
@@ -67,17 +86,10 @@
                 })
                 ->count();
 
-            $studentCount = User::where('school_id', $schoolId)
-                ->where('role', 'student')
-                ->count();
-
             $classCount = ClassModel::where('school_id', $schoolId)
                 ->where('academic_year_id', $currentAcademicYear->id)
                 ->count();
 
-            $staffCount = User::where('school_id', $schoolId)
-                ->where('role', 'school_admin')
-                ->count();
 
             // Phân bổ học sinh theo khối
             $gradeLevels = GradeLevel::where('school_id', $schoolId)
@@ -157,12 +169,13 @@
                 'teacherCount',
                 'studentCount',
                 'classCount',
-                'staffCount',
                 'gradeDistribution',
                 'academicPerformanceByGrade',
                 'totalPerformance',
                 'currentYearStudentCount',
-                'currentSchool'
+                'currentSchool',
+                'request'
+
             ));
         }
 
@@ -220,8 +233,8 @@
         {
 
 
-            $semester1Grades = $student->grades->where('semester_id', 1); // Giả sử semester_id 1 là HK1
-            $semester2Grades = $student->grades->where('semester_id', 2); // Giả sử semester_id 2 là HK2
+            $semester1Grades = $student->grades->where('semester_id', 1);
+            $semester2Grades = $student->grades->where('semester_id', 2);
 
             $semester1Avg = $semester1Grades->avg('score');
             $semester2Avg = $semester2Grades->avg('score');

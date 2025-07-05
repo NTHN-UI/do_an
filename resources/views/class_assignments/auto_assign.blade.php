@@ -3,9 +3,6 @@
 @section('content')
     <div class="container rounded-3 shadow p-4">
             <div class="d-flex align-items-center mb-4">
-                <a href="{{ url()->previous() }}" class="btn text-primary-color btn-sm me-3" title="Quay lại">
-                    <i class="fas fa-arrow-left"></i>
-                </a>
                 <h3 class="mb-0 text-primary-color">Phân công học sinh tự động vào lớp</h3>
             </div>
             <div class="card-body">

@@ -12,9 +12,6 @@
     </style>
     <div class="container">
         <div class="d-flex align-items-center mb-4">
-            <a href="{{ route('school_admins.index') }}" class="btn btn-back me-3" title="Quay lại">
-                <i class="fas fa-arrow-left"></i>
-            </a>
             <h3 class="mb-0 text-primary-color">Sửa thông tin Admin Trường</h3>
         </div>
         <div class="card-body">
@@ -74,7 +71,7 @@
                 </div>
 
                 <div class="d-flex justify-content-end align-items-center mt-3">
-                    <a href="{{ route('school_admins.index') }}" class="btn btn-primary-color me-2">
+                    <a href="{{ route('school_admins.index') }}" class="btn btn-outline-primary-color me-2">
                         Đóng
                     </a>
                     <button type="submit" class="btn btn-primary-color">

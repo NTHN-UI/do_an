@@ -112,8 +112,16 @@ class SchoolController extends Controller
      */
     public function edit(School $school)
     {
-        return view('schools.edit', compact('school'));
+        $provinces = json_decode(file_get_contents(public_path('data/tinh_tp.json')), true);
+        $districts = json_decode(file_get_contents(public_path('data/quan_huyen.json')), true);
 
+        return view('schools.edit', [
+            'school' => $school,
+            'provinces' => $provinces,
+            'districts' => array_filter($districts, function($district) use ($school) {
+                return isset($district['parent_code']) && $district['parent_code'] == $school->province_code;
+            })
+        ]);
     }
 
     /**
@@ -127,16 +135,14 @@ class SchoolController extends Controller
             'address.required' => 'Địa chỉ không được để trống',
             'address.max' => 'Tối đa 50 ký tự',
             'district.required' => 'Quận/Huyện không được để trống',
-            'district.max' => 'Tối đa 50 ký tự',
             'province.required' => 'Tỉnh/Thành không được để trống',
-            'province.max' => 'Tối đa 50 ký tự',
         ];
 
         $validator = Validator::make($request->all(), [
             'name' => 'required|max:50',
             'address' => 'required|string|max:50',
-            'district' => 'required|max:50',
-            'province' => 'required|max:50'
+            'district' => 'required',
+            'province' => 'required',
         ], $messages);
 
         if ($validator->fails()) {
@@ -144,7 +150,22 @@ class SchoolController extends Controller
                 ->withErrors($validator)
                 ->withInput();
         }
-        $school->update($request->all());
+
+        // Lấy tên tỉnh và quận/huyện từ code
+        $provinces = json_decode(file_get_contents(public_path('data/tinh_tp.json')), true);
+        $districts = json_decode(file_get_contents(public_path('data/quan_huyen.json')), true);
+
+        $provinceName = collect($provinces)->firstWhere('code', $request->province)['name'] ?? '';
+        $districtName = collect($districts)->firstWhere('code', $request->district)['name'] ?? '';
+
+        $school->update([
+            'name' => $request->name,
+            'address' => $request->address,
+            'district' => $districtName,
+            'province' => $provinceName,
+            'district_code' => $request->district,
+            'province_code' => $request->province,
+        ]);
 
         return redirect()->route('schools.index')
             ->with('success', 'Cập nhật thành công!');
@@ -167,48 +188,44 @@ class SchoolController extends Controller
 
     public function updateEmailSettings(Request $request, School $school)
     {
-        $validated = $request->validate([
+        $messages = [
+            'host.required' => 'SMTP Host không được để trống',
+            'port.required' => 'Port không được để trống',
+            'port.numeric' => 'Port phải là số',
+            'username.required' => 'Username không được để trống',
+            'from_address.required' => 'From Address không được để trống',
+            'from_address.email' => 'From Address phải là email hợp lệ',
+            'from_name.required' => 'From Name không được để trống',
+        ];
+
+        $validator = Validator::make($request->all(), [
             'host' => 'required',
             'port' => 'required|numeric',
             'username' => 'required',
-            'password' => 'required',
+            'password' => 'nullable',
             'encryption' => 'nullable|in:tls,ssl',
             'from_address' => 'required|email',
             'from_name' => 'required',
+        ], $messages);
+
+        if ($validator->fails()) {
+            return redirect()->back()
+                ->withErrors($validator)
+                ->withInput();
+        }
+
+        $data = $request->only([
+            'host', 'port', 'username', 'encryption',
+            'from_address', 'from_name'
         ]);
 
-        $school->emailSettings()->updateOrCreate([], $validated);
+        // Chỉ cập nhật password nếu có giá trị
+        if ($request->filled('password')) {
+            $data['password'] = $request->password;
+        }
+
+        $school->emailSettings()->updateOrCreate([], $data);
 
         return back()->with('success', 'Đã cập nhật cấu hình email');
-    }
-    // SchoolController.php
-    public function testEmailSettings(Request $request, School $school)
-    {
-        $this->authorize('update', $school);
-
-        try {
-            // Cấu hình tạm thời
-            config([
-                'mail.mailers.smtp.host' => $school->emailSettings->host,
-                'mail.mailers.smtp.port' => $school->emailSettings->port,
-                // ... các cấu hình khác
-            ]);
-
-            Mail::raw('Email kiểm tra từ hệ thống', function($message) use ($school) {
-                $message->to($school->emailSettings->from_address)
-                    ->subject('Kiểm tra cấu hình email - '.$school->name);
-            });
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Email test đã được gửi thành công!'
-            ]);
-
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Lỗi: '.$e->getMessage()
-            ], 500);
-        }
     }
 }

@@ -142,14 +142,11 @@
                                                 </a>
                                             </li>
                                             <li>
-                                                <form action="{{ route('teacher_assignments.destroy', $assignment->id) }}" method="POST">
-                                                    @csrf
-                                                    @method('DELETE')
-                                                    <button type="submit" class="dropdown-item px-3 py-2 "
-                                                            onclick="return confirm('Bạn có chắc muốn xóa?')">
-                                                        Xóa
-                                                    </button>
-                                                </form>
+                                                <button class="dropdown-item px-3 py-2 delete-btn"
+                                                        data-id="{{ $assignment->id }}"
+                                                        data-url="{{ route('teacher_assignments.destroy', $assignment->id) }}">
+                                                    Xóa
+                                                </button>
                                             </li>
                                         </ul>
                                     </div>
@@ -173,59 +170,70 @@
                 @endif
             </div>
         </div>
+        <div class="modal fade" id="deleteConfirmationModal" tabindex="-1" aria-labelledby="deleteConfirmationModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="deleteConfirmationModalLabel">Xác nhận xóa</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        Bạn có chắc chắn muốn xóa phân công này không?
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-primary-color" data-bs-dismiss="modal">Hủy</button>
+                        <form id="deleteForm" method="POST" action="">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="btn btn-primary-color">Xác nhận xóa</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
+
 @endsection
 
 @push('scripts')
     <script>
-
         $(document).ready(function () {
-            // Xử lý form xóa phân công
-            $('.delete-assignment-form').on('submit', function (e) {
+            $(document).on('click', '.delete-btn', function() {
+                const url = $(this).data('url');
+                $('#deleteForm').attr('action', url);
+                $('#deleteConfirmationModal').modal('show');
+            });
+
+            // Xử lý submit form xóa
+            $('#deleteForm').on('submit', function(e) {
                 e.preventDefault();
 
-                if (confirm('Bạn chắc chắn muốn xóa phân công này?')) {
-                    $.ajax({
-                        url: $(this).attr('action'),
-                        method: 'POST',
-                        data: {
-                            _token: $(this).find('input[name="_token"]').val(),
-                            _method: 'DELETE'
-                        },
-                        success: function () {
-                            window.location.reload();
-                        },
-                        error: function () {
-                            alert('Đã xảy ra lỗi khi xóa phân công');
-                        }
-                    });
-                }
+                const form = $(this);
+                const submitBtn = form.find('button[type="submit"]');
+                submitBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Đang xóa...');
+
+                $.ajax({
+                    url: form.attr('action'),
+                    method: 'POST',
+                    data: {
+                        _token: form.find('input[name="_token"]').val(),
+                        _method: 'DELETE'
+                    },
+                    success: function() {
+                        $('#deleteConfirmationModal').modal('hide');
+                        window.location.reload();
+                    },
+                    error: function(xhr) {
+                        $('#deleteConfirmationModal').modal('hide');
+                        alert('Đã xảy ra lỗi khi xóa phân công');
+                        submitBtn.prop('disabled', false).html('Xác nhận xóa');
+                    }
+                });
             });
+
             // Tự động submit form khi có thay đổi filter
             $('#academic-year-filter, #class-filter, [name="subject_id"], [name="is_homeroom"]').change(function () {
                 $('#filter-form').submit();
-            });
-
-            // Xử lý form xóa phân công
-            $('.delete-assignment-form').on('submit', function (e) {
-                e.preventDefault();
-
-                if (confirm('Bạn chắc chắn muốn xóa phân công này?')) {
-                    $.ajax({
-                        url: $(this).attr('action'),
-                        method: 'POST',
-                        data: {
-                            _token: $(this).find('input[name="_token"]').val(),
-                            _method: 'DELETE'
-                        },
-                        success: function () {
-                            window.location.reload();
-                        },
-                        error: function () {
-                            alert('Đã xảy ra lỗi khi xóa phân công');
-                        }
-                    });
-                }
             });
 
             // Xử lý form thêm phân công

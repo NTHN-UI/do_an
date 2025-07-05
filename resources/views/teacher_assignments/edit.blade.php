@@ -10,7 +10,6 @@
             <form action="{{ route('teacher_assignments.update', $teacherAssignment) }}" method="POST">
                 @csrf
                 @method('PUT')
-                <!-- Giáo viên - chỉ hiển thị -->
                 <div class="col-md-12">
                     <label class="form-label">Giáo viên</label>
                     <input type="text" class="form-control" value="{{ $teacher->full_name }}" disabled>

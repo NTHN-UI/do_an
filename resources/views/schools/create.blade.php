@@ -12,9 +12,7 @@
     </style>
     <div class="container">
         <div class="d-flex align-items-center mb-4">
-            <a href="{{ route('schools.index') }}" class="btn btn-sm btn-primary-color me-3" title="Quay lại">
-                <i class="fas fa-arrow-left"></i>
-            </a>
+
             <h3 class="mb-0 text-primary-color">Thêm mới trường học</h3>
         </div>
         <div class="card-body">

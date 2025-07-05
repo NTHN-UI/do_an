@@ -4,8 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Models\AcademicYear;
 use App\Models\ClassModel;
+use App\Models\Grade;
 use App\Models\GradeLevel;
+use App\Models\Semester;
 use App\Models\StudentClass;
+use App\Models\Subject;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -366,7 +369,7 @@ class ClassAssignmentController extends Controller
 
         DB::beginTransaction();
         try {
-            $currentClass = ClassModel::findOrFail($current_class_id);
+            $currentClass = ClassModel::with('gradeLevel')->findOrFail($current_class_id);
             $currentAcademicYearId = $currentClass->academic_year_id;
             $nextAcademicYear = AcademicYear::findOrFail($next_academic_year_id);
 
@@ -379,104 +382,267 @@ class ClassAssignmentController extends Controller
                     continue;
                 }
 
-                $averageGrade = $user->getAverageOverallGradeForAcademicYear($currentAcademicYearId);
-                $newClass = null; // Khởi tạo biến $newClass
+                // Kiểm tra xem học sinh có bất kỳ điểm nào không
+                $hasAnyGrades = Grade::where('student_id', $user->id)
+                    ->where('academic_year_id', $currentAcademicYearId)
+                    ->exists();
+
+                if (!$hasAnyGrades) {
+                    $newClass = $this->getRetainedClass($currentClass, $nextAcademicYear);
+                    if ($newClass) {
+                        StudentClass::updateOrCreate(
+                            ['user_id' => $user->id, 'academic_year_id' => $nextAcademicYear->id],
+                            ['class_id' => $newClass->id]
+                        );
+                        $successCount++;
+                        $messages[] = "Học sinh {$user->full_name} ({$user->id}) không có điểm nào và sẽ ở lại lớp {$newClass->name}.";
+                    } else {
+                        $failCount++;
+                        $messages[] = "Không thể xác định lớp ở lại cho học sinh {$user->full_name} ({$user->id}) không có điểm.";
+                    }
+                    continue;
+                }
+
+                // Lấy thông tin xếp loại học lực
+                $classification = $this->calculateYearlyClassification($user->id, $currentAcademicYearId);
+                $newClass = null;
                 $promotionStatus = '';
 
-                if ($averageGrade === null) {
-                    $messages[] = "Không tìm thấy điểm trung bình cả năm cho học sinh {$user->full_name} ({$user->id}) trong năm học hiện tại. Học sinh sẽ ở lại lớp.";
+                // Kiểm tra điều kiện lên lớp
+                if ($classification === null) {
+                    $messages[] = "Không đủ dữ liệu để xếp loại cho học sinh {$user->full_name} ({$user->id}). Học sinh sẽ ở lại lớp.";
                     $newClass = $this->getRetainedClass($currentClass, $nextAcademicYear);
-                    $promotionStatus = 'Ở lại lớp (không có điểm)';
-                } elseif ($averageGrade >= 5.0) {
-                    try {
-                        $newClass = $this->getPromotedClass($currentClass, $nextAcademicYear);
-                        $promotionStatus = 'Lên lớp';
-                    } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
-                        $messages[] = "Không tìm thấy lớp để chuyển lên cho học sinh {$user->full_name} ({$user->id}). Học sinh sẽ ở lại lớp.";
+                    $promotionStatus = 'Ở lại lớp (không đủ dữ liệu)';
+                }
+                // Điều kiện lên lớp: Xếp loại từ Đạt trở lên
+                elseif (in_array($classification, ['Đạt', 'Khá', 'Tốt'])) {
+                    $newClass = $this->getPromotedClass($currentClass, $nextAcademicYear);
+                    if ($newClass) {
+                        $promotionStatus = 'Lên lớp (' . $classification . ')';
+                    } else {
+                        $messages[] = "Không tìm thấy lớp để chuyển lên. Học sinh sẽ ở lại lớp.";
                         $newClass = $this->getRetainedClass($currentClass, $nextAcademicYear);
                         $promotionStatus = 'Ở lại lớp (không tìm thấy lớp lên)';
                     }
                 } else {
                     $newClass = $this->getRetainedClass($currentClass, $nextAcademicYear);
-                    $promotionStatus = 'Ở lại lớp';
+                    $promotionStatus = 'Ở lại lớp (' . $classification . ')';
                 }
 
-                StudentClass::create([
-                    'user_id' => $user->id,
-                    'class_id' => $newClass->id,
-                    'academic_year_id' => $nextAcademicYear->id,
-                    // created_at và updated_at sẽ tự động được thêm bởi Eloquent
-                ]);
+                if (!$newClass) {
+                    $failCount++;
+                    $messages[] = "Không thể xác định lớp cho học sinh {$user->full_name} ({$user->id}).";
+                    continue;
+                }
+
+                StudentClass::updateOrCreate(
+                    ['user_id' => $user->id, 'academic_year_id' => $nextAcademicYear->id],
+                    ['class_id' => $newClass->id]
+                );
 
                 $successCount++;
-                $messages[] = "Học sinh {$user->full_name} ({$user->id}) đã được chuyển: {$promotionStatus} vào lớp {$newClass->name} ({$nextAcademicYear->year}).";
+                $messages[] = "Học sinh {$user->full_name} ({$user->id}) đã được xử lý: {$promotionStatus} vào lớp {$newClass->name}.";
             }
 
             DB::commit();
             return response()->json([
-                'message' => "Đã xử lý chuyển lớp cho {$successCount} học sinh thành công, {$failCount} thất bại. Chi tiết: " . implode('; ', $messages),
-                'status' => 'success'
+                'success' => true,
+                'message' => "Đã xử lý {$successCount} học sinh thành công, {$failCount} thất bại.",
+                'details' => $messages
             ]);
 
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error('Lỗi khi chuyển lớp hàng loạt: ' . $e->getMessage() . ' - Stack: ' . $e->getTraceAsString());
-            return response()->json(['message' => 'Đã xảy ra lỗi hệ thống khi chuyển lớp: ' . $e->getMessage()], 500);
+            return response()->json([
+                'success' => false,
+                'message' => 'Lỗi hệ thống: ' . $e->getMessage(),
+                'trace' => config('app.debug') ? $e->getTrace() : null
+            ], 500);
         }
     }
 
-    // Hàm helper để lấy lớp lên khối
-    private function getPromotedClass(ClassModel $currentClass, AcademicYear $nextAcademicYear)
+    protected function calculateYearlyClassification($studentId, $academicYearId)
+    {
+        // Lấy điểm cả năm của học sinh
+        $grades = Grade::where('student_id', $studentId)
+            ->where('academic_year_id', $academicYearId)
+            ->where('test_type', 'final')
+            ->with(['subject', 'semester'])
+            ->get()
+            ->groupBy(['semester_id', 'subject_id']);
+
+        if ($grades->isEmpty()) {
+            return null;
+        }
+
+        // Lấy các học kỳ
+        $semesters = Semester::where('academic_year_id', $academicYearId)
+            ->orderBy('start_date')
+            ->get();
+
+        $semester1 = $semesters->first();
+        $semester2 = $semesters->slice(1)->first();
+
+        if (!$semester1 || !$semester2) {
+            return null;
+        }
+
+        // Tính điểm trung bình các môn
+        $subjectAverages = [];
+        $specialSubjects = ['Giáo dục quốc phòng và an ninh', 'Giáo dục thể chất', 'Nghệ thuật'];
+
+        $subjects = Subject::where('school_id', auth()->user()->school_id)->get();
+
+        foreach ($subjects as $subject) {
+            $isSpecial = in_array($subject->name, $specialSubjects);
+
+            $grade1 = $grades[$semester1->id][$subject->id][0] ?? null;
+            $grade2 = $grades[$semester2->id][$subject->id][0] ?? null;
+
+            if ($grade1 && $grade2) {
+                if ($isSpecial) {
+                    $subjectAverages[$subject->id] = [
+                        'value' => $grade2->text_value ?? ($grade2->score >= 5 ? 'Đạt' : 'Chưa đạt'),
+                        'is_special' => true,
+                        'name' => $subject->name
+                    ];
+                } else {
+                    $subjectAverages[$subject->id] = [
+                        'value' => round(($grade1->score + $grade2->score * 2) / 3, 1),
+                        'is_special' => false,
+                        'name' => $subject->name
+                    ];
+                }
+            }
+        }
+
+        // Tính điểm trung bình cả năm (chỉ tính môn thường)
+        $total = 0;
+        $count = 0;
+        foreach ($subjectAverages as $subjectAverage) {
+            if (!$subjectAverage['is_special'] && is_numeric($subjectAverage['value'])) {
+                $total += $subjectAverage['value'];
+                $count++;
+            }
+        }
+
+        $yearlyAverage = $count > 0 ? $total / $count : 0;
+
+        // Xếp loại học lực
+        return $this->classifyStudentPerformance($yearlyAverage, $subjectAverages);
+    }
+
+    protected function classifyStudentPerformance($averageScore, $subjectAverages)
+    {
+        if (!is_numeric($averageScore)) {
+            return 'Chưa đạt';
+        }
+
+        $specialSubjects = ['Giáo dục quốc phòng và an ninh', 'Giáo dục thể chất', 'Nghệ thuật'];
+
+        $specialNotPassed = 0;
+        $countAbove6_5 = 0;
+        $countAbove5 = 0;
+        $hasBelow3_5 = false;
+
+        foreach ($subjectAverages as $data) {
+            $isSpecial = in_array($data['name'], $specialSubjects);
+
+            if ($isSpecial) {
+                if ($data['value'] === 'Chưa đạt') {
+                    $specialNotPassed++;
+                }
+            } else {
+                if ($data['value'] >= 6.5) $countAbove6_5++;
+                if ($data['value'] >= 5.0) $countAbove5++;
+                if ($data['value'] < 3.5) $hasBelow3_5 = true;
+            }
+        }
+
+        // Áp dụng quy định xếp loại
+        if ($specialNotPassed === 0 && $countAbove6_5 >= 6 && $averageScore >= 6.5) {
+            return 'Tốt';
+        }
+        if ($specialNotPassed === 0 && $countAbove5 >= 6 && $averageScore >= 5.0) {
+            return 'Khá';
+        }
+        if ($specialNotPassed <= 1 && $countAbove5 >= 6 && !$hasBelow3_5) {
+            return 'Đạt';
+        }
+
+        return 'Chưa đạt';
+    }
+
+    protected function getPromotedClass(ClassModel $currentClass, AcademicYear $nextAcademicYear)
     {
         // Lấy cấp độ khối hiện tại
         $currentGradeNumber = $currentClass->gradeLevel->grade_number;
         $nextGradeNumber = $currentGradeNumber + 1;
 
+        // Kiểm tra nếu đã là khối cuối cùng
         if ($nextGradeNumber > 12) { // Giả sử 12 là khối cuối cùng
-            return null; // Hoặc ném một Exception tùy chỉnh để báo là học sinh đã tốt nghiệp
+            Log::warning("Học sinh không thể lên lớp vì đã ở khối cuối: {$currentClass->name}");
+            return null;
         }
+
+        // Tìm khối lớp tiếp theo
         $nextGradeLevel = GradeLevel::where('grade_number', $nextGradeNumber)
             ->where('school_id', $currentClass->school_id)
-            ->first(); // <-- Thay firstOrFail() bằng first()
+            ->first();
 
         if (!$nextGradeLevel) {
             Log::warning("Không tìm thấy GradeLevel cho khối {$nextGradeNumber} trong trường {$currentClass->school_id}.");
             return null;
         }
 
-        // Cố gắng tìm lớp có tên tương ứng (ví dụ: 10A1 -> 11A1)
+        // Tạo tên lớp mục tiêu (ví dụ: 10A1 -> 11A1)
         $targetClassName = str_replace(
             (string)$currentGradeNumber,
             (string)$nextGradeNumber,
             $currentClass->name
         );
 
+        // Tìm lớp trong năm học tiếp theo
         $promotedClass = ClassModel::where('academic_year_id', $nextAcademicYear->id)
             ->where('grade_level_id', $nextGradeLevel->id)
             ->where('name', $targetClassName)
             ->where('school_id', $currentClass->school_id)
-            ->first(); // <-- Thay firstOrFail() bằng first()
+            ->first();
 
         if (!$promotedClass) {
-            Log::warning("Không tìm thấy lớp '{$targetClassName}' trong năm học {$nextAcademicYear->year} và khối {$nextGradeNumber}.");
-            return null;
+            // Thử tìm bất kỳ lớp nào trong khối tiếp theo nếu không tìm thấy lớp cùng tên
+            $promotedClass = ClassModel::where('academic_year_id', $nextAcademicYear->id)
+                ->where('grade_level_id', $nextGradeLevel->id)
+                ->where('school_id', $currentClass->school_id)
+                ->first();
+        }
+
+        if (!$promotedClass) {
+            Log::warning("Không tìm thấy lớp phù hợp trong khối {$nextGradeNumber} năm học {$nextAcademicYear->year}.");
         }
 
         return $promotedClass;
     }
 
-    // Hàm helper để lấy lớp ở lại
-    private function getRetainedClass(ClassModel $currentClass, AcademicYear $nextAcademicYear)
+    protected function getRetainedClass(ClassModel $currentClass, AcademicYear $nextAcademicYear)
     {
+        // Đầu tiên thử tìm lớp cùng tên
         $retainedClass = ClassModel::where('academic_year_id', $nextAcademicYear->id)
             ->where('grade_level_id', $currentClass->grade_level_id)
             ->where('name', $currentClass->name)
             ->where('school_id', $currentClass->school_id)
-            ->first(); // <-- Thay firstOrFail() bằng first()
+            ->first();
 
         if (!$retainedClass) {
-            Log::warning("Không tìm thấy lớp ở lại '{$currentClass->name}' trong năm học {$nextAcademicYear->year}.");
-            return null;
+            // Nếu không tìm thấy lớp cùng tên, tìm bất kỳ lớp nào cùng khối
+            $retainedClass = ClassModel::where('academic_year_id', $nextAcademicYear->id)
+                ->where('grade_level_id', $currentClass->grade_level_id)
+                ->where('school_id', $currentClass->school_id)
+                ->first();
+        }
+
+        if (!$retainedClass) {
+            Log::warning("Không tìm thấy lớp ở lại phù hợp trong khối {$currentClass->gradeLevel->grade_number} năm học {$nextAcademicYear->year}.");
         }
 
         return $retainedClass;

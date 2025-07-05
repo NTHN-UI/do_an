@@ -2,56 +2,24 @@
 
 @section('content')
     <style>
-        .container {
-            border-radius: 12px;
-            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
-            padding: 20px;
-            overflow-x: auto;
-        }
-
-        .card {
-            border-radius: 0.5rem;
-        }
-
-        .card-body {
-            position: relative;
-            overflow: visible !important;
-        }
-
-        .table {
-            border-radius: 10px;
-            overflow: hidden;
-        }
-
-        .table-hover tbody tr:hover {
-            background-color: rgba(0, 123, 255, 0.08);
-            transition: background-color 0.3s ease-in-out;
-        }
-
-        .table-responsive {
-            overflow: visible !important;
-        }
-
-        .table-responsive .dropdown-menu  {
+        .table-responsive .dropdown-menu {
             position: fixed !important;
             z-index: 1000 !important;
             min-width: 90px;
         }
-
-        .table-responsive .show > .dropdown-menu {
-            display: block !important;
-        }
-        th {
-            font-weight: 500;
-        }
         .dropdown-item:active,
         .dropdown-item:focus {
-            background-color: #013066 !important;
-            color: white !important;
+            background-color: #013066;
+            color: white;
+        }
+        .pagination .page-item.active .page-link {
+            background-color: var(--primary-color);
+            color: var(--bs-white);
+            border-color: var(--primary-color);
         }
     </style>
-    <div class="container">
-        <h3 class="mb-3 text-primary-color">Danh sách Admin trường</h3>
+    <div class="container  rounded-3 shadow p-4">
+    <h3 class="mb-3 text-primary-color">Danh sách Admin trường</h3>
         <div class="d-flex justify-content-end align-items-center mb-3">
             <form method="GET" action="{{ route('school_admins.index') }}" class="d-flex me-2" id="search-form">
                 <div class="input-group">
@@ -68,10 +36,10 @@
                 Thêm mới
             </a>
         </div>
-        <div class="card border-0 shadow-sm">
+        <div class="card border-0 shadow-sm rounded-2">
             <div class="card-body p-0">
                 <div class="table-responsive">
-                    <table class="table table-hover mb-0">
+                    <table class="table table-hover mb-0 rounded-3 overflow-hidden">
                         <thead class="table-secondary">
                         <tr>
                             <th class="ps-4">STT</th>

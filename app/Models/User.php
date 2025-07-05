@@ -92,7 +92,6 @@ class User extends Authenticatable
         return $this->belongsTo(School::class);
     }
 
-// User.php
     public function academicYears()
     {
         return $this->belongsToMany(AcademicYear::class, 'student_classes', 'user_id', 'academic_year_id')
@@ -114,6 +113,12 @@ class User extends Authenticatable
     {
         return $this->hasMany(StudentClass::class);
     }
+    public function classesForYear($academicYearId)
+    {
+        return $this->belongsToMany(ClassModel::class, 'student_classes', 'user_id', 'class_id')
+            ->wherePivot('academic_year_id', $academicYearId);
+    }
+
     public function getCurrentClass($year){
         return $this->studentClasses()
             ->whereHas('academicYear', function ($query) use ($year) {
@@ -169,7 +174,6 @@ class User extends Authenticatable
         return $this->belongsToMany(GradeLevel::class, 'grade_users', 'user_id', 'grade_id')
             ->withPivot(['academic_year_id', 'school_id']);
     }
-
 
     public function subject()
     {
@@ -266,83 +270,37 @@ class User extends Authenticatable
             ->wherePivot('academic_year_id', $academicYearId)
             ->first();
     }
+    // app/Models/User.php
 
-    public function getFinalResult($academicYearId)
-    {
-        $finalGrades = Grade::where('student_id', $this->id)
-            ->where('academic_year_id', $academicYearId)
-            ->where('test_type', 'final')
-            ->get()
-            ->groupBy('semester_id');
-
-        $subjects = Subject::where('school_id', $this->school_id)->get();
-        $result = [
-            'semester1' => ['subjects' => [], 'average' => 0, 'classification' => ''],
-            'semester2' => ['subjects' => [], 'average' => 0, 'classification' => ''],
-            'yearly' => ['subjects' => [], 'average' => 0, 'classification' => '']
-        ];
-
-        if ($finalGrades->isEmpty()) {
-            return $result;
-        }
-
-        // Tính điểm từng học kỳ
-        foreach ([1, 2] as $semester) {
-            $semesterGrades = $finalGrades->get($semester) ?? collect();
-            $total = 0;
-            $count = 0;
-
-            foreach ($subjects as $subject) {
-                $grade = $semesterGrades->where('subject_id', $subject->id)->first();
-                $score = $grade ? $grade->score : 0;
-
-                $result["semester$semester"]['subjects'][$subject->id] = $score;
-
-                if ($score > 0) {
-                    $total += $score;
-                    $count++;
-                }
-            }
-
-            if ($count > 0) {
-                $result["semester$semester"]['average'] = round($total / $count, 1);
-                $result["semester$semester"]['classification'] = $this->classifyStudent(
-                    $result["semester$semester"]['average'],
-                    $result["semester$semester"]['subjects']
-                );
-            }
-        }
-
-        // Tính điểm cả năm
-        if ($result['semester1']['average'] > 0 && $result['semester2']['average'] > 0) {
-            $yearlyAvg = round(
-                ($result['semester1']['average'] + $result['semester2']['average'] * 2) / 3,
-                1
-            );
-
-            $result['yearly']['average'] = $yearlyAvg;
-            $result['yearly']['classification'] = $this->classifyStudent(
-                $yearlyAvg,
-                array_map(
-                    function ($s1, $s2) {
-                        return ($s1 + $s2 * 2) / 3; // Điểm môn cả năm
-                    },
-                    $result['semester1']['subjects'],
-                    $result['semester2']['subjects']
-                )
-            );
-        }
-
-        return $result;
-    }
     public function getAverageOverallGradeForAcademicYear($academicYearId)
     {
-        $average = Grade::where('student_id', $this->id)
-            ->where('academic_year_id', $academicYearId)
+        // Lấy điểm trung bình cả năm của học sinh trong năm học cụ thể
+        $grades = Grade::whereHas('semester', function($query) use ($academicYearId) {
+            $query->where('academic_year_id', $academicYearId);
+        })
+            ->where('student_id', $this->id)
             ->where('test_type', 'final')
-            ->avg('score');
+            ->get();
 
-        // Trả về null nếu không có điểm
-        return $average !== null ? (float)$average : null;
+        if ($grades->isEmpty()) {
+            return null;
+        }
+
+        // Tính điểm trung bình (chỉ tính các môn không phải môn đặc biệt)
+        $specialSubjects = ['Giáo dục quốc phòng và an ninh', 'Giáo dục thể chất', 'Nghệ thuật'];
+
+        $total = 0;
+        $count = 0;
+
+        foreach ($grades as $grade) {
+            $subject = $grade->subject;
+            if ($subject && !in_array($subject->name, $specialSubjects) && is_numeric($grade->score)) {
+                $total += $grade->score;
+                $count++;
+            }
+        }
+
+        return $count > 0 ? round($total / $count, 1) : null;
     }
+
 }

@@ -29,10 +29,10 @@ class StudentClass extends Model
         return $this->hasOneThrough(
             GradeLevel::class,
             ClassModel::class,
-            'id', // Foreign key on ClassModel table
-            'id', // Foreign key on GradeLevel table
-            'class_id', // Local key on StudentClass table
-            'grade_level_id' // Local key on ClassModel table
+            'id',
+            'id',
+            'class_id',
+            'grade_level_id'
         );
     }
 }

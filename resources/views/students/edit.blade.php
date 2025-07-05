@@ -32,7 +32,7 @@
                     <label for="full_name" class="form-label">Họ và tên <span class="text-danger">*</span></label>
                     <input type="text" name="full_name" id="full_name"
                            class="form-control @error('full_name') is-invalid @enderror"
-                           value="{{ old('full_name', $student->full_name) }}" required>
+                           value="{{ old('full_name', $student->full_name) }}" >
                     @error('full_name')
                     <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
@@ -48,7 +48,7 @@
                     <label for="phone" class="form-label">Số điện thoại <span class="text-danger">*</span></label>
                     <input type="text" name="phone" id="phone"
                            class="form-control @error('phone') is-invalid @enderror"
-                           value="{{ old('phone', $student->phone) }}" required>
+                           value="{{ old('phone', $student->phone) }}" >
                     @error('phone')
                     <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
@@ -56,7 +56,7 @@
                 <div class="col-md-12 mb-3">
                     <label for="gender" class="form-label">Giới tính <span class="text-danger">*</span></label>
                     <select name="gender" id="gender"
-                            class="form-select @error('gender') is-invalid @enderror" required>
+                            class="form-select @error('gender') is-invalid @enderror">
                         <option value="">-- Chọn --</option>
                         <option value="Nam" {{ old('gender', $student->gender) == 'Nam' ? 'selected' : '' }}>Nam</option>
                         <option value="Nữ" {{ old('gender', $student->gender) == 'Nữ' ? 'selected' : '' }}>Nữ</option>

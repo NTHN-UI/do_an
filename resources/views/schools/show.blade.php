@@ -12,9 +12,6 @@
     </style>
     <div class="container">
         <div class="d-flex align-items-center mb-4">
-            <a href="{{ route('schools.index') }}" class="btn btn-sm btn-primary-color me-3" title="Quay lại">
-                <i class="fas fa-arrow-left"></i>
-            </a>
             <h3 class="mb-0 text-primary-color"> Xem thông tin trường học</h3>
         </div>
         <div class="card-body">
@@ -33,10 +30,6 @@
                         <dt class="col-sm-4">Tỉnh/Thành:</dt>
                         <dd class="col-sm-8">{{ $school->province }}</dd>
 
-                    </dl>
-                </div>
-                <div class="col-md-6">
-                    <dl class="row">
                         <dt class="col-sm-4">ID:</dt>
                         <dd class="col-sm-8">{{ $school->id }}</dd>
 
@@ -49,14 +42,12 @@
                 </div>
             </div>
             <div class="mt-3 d-flex justify-content-end">
-                <a href="{{ route('schools.email-settings', $school) }}" class="btn btn-primary-color fw-bold me-2">
-                    <i class="fas fa-envelope"></i> Cấu hình Email
+                <a href="{{ route('schools.index', $school->id) }}" class="btn btn-outline-primary-color  me-2"> Đóng
                 </a>
-                <a href="{{ route('schools.index', $school->id) }}" class="btn btn-primary-color fw-bold"> Đóng
+                <a href="{{ route('schools.email-settings', $school) }}" class="btn btn-primary-color">
+                     Cấu hình Email
                 </a>
-
             </div>
-
 
         </div>
     </div>

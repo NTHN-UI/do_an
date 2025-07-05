@@ -48,7 +48,7 @@
                 <div class="form-group mb-4">
                     <label for="file">File tài liệu <span class="text-danger">*</span></label>
                     <input class="form-control @error('file') is-invalid @enderror"
-                           type="file" id="file" name="file" required
+                           type="file" id="file" name="file"
                            accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx">
                     <small class="form-text text-muted">
                         Chấp nhận file: PDF, Word, PowerPoint, Excel (tối đa 10MB)

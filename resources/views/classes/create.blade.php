@@ -43,9 +43,6 @@
                     <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
                 </div>
-
-
-
                 <div class="d-flex justify-content-end mt-3">
                     <a href="{{ route('classes.index') }}" class="btn btn-outline-primary-color me-2">Đóng</a>
                     <button type="submit" class="btn btn-primary-color">

@@ -19,8 +19,10 @@
             padding: 3px 8px;
             font-size: 0.85rem;
         }
-        .text-primary-color {
-            color: #013066;
+        .pagination .page-item.active .page-link {
+            background-color: var(--primary-color);
+            color: var(--bs-white);
+            border-color: var(--primary-color);
         }
     </style>
 
@@ -79,13 +81,13 @@
                     </table>
                 </div>
             </div>
-{{--            @if ($schools->hasPages())--}}
-{{--                <div class="card-footer border-0 bg-transparent" id="pagination-container">--}}
-{{--                    <nav aria-label="page navigation">--}}
-{{--                        {{ $schools->links('pagination::bootstrap-5') }}--}}
-{{--                    </nav>--}}
-{{--                </div>--}}
-{{--            @endif--}}
+            @if($schools->lastPage() > 1)
+                <div class="card-footer border-0 bg-transparent" id="pagination-container">
+                    <nav aria-label="page navigation">
+                        {{ $schools->links('pagination::bootstrap-5') }}
+                    </nav>
+                </div>
+            @endif
         </div>
     </div>
 @endsection

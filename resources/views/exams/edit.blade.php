@@ -15,9 +15,6 @@
     <div class="container rounded-3 shadow p-4"> {{-- Main container styling --}}
         {{-- Tiêu đề và nút quay lại, giống form tạo mới/giáo viên --}}
         <div class="d-flex align-items-center mb-4">
-            <a href="{{ route('exams.index') }}" class="btn text-primary-color btn-sm me-3" title="Quay lại danh sách đề thi">
-                <i class="fas fa-arrow-left"></i>
-            </a>
             <h3 class="mb-0 text-primary-color">Sửa đề thi</h3>
         </div>
 

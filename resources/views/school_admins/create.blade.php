@@ -9,32 +9,10 @@
             padding: 20px;
             overflow-x: auto;
         }
-
-        .form-group {
-            margin-bottom: 1.5rem;
-        }
-
-        .form-control {
-            border-radius: 0.375rem;
-            border: 1px solid #ced4da;
-        }
-
-        .btn-back {
-            background: none;
-            border: none;
-            font-size: 1.2rem;
-        }
-
-        .btn-back:hover {
-            color: #011a4d !important;
-        }
     </style>
 
     <div class="container">
         <div class="d-flex align-items-center mb-4">
-            <a href="{{ route('school_admins.index') }}" class="btn btn-back text-primary-color me-3" title="Quay lại">
-                <i class="fas fa-arrow-left"></i>
-            </a>
             <h3 class="mb-0 text-primary-color">Thêm mới Admin Trường</h3>
         </div>
 

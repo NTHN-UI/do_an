@@ -4,15 +4,13 @@
 
 @section('content')
     <div class="container rounded-3 shadow p-4">
-        {{-- Header Section - simplified to match 'Danh sách học kỳ' --}}
         <h3 class="mb-3 text-primary-color">Điểm số theo năm học</h3>
 
-        {{-- Filter Section - moved outside the main card --}}
         <div class="row mb-3 justify-content-end">
             <div class="col-md-3">
                 <form method="GET" action="{{ route('student_grades') }}">
                     <div class="input-group">
-                        <select name="academic_year_id" class="form-select rounded-3" onchange="this.form.submit()"> {{-- Changed rounded-pill to rounded-3 for consistency --}}
+                        <select name="academic_year_id" class="form-select rounded-3" onchange="this.form.submit()">
                             <option value="">-- Chọn năm học --</option>
                             @foreach($academicYears as $year)
                                 <option value="{{ $year->id }}"
@@ -49,10 +47,10 @@
                             </ul>
                             <div class="tab-content p-3 custom-border" id="semesterTabsContent">
                                 <div class="tab-pane fade show active" id="semester1" role="tabpanel" aria-labelledby="semester1-tab">
-                                    @if($grades->has(1))
+                                    @if($grades->has($yearlyResults['semester1_id'] ?? null))
                                         <div class="d-flex justify-content-between align-items-center mb-3">
                                             <h5 class="mb-0 text-primary-color">Kết quả học kỳ I</h5>
-                                            <a href="{{ route('student_grades.detail', ['academic_year_id' => $selectedYearId, 'semester_id' => 1]) }}"
+                                            <a href="{{ route('student_grades.detail', ['academic_year_id' => $selectedYearId, 'semester_id' => $yearlyResults['semester1_id'] ?? 1]) }}"
                                                class="btn btn-sm btn-primary-color">Xem chi tiết
                                             </a>
                                         </div>
@@ -67,7 +65,7 @@
                                                 <tbody>
                                                 @foreach($subjects as $subject)
                                                     @php
-                                                        $grade = $grades[1][$subject->id][0] ?? null;
+                                                        $grade = $grades[$yearlyResults['semester1_id'] ?? null][$subject->id][0] ?? null;
                                                         $isSpecialSubject = in_array($subject->name, [
                                                             'Giáo dục quốc phòng và an ninh',
                                                             'Giáo dục thể chất',
@@ -100,16 +98,16 @@
                                     @endif
                                 </div>
                                 <div class="tab-pane fade" id="semester2" role="tabpanel" aria-labelledby="semester2-tab">
-                                    @if($grades->has(2))
+                                    @if($grades->has($yearlyResults['semester2_id'] ?? null))
                                         <div class="d-flex justify-content-between align-items-center mb-3">
                                             <h5 class="mb-0 text-primary-color">Kết quả học kỳ II</h5>
-                                            <a href="{{ route('student_grades.detail', ['academic_year_id' => $selectedYearId, 'semester_id' => 2]) }}"
+                                            <a href="{{ route('student_grades.detail', ['academic_year_id' => $selectedYearId, 'semester_id' => $yearlyResults['semester2_id'] ?? 2]) }}"
                                                class="btn btn-sm btn-primary-color">Xem chi tiết
                                             </a>
                                         </div>
                                         <div class="table-responsive">
                                             <table class="table table-hover mb-0 rounded-3 overflow-hidden table-custom-bordered">
-                                                <thead class="table-secondary text-center"> {{-- Used table-secondary for consistent header --}}
+                                                <thead class="table-secondary text-center">
                                                 <tr>
                                                     <th>Môn học</th>
                                                     <th width="120" class="text-center">Điểm</th>
@@ -118,12 +116,12 @@
                                                 <tbody>
                                                 @foreach($subjects as $subject)
                                                     @php
-                                                        $grade = $grades[2][$subject->id][0] ?? null;
+                                                        $grade = $grades[$yearlyResults['semester2_id'] ?? null][$subject->id][0] ?? null;
                                                         $isSpecialSubject = in_array($subject->name, [
-            'Giáo dục quốc phòng và an ninh',
-            'Giáo dục thể chất',
-            'Nghệ thuật'
-        ]);
+                                                            'Giáo dục quốc phòng và an ninh',
+                                                            'Giáo dục thể chất',
+                                                            'Nghệ thuật'
+                                                        ]);
                                                     @endphp
                                                     <tr>
                                                         <td>{{ $subject->name }}</td>
@@ -154,19 +152,19 @@
                                     <h5 class="mb-3 text-primary-color">Tổng hợp điểm các môn cả năm</h5>
                                     <div class="table-responsive">
                                         <table class="table table-hover mb-0 rounded-3 overflow-hidden table-custom-bordered">
-                                            <thead class="table-secondary text-center"> {{-- Used table-secondary for consistent header --}}
+                                            <thead class="table-secondary text-center">
                                             <tr>
                                                 <th>Môn học</th>
-                                                <th width="120" class="text-center">Điểm HK1</th>
-                                                <th width="120" class="text-center">Điểm HK2</th>
+                                                <th width="120" class="text-center">Điểm HKI</th>
+                                                <th width="120" class="text-center">Điểm HKII</th>
                                                 <th width="120" class="text-center">Điểm cả năm</th>
                                             </tr>
                                             </thead>
                                             <tbody>
                                             @foreach($subjects as $subject)
                                                 @php
-                                                    $grade1 = $grades[1][$subject->id][0] ?? null;
-                                                    $grade2 = $grades[2][$subject->id][0] ?? null;
+                                                    $grade1 = $grades[$yearlyResults['semester1_id'] ?? null][$subject->id][0] ?? null;
+                                                    $grade2 = $grades[$yearlyResults['semester2_id'] ?? null][$subject->id][0] ?? null;
                                                     $yearlyGrade = $yearlyResults['subject_grades'][$subject->id] ?? null;
                                                     $isSpecialSubject = in_array($subject->name, [
                                                         'Giáo dục quốc phòng và an ninh',
@@ -235,14 +233,12 @@
                             </div>
                         </div>
                     @else
-                        {{-- Hiển thị thông báo nếu năm học không có dữ liệu --}}
                         <div class="alert alert-warning alert-custom-warning rounded-2 shadow-sm">
                             <i class="fas fa-exclamation-triangle me-2"></i>
                             Năm học này chưa có dữ liệu điểm.
                         </div>
                     @endif
                 @else
-                    {{-- Hiển thị khi chưa chọn năm học --}}
                     <div class="alert alert-info alert-custom-info rounded-2 shadow-sm">
                         <i class="fas fa-info-circle me-2"></i>
                         Vui lòng chọn năm học để xem điểm.
@@ -252,17 +248,16 @@
         </div>
     </div>
 @endsection
+
 @push('scripts')
-        <script>
-            // Kích hoạt tab khi trang được tải
-            document.addEventListener('DOMContentLoaded', function() {
-                // Kiểm tra nếu có hash trong URL
-                if (window.location.hash) {
-                    const tabTrigger = new bootstrap.Tab(document.querySelector(
-                        `a[href="${window.location.hash}"][data-bs-toggle="tab"]`
-                    ));
-                    tabTrigger.show();
-                }
-            });
-        </script>
-    @endpush
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            if (window.location.hash) {
+                const tabTrigger = new bootstrap.Tab(document.querySelector(
+                    `a[href="${window.location.hash}"][data-bs-toggle="tab"]`
+                ));
+                tabTrigger.show();
+            }
+        });
+    </script>
+@endpush

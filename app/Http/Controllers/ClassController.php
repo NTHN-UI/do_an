@@ -153,7 +153,6 @@ class ClassController extends Controller
             ->findOrFail($id);
 
         $gradeLevels = GradeLevel::where('school_id', auth()->user()->school_id)->get();
-        // Lấy năm học từ session
         $selectedYearId = session('selected_academic_year_id');
 
         $academicYears = AcademicYear::where('school_id', auth()->user()->school_id)->get();

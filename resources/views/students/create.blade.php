@@ -9,9 +9,6 @@
     </style>
     <div class="container rounded-3 shadow p-4" style="background: #fff;">
         <div class="d-flex align-items-center mb-4">
-            <a href="{{ route('students.index') }}" class="btn btn-back me-3" title="Quay lại">
-                <i class="fas fa-arrow-left"></i>
-            </a>
             <h3 class="mb-0 text-primary-color">Thêm mới Học sinh</h3>
         </div>
         <div class="card border-0 shadow-sm rounded-2">
@@ -93,7 +90,7 @@
                     </div>
                     <div class="mb-3">
                         <label for="grade_level_id" class="form-label">Khối học*</label>
-                        <select name="grade_level_id" class="form-select" id="grade_level_id" required>
+                        <select name="grade_level_id" class="form-select" id="grade_level_id" >
                             <option value="">-- Chọn khối --</option>
                             @foreach($gradeLevels as $grade)
                                 <option value="{{ $grade->id }}"
@@ -163,7 +160,6 @@
 @push('scripts')
     <script>
         $(document).ready(function() {
-            // Xử lý thay đổi khối học
             $('#grade_level_id').change(function() {
                 const gradeId = $(this).val();
                 const entryScoreField = $('#entry_score_field');
@@ -173,7 +169,6 @@
                     return;
                 }
 
-                // Kiểm tra có phải khối 10 không
                 const isGrade10 = $(this).find('option:selected').text().includes('10');
                 $('#entry_score_field').toggle(isGrade10);
 
@@ -186,7 +181,6 @@
                 }
             });
 
-            // Kích hoạt kiểm tra khi load trang nếu có giá trị cũ
             @if(old('grade_level_id'))
             $('#grade_level_id').val('{{ old('grade_level_id') }}').trigger('change');
             @endif

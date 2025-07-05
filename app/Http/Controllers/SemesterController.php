@@ -55,7 +55,7 @@ class SemesterController extends Controller
                     $month = $startDate->format('m');
                     $year = $startDate->format('Y');
 
-                    if (request('name') === 'Học kỳ I' && $month !== '09') {
+                    if (request('name') === 'Học kỳ I' && $month !== '08' && $month !== '09') {
                         $fail('Học kỳ I phải bắt đầu vào tháng 9');
                     }
 
@@ -91,16 +91,16 @@ class SemesterController extends Controller
                         $fail('Học kỳ I phải kết thúc vào tháng 12 hoặc tháng 1');
                     }
 
-                    if (request('name') === 'Học kỳ II' && !in_array($month, ['05', '06'])) {
-                        $fail('Học kỳ II phải kết thúc vào tháng 5 hoặc tháng 6');
+                    if (request('name') === 'Học kỳ II' && !in_array($month, ['05', '06', '07'])) {
+                        $fail('Học kỳ II phải kết thúc vào tháng 5 tháng 6  hoặc tháng 7 ');
                     }
 
                     $startDate = date_create(request('start_date'));
                     $interval = $startDate->diff($endDate);
                     $totalMonths = $interval->y * 12 + $interval->m;
 
-                    if ($totalMonths < 4 || $totalMonths > 5) {
-                        $fail('Học kỳ phải kéo dài từ 4 đến 5 tháng');
+                    if ($totalMonths < 4 || $totalMonths > 6) {
+                        $fail('Học kỳ phải kéo dài từ 5 đến 6 tháng');
                     }
 
                     if ($endDate < $academicYear->start_date) {
@@ -126,11 +126,11 @@ class SemesterController extends Controller
             'start_date.required' => 'Ngày bắt đầu không được để trống',
             'end_date.required' => 'Ngày kết thúc không được để trống',
             'end_date.after' => 'Ngày kết thúc phải sau ngày bắt đầu',
-            'start_date.semester1_start' => 'Học kỳ I phải bắt đầu vào tháng 9',
+            'start_date.semester1_start' => 'Học kỳ I phải bắt đầu vào tháng 8 hoặc tháng 9',
             'start_date.semester2_start' => 'Học kỳ II phải bắt đầu vào tháng 1',
             'end_date.semester1_end' => 'Học kỳ I phải kết thúc vào tháng 12 hoặc tháng 1',
-            'end_date.semester2_end' =>  'Học kỳ II phải kết thúc vào tháng 5 hoặc tháng 6',
-            'duration.valid' => 'Học kỳ phải kéo dài từ 4 đến 5 tháng',
+            'end_date.semester2_end' =>  'Học kỳ II phải kết thúc vào tháng 5 tháng 6  hoặc tháng 7',
+            'duration.valid' => 'Học kỳ phải kéo dài từ 5 đến 6 tháng',
             'overlap.exists' => 'Khoảng thời gian này đã có học kỳ khác',
             'name.unique_semester' => 'Năm học này đã có :attribute rồi'
         ];

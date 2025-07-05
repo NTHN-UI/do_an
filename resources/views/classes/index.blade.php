@@ -79,14 +79,9 @@
                                                 </a>
                                             </li>
                                             <li>
-                                                <form action="{{ route('classes.destroy', $class->id) }}" method="POST">
-                                                    @csrf
-                                                    @method('DELETE')
-                                                    <button type="submit" class="dropdown-item px-3 py-2 "
-                                                            onclick="return confirm('Bạn có chắc muốn xóa?')">
-                                                        Xóa
-                                                    </button>
-                                                </form>
+                                                <button class="dropdown-item px-3 py-2"
+                                                        onclick="showDeleteModal('{{ route('classes.destroy', $class->id) }}')">Xóa
+                                                </button>
                                             </li>
                                         </ul>
                                     </div>
@@ -110,4 +105,35 @@
             @endif
         </div>
     </div>
+
+    <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="deleteModalLabel">Xác nhận xóa</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    Bạn có chắc chắn muốn xóa lớp học này?
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-primary-color" data-bs-dismiss="modal">Hủy</button>
+                    <form id="deleteForm" method="POST">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" class="btn btn-primary-color">Xóa</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
 @endsection
+@push('scripts')
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        function showDeleteModal(url) {
+            $('#deleteForm').attr('action', url);
+            $('#deleteModal').modal('show');
+        }
+    </script>
+@endpush

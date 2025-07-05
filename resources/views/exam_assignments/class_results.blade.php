@@ -5,9 +5,6 @@
 
         <div class="d-flex justify-content-between align-items-center mb-4">
             <div class="d-flex align-items-center mb-4">
-                <a href="{{ url()->previous() }}" class="btn text-primary-color btn-sm me-3" title="Quay lại">
-                    <i class="fas fa-arrow-left"></i>
-                </a>
                 <h3 class="text-primary-color">Kết quả {{ $assignment->exam->title }} {{ $assignment->class->name }}</h3>
 
             </div>

@@ -63,12 +63,12 @@
                             </tr>
                             <tr>
                                 @foreach($subjects as $subject)
-                                    <th class="text-center align-middle">HK1</th>
-                                    <th class="text-center align-middle">HK2</th>
+                                    <th class="text-center align-middle">HKI</th>
+                                    <th class="text-center align-middle">HKII</th>
                                     <th class="text-center align-middle">CN</th>
                                 @endforeach
-                                <th class="text-center align-middle">ĐTB HK1</th>
-                                <th class="text-center align-middle">ĐTB HK2</th>
+                                <th class="text-center align-middle">ĐTB HKI</th>
+                                <th class="text-center align-middle">ĐTB HKII</th>
                                 <th class="text-center align-middle">ĐTB CN</th>
                             </tr>
                             </thead>

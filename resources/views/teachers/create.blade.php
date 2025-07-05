@@ -19,9 +19,9 @@
                     <div class="mb-3 d-flex align-items-center">
                         <span class="me-2">Trạng thái</span>
                         <div class="form-check form-switch">
+                            <input type="hidden" name="is_active" value="0"> <!-- Thêm dòng này -->
                             <input class="form-check-input" type="checkbox" id="is_active" name="is_active"
-                                   {{ old('is_active', true) ? 'checked' : '' }}
-                                   onchange="document.getElementById('statusText').textContent = this.checked ? 'Hoạt động' : 'Ngừng'">
+                                   value="1" {{ old('is_active', true) ? 'checked' : '' }}>
                             <label class="form-check-label ms-1" for="is_active">
                                 <span id="statusText">{{ old('is_active', true) ? 'Hoạt động' : 'Ngừng' }}</span>
                             </label>
@@ -109,25 +109,16 @@
         </div>
     </div>
 @endsection
-    @push('scripts')
-        <script>
-            document.addEventListener('DOMContentLoaded', function() {
-                // Validate form trước khi submit
-                document.getElementById('teacher-form').addEventListener('submit', function(e) {
-                    const password = document.getElementById('password').value;
-                    const confirmPassword = document.getElementById('password_confirmation').value;
-
-                    if (password !== confirmPassword) {
-                        e.preventDefault();
-                        alert('Mật khẩu xác nhận không khớp!');
-                        document.getElementById('password_confirmation').focus();
-                    }
-                });
-
-                // Format số điện thoại
-                document.getElementById('phone').addEventListener('input', function(e) {
-                    this.value = this.value.replace(/[^0-9]/g, '');
-                });
+@push('scripts')
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            $('#is_active').on('change', function() {
+                $('#statusText').text($(this).is(':checked') ? 'Hoạt động' : 'Ngừng');
             });
-        </script>
+
+            const initialIsActive = $('#is_active').is(':checked');
+            $('#statusText').text(initialIsActive ? 'Hoạt động' : 'Ngừng');
+        });
+    </script>
 @endpush

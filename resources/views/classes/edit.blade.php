@@ -3,7 +3,6 @@
 @section('content')
     <div class="container rounded-3 shadow p-4">
         <div class="d-flex align-items-center mb-4">
-
             <h3 class="mb-0">Sửa thông tin lớp học</h3>
         </div>
         <div class="card-body">
@@ -31,10 +30,12 @@
 
                 <div class="form-group mt-2">
                     <label for="grade_level_id">Khối *</label>
-                    <select id="grade_level_id" name="grade_level_id" class="form-control @error('grade_level_id') is-invalid @enderror" >
+                    <select id="grade_level_id" name="grade_level_id"
+                            class="form-control @error('grade_level_id') is-invalid @enderror">
                         <option value="">-- Chọn khối --</option>
                         @foreach($gradeLevels as $gradeLevel)
-                            <option value="{{ $gradeLevel->id }}" {{ old('grade_level_id', $class->grade_level_id) == $gradeLevel->id ? 'selected' : '' }}>
+                            <option
+                                value="{{ $gradeLevel->id }}" {{ old('grade_level_id', $class->grade_level_id) == $gradeLevel->id ? 'selected' : '' }}>
                                 Khối {{ $gradeLevel->grade_number }}
                             </option>
                         @endforeach
@@ -45,7 +46,7 @@
                 </div>
 
                 <div class="d-flex justify-content-end align-items-center mt-3">
-                    <a href="{{ route('classes.index', $class->id) }}" class="btn btn-outline-primary-color me-2">
+                    <a href="{{ route('classes.index') }}" class="btn btn-outline-primary-color me-2">
                         Đóng
                     </a>
                     <button type="submit" class="btn btn-primary-color">
@@ -56,42 +57,3 @@
         </div>
     </div>
 @endsection
-
-@push('scripts')
-    <script>
-        $(document).ready(function() {
-            // Dynamic load grade levels when school changes
-            $('#school_id').change(function() {
-                const schoolId = $(this).val();
-                const gradeSelect = $('#grade_level_id');
-
-                if (!schoolId) {
-                    gradeSelect.empty().append('<option value="">-- Chọn trường trước --</option>');
-                    return;
-                }
-
-                // Filter grade levels by selected school
-                gradeSelect.empty().append('<option value="">-- Đang tải --</option>');
-
-                // Get grade levels via AJAX or use preloaded data
-                $.get(`/api/schools/${schoolId}/grade-levels`, function(data) {
-                    gradeSelect.empty().append('<option value="">-- Chọn khối --</option>');
-                    data.forEach(grade => {
-                        gradeSelect.append(`<option value="${grade.id}">Khối ${grade.grade_number}</option>`);
-                    });
-
-                    // Select previously selected grade level
-                    const oldGradeId = "{{ old('grade_level_id', $class->grade_level_id) }}";
-                    if (oldGradeId) {
-                        gradeSelect.val(oldGradeId);
-                    }
-                });
-            });
-
-            // Trigger change if school is already selected
-            @if(old('school_id', $class->school_id))
-            $('#school_id').trigger('change');
-            @endif
-        });
-    </script>
-@endpush

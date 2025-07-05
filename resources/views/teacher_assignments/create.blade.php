@@ -111,7 +111,6 @@
 @push('scripts')
     <script>
         $(document).ready(function() {
-            // Function to update selected classes display
             function updateSelectedClasses() {
                 let selected = [];
                 $('.class-checkbox:checked').each(function() {
@@ -125,7 +124,6 @@
                 }
             }
 
-            // Initialize selected classes display
             updateSelectedClasses();
 
             // Update when checkbox changes
@@ -133,7 +131,6 @@
                 updateSelectedClasses();
             });
 
-            // Xử lý khi thay đổi năm học
             $('#academic-year-filter').change(function() {
                 const yearId = $(this).val();
 
@@ -175,15 +172,12 @@
                         }
                     });
                 } else {
-                    // Nếu không chọn năm học thì hiển thị tất cả lớp
                     $('#classes-container').html(`
                     <div class="alert alert-info">Vui lòng chọn năm học để xem danh sách lớp</div>
                 `);
                     $('#selected-classes').html('');
                 }
             });
-
-            // Kích hoạt sự kiện change ngay khi trang load nếu đã có năm học được chọn
             @if($currentAcademicYear)
             $('#academic-year-filter').trigger('change');
             @endif

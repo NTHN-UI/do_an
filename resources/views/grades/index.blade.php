@@ -23,7 +23,7 @@
                                 <label for="academic_year_id" class="form-label fw-semibold">
                                    Năm học
                                 </label>
-                                <select class="form-select border-2" id="academic_year_id" name="academic_year_id" required>
+                                <select class="form-select border-2" id="academic_year_id" name="academic_year_id" >
                                     <option value="">-- Chọn năm học --</option>
                                     @foreach($academicYears as $year)
                                         <option value="{{ $year->id }}" {{ $selectedAcademicYearId == $year->id ? 'selected' : '' }}>
@@ -38,7 +38,7 @@
                             <div class="form-group mt-2">
                                 <label for="class_id" class="form-label fw-semibold">Lớp học
                                 </label>
-                                <select class="form-select border-2" id="class_id" name="class_id" required>
+                                <select class="form-select border-2" id="class_id" name="class_id" >
                                     <option value="">-- Chọn lớp --</option>
                                     @foreach($assignedClasses as $classId => $assignments)
                                         @php $class = $assignments->first()->class; @endphp
@@ -54,7 +54,7 @@
                             <div class="form-group mt-2">
                                 <label for="semester_id" class="form-label fw-semibold">Học kỳ
                                 </label>
-                                <select class="form-select border-2" id="semester_id" name="semester_id" required>
+                                <select class="form-select border-2" id="semester_id" name="semester_id" >
                                     <option value="">-- Chọn học kỳ --</option>
                                     @foreach($semesters as $semester)
                                         <option value="{{ $semester->id }}" {{ $selectedSemesterId == $semester->id ? 'selected' : '' }}>
@@ -95,21 +95,13 @@
                             <table class="table table-hover table-striped mb-0" id="dataTable">
                                 <thead class="bg-primary-color text-white sticky-top">
                                 <tr>
-                                    <th rowspan="2" class="text-center align-middle">
-                                        Mã HS
-                                    </th>
-                                    <th rowspan="2" class="text-center align-middle">
-                                        Họ và tên
-                                    </th>
+                                    <th rowspan="2" class="text-center align-middle">Mã HS</th>
+                                    <th rowspan="2" class="text-center align-middle">Họ và tên</th>
                                     @foreach($subjectsTaught as $subject)
                                         @if($selectedSemesterId == 0)
-                                            <th colspan="2" class="text-center">
-                                               {{ $subject->name }}
-                                            </th>
+                                            <th colspan="2" class="text-center">{{ $subject->name }}</th>
                                         @else
-                                            <th colspan="5" class="text-center">
-                                                {{ $subject->name }}
-                                            </th>
+                                            <th colspan="5" class="text-center">{{ $subject->name }}</th>
                                         @endif
                                     @endforeach
                                     <th rowspan="2" class="text-center align-middle">
@@ -130,7 +122,7 @@
                                             <th class="text-center">15p 2</th>
                                             <th class="text-center">15p 3</th>
                                             <th class="text-center">1 tiết</th>
-                                            <th class="text-center">Cuối kỳ</th>
+                                            <th class="text-center">Điểm HK</th>
                                         @endif
                                     @endforeach
                                 </tr>
@@ -147,57 +139,49 @@
                                                 $isSpecialSubject = $subjectData['is_special'] ?? false;
                                             @endphp
 
-                                                @if($selectedSemesterId == 0)
-                                                    <!-- Hiển thị điểm cả năm -->
-                                                    <td class="text-center">
-                                                        @if($isSpecialSubject)
-                                                            {{ $subjectData['semester1_text'] ?? '-' }}
-                                                        @else
-                                                            {{ $subjectData['semester1_avg'] ?? '-' }}
-                                                        @endif
-                                                    </td>
-                                                    <td class="text-center">
-                                                        @if($isSpecialSubject)
-                                                            {{ $subjectData['semester2_text'] ?? '-' }}
-                                                        @else
-                                                            {{ $subjectData['semester2_avg'] ?? '-' }}
-                                                        @endif
-                                                    </td>
-                                                @else
+                                            @if($selectedSemesterId == 0)
+                                                <!-- Hiển thị điểm cả năm -->
+                                                <td class="text-center">
+                                                    {{ $grades[$student->id]['semester1'] ?? '-' }}
+                                                </td>
+                                                <td class="text-center">
+                                                    {{ $grades[$student->id]['semester2'] ?? '-' }}
+                                                </td>
+                                            @else
                                                 <!-- Hiển thị điểm học kỳ -->
                                                 <td class="text-center">
                                                     @if($isSpecialSubject)
-                                                        {{ $subjectData['fifteen_minutes'][0]->text_value ?? '' }}
+                                                        {{ $subjectData['fifteen_minutes'][0]->text_value ?? '-' }}
                                                     @else
-                                                        {{ $subjectData['fifteen_minutes'][0]->score ?? '' }}
+                                                        {{ $subjectData['fifteen_minutes'][0]->score ?? '-' }}
                                                     @endif
                                                 </td>
                                                 <td class="text-center">
                                                     @if($isSpecialSubject)
-                                                        {{ $subjectData['fifteen_minutes'][1]->text_value ?? '' }}
+                                                        {{ $subjectData['fifteen_minutes'][1]->text_value ?? '-' }}
                                                     @else
-                                                        {{ $subjectData['fifteen_minutes'][1]->score ?? '' }}
+                                                        {{ $subjectData['fifteen_minutes'][1]->score ?? '-' }}
                                                     @endif
                                                 </td>
                                                 <td class="text-center">
                                                     @if($isSpecialSubject)
-                                                        {{ $subjectData['fifteen_minutes'][2]->text_value ?? '' }}
+                                                        {{ $subjectData['fifteen_minutes'][2]->text_value ?? '-' }}
                                                     @else
-                                                        {{ $subjectData['fifteen_minutes'][2]->score ?? '' }}
+                                                        {{ $subjectData['fifteen_minutes'][2]->score ?? '-' }}
                                                     @endif
                                                 </td>
                                                 <td class="text-center">
                                                     @if($isSpecialSubject)
-                                                        {{ $subjectData['one_period']->text_value ?? '' }}
+                                                        {{ $subjectData['one_period']->text_value ?? '-' }}
                                                     @else
-                                                        {{ $subjectData['one_period']->score ?? '' }}
+                                                        {{ $subjectData['one_period']->score ?? '-' }}
                                                     @endif
                                                 </td>
                                                 <td class="text-center">
                                                     @if($isSpecialSubject)
-                                                        {{ $subjectData['semester']->text_value ?? '' }}
+                                                        {{ $subjectData['semester']->text_value ?? '-' }}
                                                     @else
-                                                        {{ $subjectData['semester']->score ?? '' }}
+                                                        {{ $subjectData['semester']->score ?? '-' }}
                                                     @endif
                                                 </td>
                                             @endif
@@ -205,67 +189,24 @@
 
                                         <!-- Điểm trung bình -->
                                         <td class="text-center">
-                                            @php
-                                                $allSubjectsPassed = true;
-                                                $hasSpecialSubjects = false;
-                                                $numericAverage = 0;
-                                                $numericCount = 0;
-                                                $hasAnyGrade = false;
-
-                                                foreach($subjectsTaught as $subject) {
+                                            @if($selectedSemesterId == 0)
+                                                {{ $grades[$student->id]['yearly_average'] ?? '-' }}
+                                            @else
+                                                @php
                                                     $subjectData = $grades[$student->id][$subject->id] ?? [];
+                                                    $isSpecialSubject = $subjectData['is_special'] ?? false;
 
-                                                    // Xử lý môn đặc biệt
-                                                    if ($subjectData['is_special'] ?? false) {
-                                                        $hasSpecialSubjects = true;
-
-                                                        if ($selectedSemesterId == 0) {
-                                                            // Xem điểm cả năm: lấy kết quả HK2
-                                                            $resultValue = $subjectData['semester2_text'] ?? 'Chưa đạt';
-                                                        } else {
-                                                            // Xem điểm học kỳ: lấy kết quả học kỳ hiện tại
-                                                            $resultValue = $subjectData['semester']->text_value ?? '';
-                                                        }
-
-                                                        if ($resultValue !== '') {
-                                                            $hasAnyGrade = true;
-                                                        }
-                                                        if ($resultValue !== 'Đạt') {
-                                                            $allSubjectsPassed = false;
-                                                        }
-                                                    }
-                                                    // Xử lý môn thường
-                                                    else {
-                                                        if ($selectedSemesterId == 0) {
-                                                            // Điểm cả năm: (HK1 + 2*HK2)/3
-                                                            $subjectAvg = $subjectData['average'] ?? null;
-                                                        } else {
-                                                            // Điểm học kỳ: lấy điểm TB học kỳ
-                                                            $subjectAvg = $subjectData['average'] ?? null;
-                                                        }
-
-                                                        if ($subjectAvg !== null && $subjectAvg > 0) {
-                                                            $numericAverage += $subjectAvg;
-                                                            $numericCount++;
-                                                            $hasAnyGrade = true;
-                                                        }
-                                                    }
-                                                }
-
-                                                // Hiển thị kết quả
-                                                if (!$hasAnyGrade) {
-                                                        echo '-';
-                                                    } elseif ($hasSpecialSubjects) {
-                                                        $result = $allSubjectsPassed ? 'Đạt' : 'Chưa đạt';
-                                                        echo $result;
-                                                    } elseif ($numericCount > 0) {
-                                                        $avg = round($numericAverage / $numericCount, 1);
-                                                        echo $avg;
+                                                    if ($isSpecialSubject) {
+                                                        // Hiển thị kết quả học kỳ cho môn đặc biệt
+                                                        echo $grades[$student->id]['semester_result'] ?? 'Chưa đạt';
                                                     } else {
-                                                        echo '-';
+                                                        // Hiển thị điểm số cho môn thường
+                                                        echo $grades[$student->id]['semester_average'] ?? '-';
                                                     }
-                                            @endphp
+                                                @endphp
+                                            @endif
                                         </td>
+
                                     </tr>
                                 @endforeach
                                 </tbody>
@@ -311,7 +252,7 @@
                         </label>
                         <div class="input-group">
                             <input type="file" class="form-control form-control-lg border-2" id="fileInput" name="file"
-                                   accept=".xlsx,.xls" required>
+                                   accept=".xlsx,.xls" >
                             <span class="input-group-text bg-light">
                                 <i class="fas fa-file-excel text-success"></i>
                             </span>
@@ -375,7 +316,7 @@
                     // Đảm bảo luôn có nút disabled khi không đủ điều kiện
                     if ($btnDownload.is('a')) {
                         $btnDownload.replaceWith(`
-                    <button class="btn btn-outline-secondary btn-lg px-4" id="btn-download" disabled
+                    <button class="btn btn-outline-secondary  px-2" id="btn-download" disabled
                             title="Vui lòng chọn đầy đủ năm học, lớp và học kỳ">
                         <i class="fas fa-download me-2"></i>Tải file mẫu
                     </button>

@@ -38,26 +38,28 @@
             <div class="card-body p-0">
                 <div class="table-responsive">
                     <table class="table table-hover mb-0 rounded-3 overflow-hidden">
-                        <thead class="table-secondary text-center">
+                        <thead class="table-secondary">
                         <tr>
+                            <th class=" text-center ps-4">STT</th>
                             <th>Họ tên</th>
                             <th>Trường</th>
                             <th>Email</th>
-                            <th>Điện thoại</th>
-                            <th>Môn dạy</th>
-                            <th>Trạng thái</th>
-                            <th class="text-end pe-4" style="width: 50px;"></th>
+                            <th class="text-center">Điện thoại</th>
+                            <th class="text-center">Môn dạy</th>
+                            <th class="text-center">Trạng thái</th>
+                            <th></th>
                         </tr>
                         </thead>
                         <tbody>
-                        @forelse($teachers as $teacher)
-                            <tr class="text-center">
+                        @forelse($teachers as $index => $teacher)
+                            <tr>
+                                <td class="text-center ps-4">{{ $index + 1 }}</td>
                                 <td>{{ $teacher->full_name }}</td>
                                 <td>{{ $teacher->school->name ?? 'N/A' }}</td>
                                 <td>{{ $teacher->email }}</td>
-                                <td>{{ $teacher->phone }}</td>
-                                <td>{{ $teacher->subject->name ?? "Chưa được phân công" }}</td>
-                                <td>
+                                <td class="text-center">{{ $teacher->phone }}</td>
+                                <td class="text-center">{{ $teacher->subject->name ?? "Chưa được phân công" }}</td>
+                                <td class="text-center">
                                     @if($teacher->is_active)
                                         <span class="badge bg-primary-color">Hoạt động</span>
                                     @else
@@ -115,7 +117,6 @@
 @push('scripts')
     <script>
         $(document).ready(function() {
-            // Tìm kiếm real-time với debounce
             let timer;
             $('#search-input').on('keyup', function() {
                 clearTimeout(timer);
@@ -124,7 +125,6 @@
                 }, 500);
             });
 
-            // Reset về trạng thái ban đầu khi xóa search
             @if(request('search'))
             $('.btn-outline-secondary').click(function() {
                 $('#search-input').val('');

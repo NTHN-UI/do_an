@@ -46,7 +46,6 @@
                 </div>
             </div>
         </div>
-        <!-- Filter Form -->
         <div class="card mb-3 ">
             <div class="card-body">
                 <form method="GET" action="{{ route('students.index') }}" id="filter-form">
@@ -85,7 +84,6 @@
                             </button>
                             <input type="file" id="real-import-btn" accept=".xlsx,.xls" class="d-none">
 
-                            <!-- Export Dropdown -->
                             <div class="dropdown d-inline-block">
                                 <button class="btn btn-secondary dropdown-toggle action-btn" type="button"
                                         id="exportDropdown" data-bs-toggle="dropdown"
@@ -103,10 +101,7 @@
                                         </a>
                                     </li>
                                     <li>
-                                        <a class="dropdown-item"
-                                           href="{{ $academicYearId ? route('students.export', ['academic_year_id' => $academicYearId, 'grade_level_id' => $gradeLevelId]) : '#' }}">
-                                            <i class="fas fa-file-export me-1"></i> Xuất danh sách
-                                        </a>
+
                                     </li>
                                 </ul>
                             </div>
@@ -125,7 +120,7 @@
                     <table class="table table-hover mb-0 rounded-3 overflow-hidden">
                         <thead class="table-secondary text-center">
                         <tr>
-                            <th>ID</th>
+                            <th>STT</th>
                             <th>Họ và tên</th>
                             <th>Email</th>
                             <th >SĐT</th>
@@ -147,227 +142,151 @@
 
 @push('scripts')
     <script>
-            $(document).ready(function () {
-                let timer;
-                $('#search-input').on('keyup', function () {
-                    clearTimeout(timer);
-                    timer = setTimeout(() => {
-                        $('#search-form').submit();
-                    }, 500);
-                });
+        $(document).ready(function() {
+            $('#search-input').on('keyup', function() {
+                clearTimeout($(this).data('timer'));
+                $(this).data('timer', setTimeout(() => $('#search-form').submit(), 500));
+            });
 
-                // Reset search input if needed (add a clear button if you want)
-                @if(request('search'))
-                $('.btn-outline-secondary').click(function () {
-                    $('#search-input').val('');
-                    $('#search-form').submit();
-                });
-                @endif
-                const academicYearSelect = $('#academic_year_id');
-                const gradeLevelSelect = $('#grade_level_id');
-                const inputFile = $("#real-import-btn");
 
-                function toggleActionButtons() {
-                    const yearSelected = academicYearSelect.val();
-                    const gradeSelected = gradeLevelSelect.val();
-                    const shouldEnable = yearSelected && gradeSelected;
-                    $('.action-btn').prop('disabled', !shouldEnable);
-                }
+            @if(request('search'))
+            $('.btn-outline-secondary').click(function() {
+                $('#search-input').val('');
+                $('#search-form').submit();
+            });
+            @endif
 
-                // Gọi kiểm tra ban đầu
+            const academicYearSelect = $('#academic_year_id');
+            const gradeLevelSelect = $('#grade_level_id');
+            const inputFile = $("#real-import-btn");
+
+            // Bật/tắt nút action
+            function toggleActionButtons() {
+                const enable = academicYearSelect.val() && gradeLevelSelect.val();
+                $('.action-btn').prop('disabled', !enable);
+            }
+
+            // khi thay đổi năm học/khối
+            function handleFilterChange() {
                 toggleActionButtons();
-
-                // Gọi lại khi người dùng chọn lại năm học hoặc khối
-                academicYearSelect.on('change', function () {
-                    toggleActionButtons();
-
-                    const academic_year_id = $(this).val();
-                    const grade_id = gradeLevelSelect.val();
-
-                    if (!grade_id) return;
-
-                    render(grade_id, academic_year_id);
-                });
-
-                gradeLevelSelect.on('change', function () {
-                    toggleActionButtons();
-                    const academic_year_id = academicYearSelect.val();
-                    const grade_id = $(this).val();
-
-                    if (!academic_year_id) return;
-
-                    render(grade_id, academic_year_id);
-                });
-
-                const getData = (grade_id, academic_year_id) => {
-                    return $.ajax({
-                        url: '{{ route("students.index") }}',
-                        type: 'GET',
-                        data: {
-                            _token: '{{ csrf_token() }}',
-                            grade_id: grade_id,
-                            academic_year_id: academic_year_id
-                        },
-                        error: function (xhr) {
-                            alert('Lỗi: ' + (xhr.responseText || 'Vui lòng thử lại'));
-                            console.log("Error: ", xhr.responseText);
-                        }
-                    });
+                if (academicYearSelect.val() && gradeLevelSelect.val()) {
+                    loadStudents();
                 }
+                updateExportLink();
+            }
 
-                const render = async (grade_id, academic_year_id) => {
-                    try {
-                        const response = await getData(grade_id, academic_year_id);
-                        const studentContainer = $("#students-container");
-                        const paginationContainer = $("#pagination-container");
+            // Load danh sách học sinh
+            function loadStudents(url = null) {
+                const params = {
+                    grade_id: gradeLevelSelect.val(),
+                    academic_year_id: academicYearSelect.val(),
+                    _token: '{{ csrf_token() }}'
+                };
 
-                        studentContainer.html(response.data);
-                        paginationContainer.html(response.pagination);
-
-                        // Thêm sự kiện click cho phân trang AJAX
-                        $(document).off('click', '.pagination a').on('click', '.pagination a', function (e) {
-                            e.preventDefault();
-                            const url = $(this).attr('href');
-                            loadPage(url, grade_id, academic_year_id);
-                        });
-                    } catch (error) {
-                        console.error("Failed to fetch data: ", error);
-                        alert("Có lỗi xảy ra khi tải dữ liệu, vui lòng thử lại");
-                    }
-                }
-
-                const loadPage = async (url, grade_id, academic_year_id) => {
-                    try {
-                        const fullUrl = new URL(url, window.location.origin);
-                        fullUrl.searchParams.set('grade_id', grade_id);
-                        fullUrl.searchParams.set('academic_year_id', academic_year_id);
-
-                        const response = await $.ajax({
-                            url: fullUrl.href,
-                            type: 'GET',
-                            data: {
-                                _token: '{{ csrf_token() }}',
-                                grade_id: grade_id,
-                                academic_year_id: academic_year_id,
-                                ajax: true
-                            }
-                        });
-
+                $.get(url || '{{ route("students.index") }}', params)
+                    .done(function(response) {
                         $("#students-container").html(response.data);
                         $("#pagination-container").html(response.pagination);
-                    } catch (error) {
-                        console.error("Failed to load page: ", error);
-                    }
+                        setupPagination();
+                    })
+                    .fail(function(xhr) {
+                        alert('Lỗi: ' + (xhr.responseText || 'Vui lòng thử lại'));
+                    });
+            }
+
+
+            function setupPagination() {
+                $(document).off('click', '.pagination a').on('click', '.pagination a', function(e) {
+                    e.preventDefault();
+                    loadStudents($(this).attr('href'));
+                });
+            }
+
+            // Xử lý import file
+            function handleFileImport() {
+                if (!this.files.length) return;
+
+                const academicYearId = academicYearSelect.val();
+                const gradeLevelId = gradeLevelSelect.val();
+
+                if (!academicYearId || !gradeLevelId) {
+                    alert("Vui lòng chọn năm học và khối học trước khi import");
+                    this.value = '';
+                    return;
                 }
 
-                // Xử lý khi người dùng chọn file
-                inputFile.on('change', function() {
-                    if (!this.files.length) return;
+                const formData = new FormData();
+                formData.append('file', this.files[0]);
+                formData.append('academic_year_id', academicYearId);
+                formData.append('grade_level_id', gradeLevelId);
+                formData.append('_token', '{{ csrf_token() }}');
 
-                    const academicYearId = $('#academic_year_id').val();
-                    const gradeLevelId = $('#grade_level_id').val();
+                $('#loading-spinner').removeClass('d-none');
 
-                    if (!academicYearId || !gradeLevelId) {
-                        alert("Vui lòng chọn năm học và khối học trước khi import");
-                        this.value = '';
-                        return;
-                    }
-
-                    const formData = new FormData();
-                    formData.append('file', this.files[0]);
-                    formData.append('academic_year_id', academicYearId);
-                    formData.append('grade_level_id', gradeLevelId);
-                    formData.append('_token', '{{ csrf_token() }}');
-
-                    // Hiển thị loading
-                    $('#loading-spinner').removeClass('d-none');
-
-                    $.ajax({
-                        url: "{{ route('students.import') }}",
-                        type: 'POST',
-                        data: formData,
-                        processData: false,
-                        contentType: false,
-                        success: function(response) {
-                            if (response.success) {
-                                // THÊM HỌC SINH MỚI VÀO DANH SÁCH HIỆN TẠI
-                                if (response.new_student) {
-                                    // Tạo HTML cho học sinh mới
-                                    const newStudentRow = `
-                        <tr>
-                            <td>${response.new_student.id}</td>
-                            <td>${response.new_student.full_name}</td>
-                            <td>${response.new_student.email}</td>
-                            <td>${response.new_student.phone || ''}</td>
-                            <td>${response.new_student.school.name}</td>
-                            <td>${response.new_student.is_active ? 'Hoạt động' : 'Không hoạt động'}</td>
-                            <td>
-</td>
-                        </tr>
-                    `;
-
-                                    // Thêm vào đầu bảng
-                                    $('#students-container').prepend(newStudentRow);
-                                }
-
-                                // Hoặc load lại toàn bộ danh sách nếu import nhiều
-                                if (response.reload) {
-                                    loadStudents(academicYearId, gradeLevelId);
-                                }
-
-                                showAlert('success', response.message);
-                            } else {
-                                showAlert('danger', response.message);
+                $.ajax({
+                    url: "{{ route('students.import') }}",
+                    type: 'POST',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    success: function(response) {
+                        if (response.success) {
+                            if (response.new_student) {
+                                const newStudentRow = `
+                            <tr>
+                                <td>${response.new_student.id}</td>
+                                <td>${response.new_student.full_name}</td>
+                                <td>${response.new_student.email}</td>
+                                <td>${response.new_student.phone || ''}</td>
+                                <td>${response.new_student.school.name}</td>
+                                <td>${response.new_student.is_active ? 'Hoạt động' : 'Không hoạt động'}</td>
+                                <td></td>
+                            </tr>
+                        `;
+                                $('#students-container').prepend(newStudentRow);
                             }
-                        },
-                        error: function(xhr) {
-                            let errorMsg = xhr.responseJSON?.message || 'Lỗi khi import file';
-                            showAlert('danger', errorMsg);
-                        },
-                        complete: function() {
-                            $('#loading-spinner').addClass('d-none');
-                            $('#real-import-btn').val('');
+                            if (response.reload) loadStudents();
+                            showAlert('success', response.message);
+                        } else {
+                            showAlert('danger', response.message);
                         }
-                    });
-                });
-
-// Hàm load lại danh sách học sinh
-                function loadStudents(academicYearId, gradeLevelId) {
-                    $.get("{{ route('students.index') }}", {
-                        academic_year_id: academicYearId,
-                        grade_level_id: gradeLevelId,
-                        ajax: true
-                    }, function(data) {
-                        $('#students-container').html(data);
-                    });
-                }
-
-                function showAlert(type, message) {
-                    const alertClass = type === 'success' ? 'alert-success' : 'alert-danger';
-                    const alertHtml = `
-        <div class="alert ${alertClass} alert-dismissible fade show" role="alert">
-            ${message}
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-    `;
-                    $('#alert-container').html(alertHtml);
-
-                    // Tự động ẩn sau 5 giây
-                    setTimeout(() => {
-                        $('.alert').alert('close');
-                    }, 5000);
-                }
-                $('#academic_year_id, #grade_level_id').change(function() {
-                    const academicYearId = $('#academic_year_id').val();
-                    const gradeLevelId = $('#grade_level_id').val();
-
-                    if (academicYearId && gradeLevelId) {
-                        const url = "{{ route('students.export.template') }}" +
-                            "?academic_year_id=" + academicYearId +
-                            "&grade_level_id=" + gradeLevelId;
-                        $('#export-template-link').attr('href', url);
+                    },
+                    error: function(xhr) {
+                        showAlert('danger', xhr.responseJSON?.message || 'Lỗi khi import file');
+                    },
+                    complete: function() {
+                        $('#loading-spinner').addClass('d-none');
+                        inputFile.val('');
                     }
                 });
-            });
+            }
+
+            function showAlert(type, message) {
+                const alertHtml = `
+            <div class="alert alert-${type} alert-dismissible fade show" role="alert">
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        `;
+                $('#alert-container').html(alertHtml).delay(5000).fadeOut();
+            }
+
+            function updateExportLink() {
+                const academicYearId = academicYearSelect.val();
+                const gradeLevelId = gradeLevelSelect.val();
+
+                if (academicYearId && gradeLevelId) {
+                    const url = "{{ route('students.export.template') }}?academic_year_id=" + academicYearId + "&grade_level_id=" + gradeLevelId;
+                    $('#export-template-link').attr('href', url);
+                }
+            }
+
+            academicYearSelect.on('change', handleFilterChange);
+            gradeLevelSelect.on('change', handleFilterChange);
+            inputFile.on('change', handleFileImport);
+
+            toggleActionButtons();
+            updateExportLink();
+        });
     </script>
 @endpush

@@ -256,7 +256,6 @@ class NotificationController extends Controller
 
         foreach ($recipients as $student) {
             try {
-                Log::info('Đang gửi mail cho: ' . $student->guardian_email);
                 Mail::to($student->guardian_email)
                     ->send(new ParentNotification($notification, $student));
                 if ($recipients->count() > 1) {

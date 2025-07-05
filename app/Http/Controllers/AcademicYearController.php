@@ -43,8 +43,9 @@ class AcademicYearController extends Controller
                     $inputDate = date_create($value);
                     if (preg_match('/^(\d{4})-(\d{4})$/', $request->year, $matches)) {
                         $startYear = $matches[1];
-                        if ($inputDate->format('Y') != $startYear || $inputDate->format('m') != '09') {
-                            $fail('Năm học phải bắt đầu trong tháng 9 năm ' . $startYear);
+                        $month = $inputDate->format('m');
+                        if ($inputDate->format('Y') != $startYear || ($month != '08' && $month != '09')) {
+                            $fail('Năm học phải bắt đầu trong tháng 8 hoặc tháng 9 năm ' . $startYear);
                         }
                     }
                 }
@@ -64,9 +65,9 @@ class AcademicYearController extends Controller
                             return;
                         }
 
-                        $maxEndDate = date_create($endYear . '-06-30');
+                        $maxEndDate = date_create($endYear . '-07-30');
                         if ($inputDate > $maxEndDate) {
-                            $fail('Năm học phải kết thúc trước ngày 30/06');
+                            $fail('Năm học phải kết thúc trước ngày 30/07');
                             return;
                         }
 

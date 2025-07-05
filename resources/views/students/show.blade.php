@@ -9,29 +9,10 @@
             padding: 32px;
             overflow-x: auto;
         }
-        .text-primary-color {
-            color: #013066 !important;
-        }
-        .bg-primary-color {
-            background-color: #013066 !important;
-            color: #fff !important;
-        }
-        .btn-primary-color {
-            background-color: #013066 !important;
-            color: #fff !important;
-            border: none;
-        }
-        .btn-primary-color:hover {
-            background-color: #011d3a !important;
-            color: #fff !important;
-        }
 
     </style>
     <div class="container rounded-3 shadow p-4">
         <div class="d-flex align-items-center mb-4">
-            <a href="{{ route('students.index') }}" class="btn text-primary-color btn-sm me-3" title="Quay lại">
-                <i class="fas fa-arrow-left"></i>
-            </a>
             <h3 class="mb-0 text-primary-color">Thông tin học sinh</h3>
         </div>
         <div class="card-body">

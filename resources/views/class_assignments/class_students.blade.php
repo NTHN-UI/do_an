@@ -21,9 +21,6 @@
     </style>
     <div class="container rounded-3 shadow p-4">
     <div class="d-flex align-items-center mb-4">
-        <a href="{{ url()->previous() }}" class="btn text-primary-color btn-sm me-3" title="Quay lại">
-            <i class="fas fa-arrow-left"></i>
-        </a>
 
             <h3 class="text-primary-color">Danh sách học sinh {{ $class->name }} - Năm học {{ $academicYear->year }}</h3>
         </div>
@@ -131,7 +128,7 @@
 
                         <div class="mb-3">
                             <label for="new_class_id" class="form-label">Lớp đích</label>
-                            <select name="new_class_id" id="new_class_id" class="form-select" required>
+                            <select name="new_class_id" id="new_class_id" class="form-select" >
                                 <option value="">-- Chọn lớp --</option>
                                 @foreach($targetClasses as $targetClass)
                                     <option value="{{ $targetClass->id }}">{{ $targetClass->name }}</option>

@@ -72,7 +72,7 @@ class StudentController extends Controller
                 'nullable',
                 'string',
                 'max:255',
-                'regex:/^[\p{L}0-9\s\-\/]+$/u'
+                'regex:/^[\p{L}0-9\s\-\/,]+$/u'
             ],
             'academic_year_id' => [
                 'required',
@@ -150,11 +150,11 @@ class StudentController extends Controller
         $academicYearId = $request->input('academic_year_id');
         $gradeLevelId = $request->input('grade_level_id');
 
-        // Tạo base query
+
         $query = User::where('role', User::ROLE_STUDENT)
             ->where('users.school_id', auth()->user()->school_id);
 
-        // Xử lý AJAX request
+
         if ($request->ajax()) {
             $query->when($request->grade_id, function ($q) use ($request) {
                 $q->join('grade_users', 'users.id', '=', 'grade_users.user_id')
@@ -168,7 +168,7 @@ class StudentController extends Controller
                 ->with(['school:id,name'])
                 ->latest('created_at')
                 ->paginate(10)
-                ->appends($request->except('page'));
+                ->appends($request->all());
 
             return response()->json([
                 'success' => true,
@@ -263,7 +263,6 @@ class StudentController extends Controller
             ->orderBy('grade_number', 'asc')
             ->get();
 
-        // Lấy thông tin grade level nếu có
         $selectedGradeLevel = $gradeLevelId ? GradeLevel::find($gradeLevelId) : null;
 
         return view('students.create', [
@@ -298,7 +297,6 @@ class StudentController extends Controller
 
             $validated = $validator->validated();
 
-            // Xử lý điểm đầu vào cho khối 10
             $gradeLevel = GradeLevel::find($request->grade_level_id);
             if ($gradeLevel && $gradeLevel->grade_number == 10) {
                 $validated['entry_score'] = $request->entry_score;
@@ -338,7 +336,7 @@ class StudentController extends Controller
             $validated['email'] = $email;
             $validated['password'] = Hash::make('12345678');
 
-            // Tạo học sinh và gắn vào lớp học
+
             $student = User::create($validated);
 
             // Thêm academic_year_id khi thêm vào grade_users
@@ -437,8 +435,7 @@ class StudentController extends Controller
 
 
             $validated['is_active'] = $request->has('is_active');
-            $validated['email'] = $student->email; // Giữ nguyên email cũ
-            // Không xử lý password, mật khẩu sẽ giữ nguyên
+            $validated['email'] = $student->email;
 
             $student->update($validated);
 
@@ -493,7 +490,6 @@ class StudentController extends Controller
 
             DB::commit();
 
-            // Lấy học sinh cuối cùng được thêm (hoặc tất cả nếu import nhiều)
             $newStudents = User::where('role', User::ROLE_STUDENT)
                 ->where('school_id', auth()->user()->school_id)
                 ->whereHas('studentGrades', function($q) use ($request) {
@@ -509,7 +505,7 @@ class StudentController extends Controller
                 'success' => true,
                 'message' => 'Đã import thành công ' . $import->getRowCount() . ' học sinh',
                 'new_student' => $import->getRowCount() === 1 ? $newStudents->first() : null,
-                'reload' => $import->getRowCount() > 1 // Nếu import nhiều thì load lại toàn bộ
+                'reload' => $import->getRowCount() > 1
             ]);
 
         } catch (\Exception $e) {
