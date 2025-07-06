@@ -60,19 +60,15 @@ class ClassController extends Controller
     }
     public function index(Request $request)
     {
-        // Lấy danh sách năm học
         $academicYears = AcademicYear::where('school_id', auth()->user()->school_id)
             ->orderBy('start_date', 'asc')
             ->get();
 
-        // Lấy năm học được chọn (ưu tiên từ request, sau đó từ session, cuối cùng là năm đầu tiên)
         $selectedYearId = $request->input('academic_year_id',
             session('selected_academic_year_id', $academicYears->first()->id ?? null));
 
-        // Lưu năm học đã chọn vào session
         session(['selected_academic_year_id' => $selectedYearId]);
 
-        // Lấy danh sách lớp học theo năm học được chọn
         $classes = ClassModel::where('school_id', auth()->user()->school_id)
             ->when($selectedYearId, function($query) use ($selectedYearId) {
                 return $query->where('academic_year_id', $selectedYearId);
@@ -89,7 +85,6 @@ class ClassController extends Controller
      */
     public function create()
     {
-        // Lấy năm học từ session
         $selectedYearId = session('selected_academic_year_id');
 
         $gradeLevels = GradeLevel::where('school_id', auth()->user()->school_id)->get();
@@ -105,10 +100,8 @@ class ClassController extends Controller
     {
         $school = auth()->user()->school;
 
-        // Lấy năm học từ session nếu không có trong request
         $academicYearId = $request->input('academic_year_id', session('selected_academic_year_id'));
 
-        // Thêm vào request để validation
         $request->merge(['academic_year_id' => $academicYearId]);
 
         $validator = Validator::make(
@@ -202,12 +195,10 @@ class ClassController extends Controller
         try {
             $dependencies = [];
 
-            // Kiểm tra học sinh
             if ($class->students()->exists()) {
                 $dependencies[] = 'Học sinh';
             }
 
-            // Kiểm tra phân công giáo viên (sử dụng đúng tên quan hệ)
             if ($class->teacherAssignments()->exists()) {
                 $dependencies[] = 'Giáo viên được phân công';
             }

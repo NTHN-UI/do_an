@@ -17,14 +17,11 @@
         public function index(Request $request)
         {
             if (auth()->user()->isSuperAdmin()) {
-                // Nếu là super admin và đã chọn trường
                 if ($request->has('school_id')) {
                     return $this->schoolDashboard($request, $request->school_id);
                 }
-                // Nếu chưa chọn trường thì hiển thị danh sách trường
                 return $this->superAdminDashboard($request);
             } else {
-                // Nếu là school admin thì xem thống kê trường của mình
                 return $this->schoolDashboard($request, auth()->user()->school_id);
             }
         }
@@ -41,15 +38,11 @@
                 ->orderBy('start_date', 'desc')
                 ->first();
 
-            // Kiểm tra xem có năm học nào tồn tại không
             if (!$latestAcademicYear) {
-                // Nếu không có năm học, chuyển hướng hoặc hiển thị thông báo lỗi
-                // Ví dụ: chuyển hướng đến trang tạo năm học cho trường đó
-                // Hoặc trả về view với thông báo rằng trường này chưa có năm học
+
                 return redirect()->route('academic_years.create', ['school_id' => $schoolId])
                     ->with('error', 'Trường học này chưa có năm học nào được tạo. Vui lòng tạo năm học đầu tiên.');
-                // Hoặc
-                // return view('school_dashboard_empty', ['schoolId' => $schoolId, 'message' => 'Trường học này chưa có năm học.']);
+
             }
 
             $selectedAcademicYearId = $request->input('academic_year')
@@ -57,22 +50,18 @@
 
             $currentAcademicYear = AcademicYear::findOrFail($selectedAcademicYearId);
 
-            // Lấy tất cả các năm học để hiển thị dropdown
             $academicYears = AcademicYear::where('school_id', $schoolId)
                 ->orderBy('start_date', 'desc')
                 ->get();
 
-            // Lấy học kỳ hiện tại của năm học được chọn
             $currentSemester = Semester::where('academic_year_id', $currentAcademicYear->id)
                 ->where('is_current', true)
                 ->first();
 
-            // Lấy tất cả học kỳ của năm học được chọn
             $semesters = Semester::where('academic_year_id', $currentAcademicYear->id)
                 ->orderBy('start_date')
                 ->get();
 
-            // Thống kê số lượng theo năm học được chọn
             $teacherCount = User::where('school_id', $schoolId)
                 ->where('role', 'teacher')
                 ->count();
@@ -91,7 +80,6 @@
                 ->count();
 
 
-            // Phân bổ học sinh theo khối
             $gradeLevels = GradeLevel::where('school_id', $schoolId)
                 ->orderBy('grade_number')
                 ->get();
@@ -118,7 +106,6 @@
                 ];
             }
 
-            // Thống kê học lực (giữ nguyên như cũ)
             $academicPerformanceByGrade = [];
             $totalPerformance = [
                 'semester1' => ['excellent' => 0, 'good' => 0, 'average' => 0, 'weak' => 0, 'unrated' => 0],
@@ -139,7 +126,6 @@
                 }
             }
 
-            // Tính phần trăm cho tổng
             foreach (['semester1', 'semester2', 'year'] as $period) {
                 $total = array_sum($totalPerformance[$period]);
                 if ($total > 0) {
@@ -155,7 +141,6 @@
                 }
             }
 
-            // Nếu là super admin thì lấy thông tin trường đang xem
             $currentSchool = null;
             if (auth()->user()->isSuperAdmin()) {
                 $currentSchool = School::find($schoolId);
@@ -179,7 +164,6 @@
             ));
         }
 
-        // Cập nhật method calculateAcademicPerformance để thêm school_id
         private function calculateAcademicPerformance($grade, $academicYear, $schoolId)
         {
             $students = User::where('school_id', $schoolId)
@@ -195,7 +179,6 @@
                 }])
                 ->get();
 
-            // Phần còn lại giữ nguyên
             $result = [
                 'grade_number' => $grade->grade_number,
                 'semester1' => ['excellent' => 0, 'good' => 0, 'average' => 0, 'weak' => 0, 'unrated' => 0],
@@ -211,7 +194,6 @@
                 }
             }
 
-            // Tính phần trăm cho từng học kỳ và cả năm
             foreach (['semester1', 'semester2', 'year'] as $period) {
                 $total = array_sum($result[$period]);
                 if ($total > 0) {
@@ -258,10 +240,8 @@
 
         private function adjustBrightness($hex, $steps)
         {
-            // Bước điều chỉnh độ sáng màu
             $steps = max(-255, min(255, $steps));
 
-            // Chuyển đổi HEX thành RGB
             $hex = str_replace('#', '', $hex);
             if (strlen($hex) == 3) {
                 $hex = str_repeat(substr($hex, 0, 1), 2).str_repeat(substr($hex, 1, 1), 2).str_repeat(substr($hex, 2, 1), 2);
@@ -271,7 +251,6 @@
             $g = hexdec(substr($hex, 2, 2));
             $b = hexdec(substr($hex, 4, 2));
 
-            // Điều chỉnh độ sáng
             $r = max(0, min(255, $r + $steps));
             $g = max(0, min(255, $g + $steps));
             $b = max(0, min(255, $b + $steps));

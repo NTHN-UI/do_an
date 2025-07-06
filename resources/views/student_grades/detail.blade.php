@@ -71,7 +71,6 @@
                                 @endif
                             </td>
 
-                            <!-- Điểm cuối kỳ -->
                             <td class="text-center">
 
                             @if(isset($subjectGrades['semester']))
@@ -89,7 +88,6 @@
                                 @endif
                             </td>
 
-                            <!-- Kết quả -->
                             <td class="text-center">
                                 @if(isset($subjectAverages[$subjectId]))
                                     @if($isSpecialSubject)

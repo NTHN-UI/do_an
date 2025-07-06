@@ -65,9 +65,8 @@ class Exam extends Model
     public function getDefaultDuration()
     {
         return match($this->test_type) {
-            'fifteen_minutes' => 15,  // 15 phút cho đề 15 phút
-            'one_period' => 45,       // 45 phút cho đề 1 tiết
-            default => 60,             // Mặc định 60 phút
+            'fifteen_minutes' => 15,
+            'one_period' => 45,
         };
     }
 

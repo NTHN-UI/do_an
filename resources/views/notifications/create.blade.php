@@ -10,7 +10,6 @@
             <div class="card-body">
                 <form id="notificationForm" action="{{ route('notifications.store') }}" method="POST" enctype="multipart/form-data">
                     @csrf
-                    <!-- Template Selection -->
                     <div class="mb-4 rounded-3 info-box-yellow">
                         <label for="template_id" class="form-label">Chọn Mẫu Thông Báo <span class="text-danger">*</span>
                         </label>
@@ -29,7 +28,6 @@
                         @enderror
                     </div>
 
-                    <!-- Class Selection -->
                     <div class="mb-4">
                         <label class="form-label">Lớp Chủ Nhiệm</label>
                         <div class="form-control bg-light rounded-3 shadow-sm py-2 px-3">
@@ -38,7 +36,6 @@
                         <input type="hidden" name="class_id" value="{{ $classId }}">
                     </div>
 
-                    <!-- Priority -->
                     <div class="mb-4">
                         <label for="priority" class="form-label">Mức Độ Ưu Tiên <span class="text-danger">*</span></label>
                         <select class="form-select @error('priority') is-invalid @enderror" id="priority" name="priority" required>
@@ -52,7 +49,6 @@
                         @enderror
                     </div>
 
-                    <!-- Subject -->
                     <div class="mb-4 rounded-3">
                         <label for="subject" class="form-label">Tiêu Đề Thông Báo <span class="text-danger">*</span>
                         </label>
@@ -63,7 +59,6 @@
                         @enderror
                     </div>
 
-                    <!-- Content -->
                     <div class="mb-4 rounded-3 ">
                         <label for="content" class="form-label fw-semibold">
                             <i class="fas fa-align-left me-1"></i> Nội Dung Thông Báo <span class="text-danger">*</span>

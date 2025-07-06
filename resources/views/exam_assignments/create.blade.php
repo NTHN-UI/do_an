@@ -6,7 +6,7 @@
 
             <h3 class="mb-0 text-primary-color">Giao đề thi: {{ $exam->title }}</h3>
         </div>
-        <div> {{-- This div replaces card-body --}}
+        <div>
             <form action="{{ route('exam_assignments.store', $exam->id) }}" method="POST">
                 @csrf
 

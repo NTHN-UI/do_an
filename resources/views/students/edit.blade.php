@@ -14,7 +14,7 @@
             <h3 class="mb-0 text-primary-color">Chỉnh sửa thông tin học sinh</h3>
         </div>
         <div class="card-body">
-            <form action="{{ route('students.update', $student->id) }}" method="POST" id="edit-student-form">
+            <form action="{{ route('students.update', $student->id) }}" method="POST">
                 @csrf
                 @method('PUT')
                 <div class="col-md-12 d-flex align-items-center mb-3">
@@ -38,14 +38,14 @@
                     @enderror
                 </div>
                 <div class="col-md-12 mb-3">
-                    <label for="email" class="form-label">Email</label>
+                    <label for="email" class="form-label">Email <span class="text-danger">*</span></label>
                     <input type="hidden" name="email" value="{{ $student->email }}">
                     <div class="form-control bg-light">
                         {{ $student->email }}
                     </div>
                 </div>
                 <div class="col-md-12 mb-3">
-                    <label for="phone" class="form-label">Số điện thoại <span class="text-danger">*</span></label>
+                    <label for="phone" class="form-label">Số điện thoại</label>
                     <input type="text" name="phone" id="phone"
                            class="form-control @error('phone') is-invalid @enderror"
                            value="{{ old('phone', $student->phone) }}" >
@@ -83,11 +83,42 @@
                     </div>
                 </div>
                 <div class="col-md-12 mb-3">
-                    <label for="address" class="form-label">Địa chỉ <span class="text-danger">*</span></label>
+                    <label for="address" class="form-label">Địa chỉ</label>
                     <input type="text" name="address" id="address"
                            class="form-control @error('address') is-invalid @enderror"
                            value="{{ old('address', $student->address) }}" required>
                     @error('address')
+                    <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                </div>
+                <div class="col-md-12 mb-3">
+                    <label for="academic_year_id" class="form-label">Năm học <span class="text-danger">*</span></label>
+                    <select name="academic_year_id" id="academic_year_id"
+                            class="form-select @error('academic_year_id') is-invalid @enderror" required>
+                        <option value="">-- Chọn năm học --</option>
+                        @foreach($academicYears as $year)
+                            <option value="{{ $year->id }}"
+                                {{ (old('academic_year_id', $student->currentAcademicYear()) == $year->id ? 'selected' : '' )}}>
+                                {{ $year->year }}
+                            </option>
+                        @endforeach
+                    </select>
+                    @error('academic_year_id')
+                    <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                </div>
+
+                <div class="col-md-12 mb-3">
+                    <label for="grade_level_id" class="form-label">Khối học <span class="text-danger">*</span></label>
+                    <select name="grade_level_id" id="grade_level_id" class="form-select">
+                        @foreach($gradeLevels as $grade)
+                            <option value="{{ $grade->id }}"
+                                {{ $student->gradeLevels->contains($grade->id) ? 'selected' : '' }}>
+                                Khối {{ $grade->grade_number }}
+                            </option>
+                        @endforeach
+                    </select>
+                    @error('grade_level_id')
                     <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
                 </div>
@@ -110,7 +141,7 @@
                     @enderror
                 </div>
                 <div class="col-md-12 mb-3">
-                    <label for="guardian_email" class="form-label">Email phụ huynh</label>
+                    <label for="guardian_email" class="form-label">Email phụ huynh <span class="text-danger">*</span></label>
                     <input type="email" class="form-control @error('guardian_email') is-invalid @enderror"
                            id="guardian_email" name="guardian_email" value="{{ old('guardian_email', $student->guardian_email) }}">
                     @error('guardian_email')

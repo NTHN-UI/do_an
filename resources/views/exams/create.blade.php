@@ -2,7 +2,6 @@
 
 @section('content')
     <div class="container rounded-3 shadow p-4">
-        {{-- Header Section --}}
         <div class="d-flex align-items-center mb-4">
 
             <h3 class="mb-0 text-primary-color">Tạo mới đề thi</h3>
@@ -11,7 +10,6 @@
         <form id="examForm" action="{{ route('exams.store') }}" method="POST" enctype="multipart/form-data">
             @csrf
 
-            {{-- General Information Card --}}
             <div class="card mb-4 border-0 shadow-sm rounded-2">
                 <div class="card-header bg-transparent text-primary-color fw-semibold">Thông tin chung</div>
                 <div class="card-body">
@@ -133,7 +131,6 @@
                 </div>
             </div>
 
-            {{-- Questions Section --}}
             <div class="card mb-4 border-0 shadow-sm rounded-2">
                 <div
                     class="card-header bg-transparent text-primary-color fw-semibold d-flex justify-content-between align-items-center">
@@ -196,17 +193,15 @@
                 </div>
             </div>
 
-            {{-- Form Actions --}}
             <div class="d-flex justify-content-end mt-4">
                 <div>
-                    <button type="submit" name="action" value="preview" class="btn btn-primary-color">Xem
-                        trước
+                    <a href="{{route('exams.index')}}" class="btn btn-outline-primary-color">Đóng</a>
+                    <button type="submit" name="action" value="preview" class="btn btn-primary-color">Xem trước
                     </button>
                 </div>
             </div>
         </form>
 
-        {{-- Modals --}}
         @include('exams.partials.question-bank-modal')
         @include('exams.partials.question-template')
 
@@ -215,7 +210,6 @@
 @endsection
 
 @push('scripts')
-    <!-- External Libraries -->
     <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.21/lodash.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>

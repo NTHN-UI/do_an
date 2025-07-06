@@ -14,21 +14,23 @@
     <div class="container rounded-3 shadow p-4">
         <div class="d-flex align-items-center mb-4">
             <h3 class="mb-0 text-primary-color">Chi tiết đề thi</h3>
-            <div class="ms-auto"> {{-- Để các nút hành động căn phải --}}
+            <div class="ms-auto">
                 @if(!$exam->is_published)
-                    <form action="{{ route('exams.publish', $exam->id) }}" method="POST" class="d-inline"> {{-- Removed me-2 here --}}
-                        @csrf
+                    <form action="{{ route('exams.publish', $exam->id) }}" method="POST" class="d-inline">
+                        csrf
                         <button type="submit" class="btn btn-success">
                             <i class="fas fa-check-circle"></i> Xuất bản
                         </button>
                     </form>
                 @endif
-                {{-- Các nút Chỉnh sửa và Danh sách đã được di chuyển xuống cuối trang --}}
+
             </div>
         </div>
 
-        <div class="card mb-4 border-0 shadow-sm rounded-2"> {{-- Card styling --}}
-            <div class="card-header bg-transparent text-primary-color fw-semibold">Thông tin đề thi</div> {{-- Header styling --}}
+        <div class="card mb-4 border-0 shadow-sm rounded-2">
+
+            <div class="card-header bg-transparent text-primary-color fw-semibold">Thông tin đề thi</div>
+
             <div class="card-body">
                 <div class="row">
                     <div class="col-md-6">
@@ -76,12 +78,13 @@
             </div>
         </div>
 
-        <div class="card border-0 shadow-sm rounded-2"> {{-- Card styling --}}
-            <div class="card-header bg-transparent text-primary-color fw-semibold">Nội dung đề thi</div> {{-- Header styling --}}
+        <div class="card border-0 shadow-sm rounded-2">
+
+            <div class="card-header bg-transparent text-primary-color fw-semibold">Nội dung đề thi</div>
             <div class="card-body">
                 @foreach($exam->questions as $index => $question)
-                    <div class="question-item mb-4 p-3 border rounded-3 shadow-sm"> {{-- Question item styling --}}
-                        <div class="d-flex justify-content-between align-items-center mb-2"> {{-- Added align-items-center --}}
+                    <div class="question-item mb-4 p-3 border rounded-3 shadow-sm">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
                             <h5 class="mb-0 text-primary-color">Câu {{ $index + 1 }} <small>({{ $question->marks }} điểm)</small></h5>
                         </div>
                         <div class="question-content mb-3">
@@ -96,7 +99,7 @@
                                            id="option_{{ $option->id }}"
                                            disabled
                                         {{ $option->is_correct ? 'checked' : '' }}>
-                                    <label class="form-check-label {{ $option->is_correct ? 'text-primary-color fw-bold' : '' }}" {{-- Styling for correct option --}}
+                                    <label class="form-check-label {{ $option->is_correct ? 'text-primary-color fw-bold' : '' }}"
                                     for="option_{{ $option->id }}">
                                         {{ chr(65 + $optionIndex) }}. {!! $option->content !!}
                                     </label>
@@ -106,8 +109,7 @@
                     </div>
                 @endforeach
 
-                {{-- Tổng điểm và các nút hành động cuối trang --}}
-                <div class="d-flex justify-content-between align-items-center mt-4 pt-3 border-top"> {{-- Added pt-3 border-top --}}
+                <div class="d-flex justify-content-between align-items-center mt-4 pt-3 border-top">
                     <p class="fw-bold mb-0">Tổng cộng: {{ $exam->questions->count() }} câu - {{ $exam->questions->sum('marks') }} điểm</p>
                     <div>
 

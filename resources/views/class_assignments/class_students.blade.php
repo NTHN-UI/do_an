@@ -117,7 +117,6 @@
 
                     <div class="modal-header">
                         <h5 class="modal-title" id="changeClassStudentModalLabel">Chuyển học sinh sang lớp khác</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
                         <div class="mb-3">
@@ -137,8 +136,8 @@
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-                        <button type="submit" class="btn btn-primary">Xác nhận chuyển</button>
+                        <button type="button" class="btn btn-outline-primary-color" data-bs-dismiss="modal">Hủy</button>
+                        <button type="submit" class="btn btn-primary-color">Xác nhận chuyển</button>
                     </div>
                 </form>
             </div>

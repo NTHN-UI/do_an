@@ -29,25 +29,24 @@ class  School extends Model
         'Giáo dục thể chất', 'Nghệ thuật'
     ];
 
-    // Quan hệ với admin trường
+
     public function school_admins()
     {
         return $this->hasMany(User::class)->where('role', User::ROLE_SCHOOL_ADMIN);
     }
 
-    // Quan hệ với giáo viên
+
     public function teachers()
     {
         return $this->hasMany(User::class)->where('role', User::ROLE_TEACHER);
     }
 
-    // Quan hệ với học sinh
+
     public function students()
     {
         return $this->hasMany(User::class)->where('role', User::ROLE_STUDENT);
     }
 
-    // School.php
     public function classes()
     {
         return $this->hasMany(ClassModel::class);
@@ -63,7 +62,6 @@ class  School extends Model
         return $this->hasMany(User::class);
     }
 
-    // Scope active
     public function scopeActive($query)
     {
         return $query->whereNull('deleted_at');
@@ -73,7 +71,6 @@ class  School extends Model
         return $this->hasOne(EmailSetting::class);
     }
 
-    // Tự động tạo môn học khi tạo trường
     protected static function booted()
     {
         static::created(function (School $school) {

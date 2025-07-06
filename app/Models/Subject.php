@@ -24,7 +24,7 @@ class Subject extends Model
     {
         return $this->hasMany(TeacherAssignment::class);
     }
-    // app/Models/Subject.php
+
     public function isSpecialSubject()
     {
         return in_array($this->name, [

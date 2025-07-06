@@ -30,12 +30,10 @@ class GradeTemplateExport implements WithMultipleSheets
     {
         $sheets = [];
 
-        // Sheet hướng dẫn
         $sheets[] = new GradeTemplateGuideSheet();
 
-        // Sheet nhập điểm cho từng môn
         foreach ($this->subjects as $subject) {
-            if (!$subject) continue; // Bỏ qua nếu null
+            if (!$subject) continue;
 
             $sheets[] = new GradeTemplateSubjectSheet(
                 $this->students,
@@ -114,8 +112,8 @@ class GradeTemplateSubjectSheet implements FromCollection, WithHeadings, WithTit
             $row = [
                 $student->id,
                 $student->full_name,
-                '', // Điểm 15p lần 1 (thay cho điểm miệng)
-                '', // Điểm 15p lần 2 (thay cho điểm thực hành)
+                '', // Điểm 15p lần 1
+                '', // Điểm 15p lần 2
                 '', // Điểm 15p lần 3
                 '', // Điểm 1 tiết
                 '', // Điểm cuối kỳ
@@ -153,25 +151,20 @@ class GradeTemplateSubjectSheet implements FromCollection, WithHeadings, WithTit
 
     public function title(): string
     {
-        // Giới hạn độ dài tên sheet (tối đa 31 ký tự)
         return substr($this->subject->name, 0, 31);
     }
 
     public function styles(Worksheet $sheet)
     {
-        // Merge các ô tiêu đề
         $sheet->mergeCells('A1:G1');
         $sheet->mergeCells('A2:G2');
         $sheet->mergeCells('A3:G3');
         $sheet->mergeCells('A4:G4');
 
-        // Định dạng tiêu đề
         $sheet->getStyle('A1:G5')->getFont()->setBold(true);
 
-        // Căn giữa các tiêu đề
         $sheet->getStyle('A1:G5')->getAlignment()->setHorizontal('center');
 
-        // Đặt độ rộng cột
         $sheet->getColumnDimension('A')->setWidth(10);
         $sheet->getColumnDimension('B')->setWidth(30);
         $sheet->getColumnDimension('C')->setWidth(15);
@@ -180,13 +173,10 @@ class GradeTemplateSubjectSheet implements FromCollection, WithHeadings, WithTit
         $sheet->getColumnDimension('F')->setWidth(15);
         $sheet->getColumnDimension('G')->setWidth(15);
 
-        // Đặt kiểu dữ liệu cho các cột điểm
-        // Thiết lập data validation
         $isTextSubject = in_array($this->subject->name, $this->textBasedSubjects);
         $lastRow = count($this->students) + 6;
 
         if ($isTextSubject) {
-            // Thiết lập dropdown cho môn đạt/chưa đạt
             $validation = $sheet->getCell('C7')->getDataValidation();
             $validation->setType(\PhpOffice\PhpSpreadsheet\Cell\DataValidation::TYPE_LIST);
             $validation->setErrorStyle(\PhpOffice\PhpSpreadsheet\Cell\DataValidation::STYLE_STOP);
@@ -200,14 +190,12 @@ class GradeTemplateSubjectSheet implements FromCollection, WithHeadings, WithTit
             $validation->setPrompt('Chọn "Đạt" hoặc "Chưa đạt"');
             $validation->setFormula1('"Đạt,Chưa đạt"');
 
-            // Áp dụng cho tất cả các ô nhập liệu
             for ($row = 7; $row <= $lastRow; $row++) {
                 for ($col = 'C'; $col <= 'G'; $col++) {
                     $sheet->getCell("{$col}{$row}")->setDataValidation(clone $validation);
                 }
             }
         } else {
-            // Thiết lập validation cho môn nhập điểm số
             $validation = $sheet->getCell('C7')->getDataValidation();
             $validation->setType(\PhpOffice\PhpSpreadsheet\Cell\DataValidation::TYPE_DECIMAL);
             $validation->setOperator(\PhpOffice\PhpSpreadsheet\Cell\DataValidation::OPERATOR_BETWEEN);
@@ -221,7 +209,6 @@ class GradeTemplateSubjectSheet implements FromCollection, WithHeadings, WithTit
             $validation->setPromptTitle('Nhập điểm');
             $validation->setPrompt('Nhập điểm từ 0 đến 10 (có thể nhập 1 chữ số thập phân)');
 
-            // Áp dụng cho tất cả các ô nhập liệu
             for ($row = 7; $row <= $lastRow; $row++) {
                 for ($col = 'C'; $col <= 'G'; $col++) {
                     $sheet->getCell("{$col}{$row}")->setDataValidation(clone $validation);

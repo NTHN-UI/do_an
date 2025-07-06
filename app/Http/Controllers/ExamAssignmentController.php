@@ -25,7 +25,6 @@ class ExamAssignmentController extends Controller
     }
     public function create(Exam $exam)
     {
-        // Lấy các lớp mà giáo viên được phân công và phù hợp với khối lớp của đề thi
         $classes = ClassModel::where('grade_level_id', $exam->grade_level_id)
             ->whereHas('teacherAssignments', function($query) {
                 $query->where('teacher_id', auth()->id());
@@ -54,8 +53,7 @@ class ExamAssignmentController extends Controller
             'shuffle_options' => $request->has('shuffle_options'),
         ]);
 
-        // Gửi thông báo đến học sinh (có thể triển khai sau)
-        // Notification::send($assignment->class->students, new NewExamAssignment($assignment));
+
 
         return redirect()->route('exams.show', $exam->id)
             ->with('success', 'Đề thi đã được giao thành công!');
@@ -68,12 +66,10 @@ class ExamAssignmentController extends Controller
 
         $questions = $exam->questions()->with('options')->get();
 
-        // Xáo trộn câu hỏi nếu được cấu hình
         if ($assignment->shuffle_questions) {
             $questions = $questions->shuffle();
         }
 
-        // Xáo trộn đáp án trong từng câu hỏi nếu được cấu hình
         if ($assignment->shuffle_options) {
             $questions->each(function ($question) {
                 $question->options = $question->options->shuffle();
@@ -82,28 +78,23 @@ class ExamAssignmentController extends Controller
 
         return view('exams.take', compact('exam', 'questions', 'assignment'));
     }
-    // Thêm vào ExamAssignmentController
     public function classResults(ExamAssignment $assignment)
     {
-        // Kiểm tra quyền
         if ($assignment->exam->teacher_id !== auth()->id()) {
             abort(403);
         }
-
-        // Lấy danh sách học sinh với kết quả
         $students = $assignment->class->students()
             ->with(['examResults' => function($query) use ($assignment) {
                 $query->where('exam_assignment_id', $assignment->id);
             }])
             ->get();
 
-        // Thêm dòng này để tạo biến $results
         $results = ExamResult::where('exam_assignment_id', $assignment->id)->get();
 
         return view('exam_assignments.class_results', [
             'assignment' => $assignment,
             'students' => $students,
-            'results' => $results // Thêm biến này
+            'results' => $results
         ]);
     }
 }

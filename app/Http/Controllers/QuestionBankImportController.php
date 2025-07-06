@@ -46,14 +46,12 @@ class QuestionBankImportController extends Controller
             $importedCount = 0;
 
             foreach ($rows as $index => $row) {
-                if ($index === 0) continue; // Skip header
+                if ($index === 0) continue;
 
-                // Kiểm tra số lượng cột tối thiểu
                 if (count($row) < 10) {
                     throw new \Exception("Dòng {$index} thiếu dữ liệu. Vui lòng kiểm tra lại file mẫu");
                 }
 
-                // Validate môn học
                 $subjectName = trim($row[2] ?? '');
                 $subject = Subject::where('name', $subjectName)->first();
 
@@ -61,28 +59,26 @@ class QuestionBankImportController extends Controller
                     throw new \Exception("Môn học '{$subjectName}' không tồn tại (Dòng {$index})");
                 }
 
-                // Kiểm tra phân công giảng dạy
                 if (!in_array($subject->id, $teacherAssignments)) {
                     throw new \Exception("Bạn không được phân công dạy môn '{$subjectName}' (Dòng {$index})");
                 }
 
-                // Tạo câu hỏi
+
                 $question = QuestionBank::create([
                     'content' => $row[1] ?? '',
                     'subject_id' => $subject->id,
-                    'grade_level_id' => $this->getGradeLevelId($row[3] ?? 10), // Mặc định khối 10 nếu không có
+                    'grade_level_id' => $this->getGradeLevelId($row[3] ?? 10),
                     'teacher_id' => $user->id,
                     'school_id' => $user->school_id
                 ]);
 
-                // Thêm đáp án với kiểm tra null
                 $this->createQuestionOptions(
                     $question->id,
-                    $row[5] ?? '', // Đáp án A
-                    $row[6] ?? '', // Đáp án B
-                    $row[7] ?? null, // Đáp án C
-                    $row[8] ?? null, // Đáp án D
-                    strtoupper($row[9] ?? 'A') // Mặc định đáp án A nếu không có
+                    $row[5] ?? '',
+                    $row[6] ?? '',
+                    $row[7] ?? null,
+                    $row[8] ?? null,
+                    strtoupper($row[9] ?? 'A')
                 );
                 $importedCount++;
 
@@ -106,7 +102,6 @@ class QuestionBankImportController extends Controller
 
     private function createQuestionOptions($questionId, $a, $b, $c = null, $d = null, $correct)
     {
-        // Validate đáp án đúng
         $correct = strtoupper(trim($correct));
         if (!in_array($correct, ['A', 'B', 'C', 'D'])) {
             throw new \Exception("Đáp án đúng phải là A, B, C hoặc D");
@@ -136,7 +131,6 @@ class QuestionBankImportController extends Controller
     }
     public function downloadTemplate()
     {
-        // Đảm bảo thư mục tồn tại
         $directory = storage_path('app/templates');
         if (!file_exists($directory)) {
             mkdir($directory, 0755, true);
@@ -144,12 +138,10 @@ class QuestionBankImportController extends Controller
 
         $filePath = $directory.'/multi_subject_import_template.xlsx';
 
-        // Tạo file mới nếu chưa tồn tại
         if (!file_exists($filePath)) {
             $spreadsheet = new Spreadsheet();
             $sheet = $spreadsheet->getActiveSheet();
 
-            // Thiết lập tiêu đề
             $headers = [
                 'STT', 'Nội dung câu hỏi*', 'Môn học*', 'Khối lớp*',
                  'Điểm*', 'Đáp án A*', 'Đáp án B*',
@@ -157,12 +149,11 @@ class QuestionBankImportController extends Controller
             ];
             $sheet->fromArray([$headers], null, 'A1');
 
-            // Lưu file
+
             $writer = new Xlsx($spreadsheet);
             $writer->save($filePath);
         }
 
-        // Tải file về
         return response()->download($filePath)->deleteFileAfterSend(true);
     }
 }

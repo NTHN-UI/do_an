@@ -2,7 +2,6 @@
 
 @section('content')
     <div class="container rounded-3 shadow p-4">
-        {{-- Phần tiêu đề --}}
         <div class="d-flex align-items-center mb-4">
             <h3 class="mb-0 text-primary-color">Xem trước thông báo
             </h3>
@@ -54,7 +53,6 @@
                     </div>
                 </div>
 
-                {{-- Nút hành động --}}
                 <div class="d-flex justify-content-end mt-4">
                     <a href="{{ route('notifications.edit', $notification->id) }}" class="btn btn-outline-primary-color me-2">Chỉnh sửa</a>
                     <form action="{{ route('notifications.send', $notification) }}" method="POST">

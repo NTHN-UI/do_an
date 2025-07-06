@@ -46,18 +46,14 @@
 <body>
 @include('partials.sidebar')
 
-<!-- Main Content Area -->
 <div class="main-content">
     <main class="container-fluid px-4 py-3">
-        <!-- Alert Container (fixed position) -->
         <div id="app-alert-container" class="position-fixed top-0 start-50 translate-middle-x p-3" style="z-index: 1060;"></div>
 
-        <!-- Dynamic Content Section -->
         <div class="content-wrapper mt-4">
             @yield('content')
         </div>
 
-        <!-- Toast Notification -->
         @if(session('success') || session('error') || session('info'))
             <div class="toast-container position-fixed end-0 p-3" style="top: 8px;">
                 <div class="toast text-white border-0 show"

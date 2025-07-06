@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use App\Helpers\DateHelper;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -13,7 +12,6 @@ class User extends Authenticatable
 {
     use HasFactory, Notifiable;
 
-    // Các role trong hệ thống
     const ROLE_SUPER_ADMIN = 'super_admin';
     const ROLE_SCHOOL_ADMIN = 'school_admin';
     const ROLE_TEACHER = 'teacher';
@@ -59,7 +57,6 @@ class User extends Authenticatable
         return $query->where('role', $role);
     }
 
-    // Kiểm tra vai trò
     public function isSuperAdmin()
     {
         return $this->role === self::ROLE_SUPER_ADMIN;
@@ -86,7 +83,6 @@ class User extends Authenticatable
             ->where('guardian_email', '!=', '');
     }
 
-    // Quan hệ với trường học
     public function school()
     {
         return $this->belongsTo(School::class);
@@ -104,6 +100,7 @@ class User extends Authenticatable
         return $this->belongsToMany(User::class, 'student_classes', 'class_id', 'user_id')
             ->withPivot('academic_year_id');
     }
+
 
     public function examResults()
     {
@@ -174,7 +171,15 @@ class User extends Authenticatable
         return $this->belongsToMany(GradeLevel::class, 'grade_users', 'user_id', 'grade_id')
             ->withPivot(['academic_year_id', 'school_id']);
     }
-
+    public function gradeLevels()
+    {
+        return $this->belongsToMany(GradeLevel::class, 'grade_users', 'user_id', 'grade_id')
+            ->withPivot('academic_year_id', 'school_id');
+    }
+    public function currentAcademicYear()
+    {
+        return $this->studentGrades()->first()?->pivot?->academic_year_id;
+    }
     public function subject()
     {
         return $this->belongsTo(Subject::class);
@@ -270,11 +275,9 @@ class User extends Authenticatable
             ->wherePivot('academic_year_id', $academicYearId)
             ->first();
     }
-    // app/Models/User.php
 
     public function getAverageOverallGradeForAcademicYear($academicYearId)
     {
-        // Lấy điểm trung bình cả năm của học sinh trong năm học cụ thể
         $grades = Grade::whereHas('semester', function($query) use ($academicYearId) {
             $query->where('academic_year_id', $academicYearId);
         })
@@ -286,7 +289,6 @@ class User extends Authenticatable
             return null;
         }
 
-        // Tính điểm trung bình (chỉ tính các môn không phải môn đặc biệt)
         $specialSubjects = ['Giáo dục quốc phòng và an ninh', 'Giáo dục thể chất', 'Nghệ thuật'];
 
         $total = 0;

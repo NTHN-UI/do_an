@@ -22,7 +22,6 @@
     <div class="container rounded-3 shadow p-4">
         <h3 class="mb-3 text-primary-color">Danh sách học si1nh</h3>
 
-        <!-- Search and Add Button -->
         <div class="d-flex flex-column flex-md-row justify-content-end align-items-md-center mb-4 gap-3 header-actions">
 
             <div class="d-flex align-items-center gap-2 flex-wrap flex-md-nowrap">
@@ -75,7 +74,6 @@
                             </select>
                         </div>
                         <div class="col-md-4 d-flex align-items-end gap-2 justify-content-end">
-                            <!-- Nút Import -->
                             <div class="flex-shrink-0">
                             <button type="button" class="btn btn-primary-color me-2 action-btn" onclick="$('#real-import-btn').click()"
                                     {{ !$academicYearId ? 'disabled' : '' }}
@@ -113,7 +111,6 @@
         </div>
 
 
-        <!-- Student list -->
         <div class="card border-0 shadow-sm rounded-2">
             <div class="card-body p-0">
                 <div class="table-responsive">
@@ -138,9 +135,43 @@
             @include('students.partials.pagination', ['students' => $students])
         </div>
     </div>
+    <div class="modal fade" id="importErrorsModal" tabindex="-1" aria-labelledby="importErrorsModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-primary-color text-white">
+                    <h5 class="modal-title" id="importErrorsModalLabel">Lỗi khi import dữ liệu</h5>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        Vui lòng kiểm tra lại các lỗi bên dưới và thử lại
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table table-bordered">
+                            <thead class="table-light">
+                            <tr>
+                                <th width="100">Dòng số</th>
+                                <th>Lỗi</th>
+                                <th>Giá trị nhập</th>
+                            </tr>
+                            </thead>
+                            <tbody id="importErrorsList">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary-color" data-bs-dismiss="modal">Đóng</button>
+
+                </div>
+            </div>
+        </div>
+    </div>
 @endsection
 
 @push('scripts')
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
         $(document).ready(function() {
             $('#search-input').on('keyup', function() {
@@ -231,34 +262,92 @@
                     contentType: false,
                     success: function(response) {
                         if (response.success) {
+                            Swal.fire({
+                                title: 'Thành công!',
+                                text: response.message,
+                                icon: 'success',
+                                confirmButtonText: 'OK',
+                                confirmButtonColor: '#013066',
+                            });
+
                             if (response.new_student) {
                                 const newStudentRow = `
-                            <tr>
-                                <td>${response.new_student.id}</td>
-                                <td>${response.new_student.full_name}</td>
-                                <td>${response.new_student.email}</td>
-                                <td>${response.new_student.phone || ''}</td>
-                                <td>${response.new_student.school.name}</td>
-                                <td>${response.new_student.is_active ? 'Hoạt động' : 'Không hoạt động'}</td>
-                                <td></td>
-                            </tr>
-                        `;
+                <tr>
+                    <td>${response.new_student.id}</td>
+                    <td>${response.new_student.full_name}</td>
+                    <td>${response.new_student.email}</td>
+                    <td>${response.new_student.phone || ''}</td>
+                    <td>${response.new_student.school.name}</td>
+                    <td>${response.new_student.is_active ? 'Hoạt động' : 'Không hoạt động'}</td>
+                    <td class="text-center">
+
+                    </td>
+                </tr>
+            `;
                                 $('#students-container').prepend(newStudentRow);
                             }
-                            if (response.reload) loadStudents();
-                            showAlert('success', response.message);
+
+                            if (response.reload) {
+                                loadStudents();
+                            }
                         } else {
-                            showAlert('danger', response.message);
+                            Swal.fire({
+                                title: 'Thông báo',
+                                text: response.message,
+                                icon: 'info',
+                                confirmButtonText: 'OK',
+                                confirmButtonColor: '#013066',
+                            });
                         }
                     },
                     error: function(xhr) {
-                        showAlert('danger', xhr.responseJSON?.message || 'Lỗi khi import file');
+                        if (xhr.status === 422) {
+                            // Xóa nội dung cũ
+                            $('#importErrorsList').empty();
+
+                            // Thêm từng lỗi vào bảng
+                            xhr.responseJSON.errors.forEach(error => {
+                                const rowError = `
+                        <tr>
+                            <td>${error.row}</td>
+                            <td class="text-danger">${error.error}</td>
+                            <td>${error.values ? formatErrorValues(error.values) : 'N/A'}</td>
+                        </tr>
+                    `;
+                                $('#importErrorsList').append(rowError);
+                            });
+
+                            // Cập nhật link tải file mẫu
+                            $('#downloadTemplateBtn').attr('href',
+                                `{{ route('students.export.template') }}?academic_year_id=${academicYearId}&grade_level_id=${gradeLevelId}`
+                            );
+
+                            // Hiển thị modal
+                            $('#importErrorsModal').modal('show');
+                        } else {
+                            Swal.fire({
+                                title: 'Lỗi',
+                                text: xhr.responseJSON?.message || 'Có lỗi xảy ra khi import',
+                                icon: 'error',
+                                confirmButtonText: 'Đóng'
+                            });
+                        }
                     },
                     complete: function() {
                         $('#loading-spinner').addClass('d-none');
-                        inputFile.val('');
+                        $('#real-import-btn').val('');
                     }
                 });
+            }
+
+            function formatErrorValues(values) {
+                let html = '';
+                for (const key in values) {
+                    if (values[key]) {
+                        html += `<div><strong>${key}:</strong> ${values[key]}</div>`;
+                    }
+                }
+                return html || 'Không có dữ liệu';
             }
 
             function showAlert(type, message) {
@@ -288,5 +377,6 @@
             toggleActionButtons();
             updateExportLink();
         });
+
     </script>
 @endpush

@@ -11,7 +11,6 @@
                     {{ $assignment->end_time->format('d/m/Y H:i') }}
                 </div>
             </div>
-            {{-- Đồng hồ đếm ngược --}}
             <div id="timer" class="exam-timer"></div>
         </div>
 

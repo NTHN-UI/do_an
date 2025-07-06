@@ -27,7 +27,6 @@
             </a>
         </div>
 
-        {{-- Bảng hiển thị lịch sử thông báo --}}
         <div class="card border-0 shadow-sm rounded-2">
             <div class="card-body p-0">
                 <div class="table-responsive">
@@ -44,13 +43,11 @@
                         </tr>
                         </thead>
                         <tbody>
-                        {{-- Giả định biến $notifications chứa danh sách thông báo --}}
                         @forelse($notifications as $notification)
                             <tr class="text-center">
                                 <td class="text-start">{{ $notification->subject }}</td>
                                 <td>{{ $notification->class->name ?? 'N/A' }}</td>
                                 <td>
-                                    {{-- Hiển thị mức độ ưu tiên --}}
                                     @switch($notification->priority)
                                         @case('high')
                                             <span class="badge bg-primary-color">Cao</span>
@@ -65,7 +62,6 @@
                                 <td>{{ $notification->created_at->format('d/m/Y H:i') }}</td>
                                 <td>{{ $notification->sender->full_name ?? 'N/A' }}</td>
                                 <td>
-                                    {{-- Giả định có trường 'status' trong model Notification --}}
                                     @if($notification->status === 'sent')
                                         <span class="badge bg-primary-color">Đã gửi</span>
                                     @elseif($notification->status === 'draft')
@@ -85,20 +81,6 @@
                                                 <a class="dropdown-item px-3 py-2"
                                                    href="{{ route('notifications.preview', $notification->id) }}">Xem</a>
                                             </li>
-                                            {{-- Các nút thao tác khác nếu cần (ví dụ: Sửa, Xóa) --}}
-                                            {{-- @if($notification->status === 'draft')
-                                            <li>
-                                                <a class="dropdown-item px-3 py-2"
-                                                   href="{{ route('notifications.edit', $notification->id) }}">Sửa</a>
-                                            </li>
-                                            @endif --}}
-                                            {{-- <li>
-                                                <form action="{{ route('notifications.destroy', $notification->id) }}" method="POST" onsubmit="return confirm('Bạn có chắc chắn muốn xóa thông báo này?');">
-                                                    @csrf
-                                                    @method('DELETE')
-                                                    <button type="submit" class="dropdown-item px-3 py-2 text-danger">Xóa</button>
-                                                </form>
-                                            </li> --}}
                                         </ul>
                                     </div>
                                 </td>
@@ -112,7 +94,6 @@
                     </table>
                 </div>
             </div>
-            {{-- Phân trang --}}
             @if($notifications->lastPage() > 1)
                 <div class="card-footer border-0 bg-transparent" id="pagination-container">
                     <nav aria-label="page navigation">

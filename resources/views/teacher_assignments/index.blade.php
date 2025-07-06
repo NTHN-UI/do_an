@@ -27,14 +27,7 @@
                 </a>
             </div>
         </div>
-        @if(session('success'))
-            <div class="alert alert-success alert-dismissible fade show">
-                {{ session('success') }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-        @endif
 
-        <!-- Bộ lọc -->
         <div class="card shadow-sm mb-4">
             <div class="card-body">
                 <form method="GET" action="{{ route('teacher_assignments.index') }}" id="filter-form">
@@ -93,7 +86,6 @@
             </div>
         </div>
 
-        <!-- Danh sách phân công -->
         <div class="card border-0 shadow-sm rounded-2">
             <div class="card-body p-0">
                 <div class="table-responsive">

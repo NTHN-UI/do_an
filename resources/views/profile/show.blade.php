@@ -57,7 +57,7 @@
                                 @if($user->phone)
                                     <div class="col-md-6 mb-3">
                                         <div class="d-flex align-items-center">
-                                            <i class="fas fa-phone text-primary me-3 fa-lg"></i>
+                                            <i class="fas fa-phone text-primary-color me-3 fa-lg"></i>
                                             <div>
                                                 <small class="text-muted d-block">Điện thoại</small>
                                                 <p class="mb-0">{{ $user->phone }}</p>

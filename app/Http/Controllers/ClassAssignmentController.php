@@ -95,7 +95,6 @@ class ClassAssignmentController extends Controller
         //
     }
 
-    // Hiển thị form phân công tự động
     public function showAutoAssignmentForm()
     {
         $gradeLevels = GradeLevel::where('school_id', auth()->user()->school_id)->get();
@@ -129,18 +128,15 @@ class ClassAssignmentController extends Controller
                         return $fail('Năm học không hợp lệ.');
                     }
 
-                    // Lấy năm học hiện tại
                     $currentAcademicYear = AcademicYear::where('school_id', $schoolId)
                         ->where('start_date', '<=', now())
                         ->where('end_date', '>=', now())
                         ->first();
 
                     if (!$currentAcademicYear) {
-                        // Nếu không có năm học hiện tại, coi như năm học nào cũng hợp lệ, hoặc bạn có thể thêm logic cụ thể
                         return;
                     }
 
-                    // Kiểm tra năm học: hiện tại, sắp tới hoặc chưa kết thúc
                     if ($academicYear->end_date < now() && $academicYear->id !== $currentAcademicYear->id) {
                         $fail('Năm học đã chọn đã kết thúc và không phải là năm học hiện tại.');
                     }
@@ -168,9 +164,7 @@ class ClassAssignmentController extends Controller
                 ->orderBy('name')
                 ->get();
 
-            // Kiểm tra 4a: Không có lớp học nào thuộc khối và năm học được chọn
             if ($classes->isEmpty()) {
-                // Thay vì throw ValidationException, trả về back() với flash error
                 return back()->with('error', 'Không có lớp nào trong khối và năm học được chọn.')->withInput();
             }
 
@@ -190,14 +184,12 @@ class ClassAssignmentController extends Controller
                 })
                 ->get();
 
-            // Kiểm tra 4b: Không có học sinh nào chưa được phân lớp
             if ($unassignedStudents->isEmpty()) {
                 if ($unassignedStudents->isEmpty()) {
                     return back()->with('error', 'Không có học sinh nào cần phân lớp trong khối và năm học được chọn.')->withInput();
                 }
             }
 
-            // Kiểm tra 4c: Một số học sinh không có điểm đầu vào (chỉ áp dụng cho khối 10)
             if ($isGrade10) {
                 $studentsWithoutEntryScore = $unassignedStudents->filter(function ($student) {
                     return $student->entry_score === null;
@@ -207,7 +199,6 @@ class ClassAssignmentController extends Controller
                     $countWithoutScore = $studentsWithoutEntryScore->count();
                     $studentNames = $studentsWithoutEntryScore->pluck('full_name')->implode(', ');
 
-                    // Thay vì throw ValidationException, trả về back() với flash error
                     return back()->with('error', "Có $countWithoutScore học sinh chưa có điểm đầu vào: $studentNames. Vui lòng cập nhật điểm đầu vào cho học sinh trước khi thực hiện phân lớp theo điểm số.")->withInput();
                 }
             }
@@ -217,20 +208,16 @@ class ClassAssignmentController extends Controller
 
             $assignmentDetails = [];
 
-            // Chuẩn bị dữ liệu để insert hàng loạt
             $assignments = [];
             $now = now();
 
             foreach ($unassignedStudents as $index => $student) {
-                // Xác định lớp dựa trên thứ tự
                 $classIndex = floor($index / $studentsPerClass);
-                // Đảm bảo không vượt quá số lớp
                 if ($classIndex >= $classCount) {
                     $classIndex = $classCount - 1;
                 }
 
                 $selectedClass = $classes[$classIndex];
-
 
                 $assignments[] = [
                     'user_id' => $student->id,
@@ -245,12 +232,9 @@ class ClassAssignmentController extends Controller
                     'score' => $isGrade10 ? $student->entry_score : null
                 ];
             }
-            // Thực hiện insert hàng loạt
+
             StudentClass::insert($assignments);
-
             DB::commit();
-
-            // Tạo thông báo chi tiết
             $message = "Đã phân công $totalStudents học sinh ";
 
             return redirect()
@@ -264,7 +248,7 @@ class ClassAssignmentController extends Controller
         }
     }
 
-    // Hiển thị danh sách học sinh trong lớp
+
     public function showClassStudents(ClassModel $class)
     {
         if ($class->school_id !== auth()->user()->school_id) {
@@ -310,7 +294,7 @@ class ClassAssignmentController extends Controller
             'targetClasses'
         ));
     }
-    // Chuyển học sinh sang lớp khác
+
     public function changeClassStudent(Request $request, string $id)
     {
         $student = User::find($id);
@@ -326,13 +310,11 @@ class ClassAssignmentController extends Controller
 
         try {
             DB::beginTransaction();
-            // Xóa khỏi lớp cũ
             StudentClass::where('user_id', $student->id)
                 ->where('class_id', $request->current_class_id)
                 ->where('academic_year_id', $request->academic_year_id)
                 ->delete();
 
-            // Thêm vào lớp mới
             StudentClass::create([
                 'user_id' => $student->id,
                 'class_id' => $request->new_class_id,
@@ -382,7 +364,6 @@ class ClassAssignmentController extends Controller
                     continue;
                 }
 
-                // Kiểm tra xem học sinh có bất kỳ điểm nào không
                 $hasAnyGrades = Grade::where('student_id', $user->id)
                     ->where('academic_year_id', $currentAcademicYearId)
                     ->exists();
@@ -403,18 +384,16 @@ class ClassAssignmentController extends Controller
                     continue;
                 }
 
-                // Lấy thông tin xếp loại học lực
                 $classification = $this->calculateYearlyClassification($user->id, $currentAcademicYearId);
                 $newClass = null;
                 $promotionStatus = '';
 
-                // Kiểm tra điều kiện lên lớp
+
                 if ($classification === null) {
                     $messages[] = "Không đủ dữ liệu để xếp loại cho học sinh {$user->full_name} ({$user->id}). Học sinh sẽ ở lại lớp.";
                     $newClass = $this->getRetainedClass($currentClass, $nextAcademicYear);
                     $promotionStatus = 'Ở lại lớp (không đủ dữ liệu)';
                 }
-                // Điều kiện lên lớp: Xếp loại từ Đạt trở lên
                 elseif (in_array($classification, ['Đạt', 'Khá', 'Tốt'])) {
                     $newClass = $this->getPromotedClass($currentClass, $nextAcademicYear);
                     if ($newClass) {
@@ -463,7 +442,7 @@ class ClassAssignmentController extends Controller
 
     protected function calculateYearlyClassification($studentId, $academicYearId)
     {
-        // Lấy điểm cả năm của học sinh
+
         $grades = Grade::where('student_id', $studentId)
             ->where('academic_year_id', $academicYearId)
             ->where('test_type', 'final')
@@ -475,7 +454,7 @@ class ClassAssignmentController extends Controller
             return null;
         }
 
-        // Lấy các học kỳ
+
         $semesters = Semester::where('academic_year_id', $academicYearId)
             ->orderBy('start_date')
             ->get();
@@ -487,7 +466,6 @@ class ClassAssignmentController extends Controller
             return null;
         }
 
-        // Tính điểm trung bình các môn
         $subjectAverages = [];
         $specialSubjects = ['Giáo dục quốc phòng và an ninh', 'Giáo dục thể chất', 'Nghệ thuật'];
 
@@ -516,7 +494,6 @@ class ClassAssignmentController extends Controller
             }
         }
 
-        // Tính điểm trung bình cả năm (chỉ tính môn thường)
         $total = 0;
         $count = 0;
         foreach ($subjectAverages as $subjectAverage) {
@@ -528,7 +505,7 @@ class ClassAssignmentController extends Controller
 
         $yearlyAverage = $count > 0 ? $total / $count : 0;
 
-        // Xếp loại học lực
+
         return $this->classifyStudentPerformance($yearlyAverage, $subjectAverages);
     }
 
@@ -559,7 +536,6 @@ class ClassAssignmentController extends Controller
             }
         }
 
-        // Áp dụng quy định xếp loại
         if ($specialNotPassed === 0 && $countAbove6_5 >= 6 && $averageScore >= 6.5) {
             return 'Tốt';
         }
@@ -575,17 +551,15 @@ class ClassAssignmentController extends Controller
 
     protected function getPromotedClass(ClassModel $currentClass, AcademicYear $nextAcademicYear)
     {
-        // Lấy cấp độ khối hiện tại
+
         $currentGradeNumber = $currentClass->gradeLevel->grade_number;
         $nextGradeNumber = $currentGradeNumber + 1;
 
-        // Kiểm tra nếu đã là khối cuối cùng
-        if ($nextGradeNumber > 12) { // Giả sử 12 là khối cuối cùng
+        if ($nextGradeNumber > 12) {
             Log::warning("Học sinh không thể lên lớp vì đã ở khối cuối: {$currentClass->name}");
             return null;
         }
 
-        // Tìm khối lớp tiếp theo
         $nextGradeLevel = GradeLevel::where('grade_number', $nextGradeNumber)
             ->where('school_id', $currentClass->school_id)
             ->first();
@@ -595,14 +569,12 @@ class ClassAssignmentController extends Controller
             return null;
         }
 
-        // Tạo tên lớp mục tiêu (ví dụ: 10A1 -> 11A1)
         $targetClassName = str_replace(
             (string)$currentGradeNumber,
             (string)$nextGradeNumber,
             $currentClass->name
         );
 
-        // Tìm lớp trong năm học tiếp theo
         $promotedClass = ClassModel::where('academic_year_id', $nextAcademicYear->id)
             ->where('grade_level_id', $nextGradeLevel->id)
             ->where('name', $targetClassName)
@@ -610,7 +582,6 @@ class ClassAssignmentController extends Controller
             ->first();
 
         if (!$promotedClass) {
-            // Thử tìm bất kỳ lớp nào trong khối tiếp theo nếu không tìm thấy lớp cùng tên
             $promotedClass = ClassModel::where('academic_year_id', $nextAcademicYear->id)
                 ->where('grade_level_id', $nextGradeLevel->id)
                 ->where('school_id', $currentClass->school_id)
@@ -626,7 +597,6 @@ class ClassAssignmentController extends Controller
 
     protected function getRetainedClass(ClassModel $currentClass, AcademicYear $nextAcademicYear)
     {
-        // Đầu tiên thử tìm lớp cùng tên
         $retainedClass = ClassModel::where('academic_year_id', $nextAcademicYear->id)
             ->where('grade_level_id', $currentClass->grade_level_id)
             ->where('name', $currentClass->name)
@@ -634,7 +604,6 @@ class ClassAssignmentController extends Controller
             ->first();
 
         if (!$retainedClass) {
-            // Nếu không tìm thấy lớp cùng tên, tìm bất kỳ lớp nào cùng khối
             $retainedClass = ClassModel::where('academic_year_id', $nextAcademicYear->id)
                 ->where('grade_level_id', $currentClass->grade_level_id)
                 ->where('school_id', $currentClass->school_id)

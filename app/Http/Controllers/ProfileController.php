@@ -48,7 +48,6 @@ class ProfileController extends Controller
 
         $validated = $request->validate($rules);
 
-        // Dữ liệu cơ bản
         $updateData = [
             'full_name' => $validated['full_name'],
             'email' => $validated['email'],
@@ -58,7 +57,6 @@ class ProfileController extends Controller
 
         $user->update($updateData);
 
-        // Xử lý avatar
         if ($request->hasFile('avatar')) {
             if ($user->avatar) {
                 Storage::delete($user->avatar);
@@ -67,7 +65,6 @@ class ProfileController extends Controller
             $user->update(['avatar' => $path]);
         }
 
-        // Đổi mật khẩu
         if ($request->filled('current_password')) {
             if (Hash::check($validated['current_password'], $user->password)) {
                 $user->update([

@@ -28,7 +28,6 @@ class TeacherAssignment extends Model
         return $this->belongsTo(ClassModel::class, 'class_id');
     }
 
-    // Trong TeacherAssignment.php
     public function subject()
     {
         return $this->belongsTo(Subject::class);

@@ -21,7 +21,6 @@ class SchoolAdminController extends Controller
             ->with('school')
             ->latest();
 
-        // Tìm kiếm
         if ($request->filled('search')) {
             $search = $request->input('search');
             $query->where(function($q) use ($search) {
@@ -145,7 +144,7 @@ class SchoolAdminController extends Controller
             'email' => [
                 'required',
                 'email',
-                'unique:users,email,'.$id, // $id là ID của bản ghi đang update
+                'unique:users,email,'.$id,
                 'regex:/^[a-zA-Z0-9._%+-]+@gmail\.com$/'
             ],
             'school_id' => [

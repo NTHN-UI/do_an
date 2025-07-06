@@ -2,7 +2,6 @@
 
 @section('content')
     <div class="container rounded-3 shadow p-4">
-        {{-- Header Section --}}
         <div class="d-flex align-items-center mb-4">
 
             <h3 class="mb-0 text-primary-color">Import câu hỏi vào ngân hàng</h3>
@@ -37,7 +36,7 @@
                     </div>
 
                     <div class="d-flex justify-content-end mt-4">
-                        <a href="{{ url()->previous() }}" class="btn btn-outline-secondary me-2">Đóng</a>
+                        <a href="{{ url()->previous() }}" class="btn btn-outline-primary-color me-2">Đóng</a>
                         <button type="submit" class="btn btn-primary-color">
                             <i class="fas fa-upload me-1"></i> Import Câu Hỏi
                         </button>

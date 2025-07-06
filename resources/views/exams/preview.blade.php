@@ -10,7 +10,6 @@
                     </div>
 
                     <div class="card-body">
-                        <!-- Header Information -->
                         <div class="exam-header text-center mb-4">
                             <h4 class="school-name">{{ auth()->user()->school->name }}</h4>
                             <h5 class="exam-title">{{ $examData['title'] }}</h5>
@@ -30,7 +29,6 @@
                             @endif
                         </div>
 
-                        <!-- Instructions -->
                         <div class="exam-instructions alert alert-secondary p-3 mb-4">
                             <h6 class="font-weight-bold">Hướng dẫn làm bài:</h6>
                             <ol class="mb-0 pl-3">
@@ -40,7 +38,6 @@
                             </ol>
                         </div>
 
-                        <!-- Questions -->
                         <div class="exam-questions">
                             @foreach($questions as $question)
                                 <div class="question-item mb-4">
@@ -67,7 +64,6 @@
                             @endforeach
                         </div>
 
-                        <!-- Footer -->
                         <div class="exam-footer text-center mt-4 pt-3 border-top">
                             <div class="row">
                                 <div class="col-md-6 text-start">
@@ -80,7 +76,6 @@
                         </div>
                     </div>
 
-                    <!-- Preview Actions -->
                     @if($isPreview)
                         <div class="card-footer bg-light">
                             <div class="d-flex justify-content-end">
@@ -90,7 +85,6 @@
                                         @method('PUT')
                                     @endif
 
-                                    <!-- Truyền tất cả dữ liệu từ form xem trước -->
                                     <input type="hidden" name="title" value="{{ $examData['title'] }}">
                                     <input type="hidden" name="subject_id" value="{{ $examData['subject_id'] }}">
                                     <input type="hidden" name="grade_level_id" value="{{ $examData['grade_level_id'] }}">

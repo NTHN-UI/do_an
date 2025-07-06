@@ -102,7 +102,7 @@
         <div class="documents-container">
             <div class="row g-4">
                 @forelse($documents as $document)
-                    <div class="col-md-6 col-lg-3">
+                    <div class="col-md-6 col-lg-4">
                         <div class="document-card card h-100 border-0 shadow-sm rounded-4 overflow-hidden hover-lift-card">
                             <div class="card-header bg-white border-0 pb-0 position-relative">
                                 <div class="dropdown position-absolute top-0 end-0 mt-3 me-3 z-3">
@@ -114,18 +114,16 @@
                                         <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 rounded-3 py-2">
                                             <li>
                                                 <a class="dropdown-item px-3 py-2 rounded-2" href="{{ route('documents.edit', $document) }}">
-                                                    <i class="fas fa-edit text-primary-color me-2"></i>Sửa
+                                                    Sửa
                                                 </a>
                                             </li>
-                                            <li><hr class="dropdown-divider my-1"></li>
                                             <li>
-                                                <form action="{{ route('documents.destroy', $document) }}" method="POST" class="d-inline">
-                                                    @csrf @method('DELETE')
-                                                    <button type="submit" class="dropdown-item px-3 py-2 text-danger rounded-2"
-                                                            onclick="return confirm('Bạn chắc chắn muốn xóa tài liệu này? Hành động này không thể hoàn tác!')">
-                                                        <i class="fas fa-trash-alt me-2"></i>Xóa
-                                                    </button>
-                                                </form>
+                                                <a class="dropdown-item px-3 py-2 rounded-2 delete-btn"
+                                                   href="#"
+                                                   data-id="{{ $document->id }}"
+                                                   data-title="{{ $document->title }}"
+                                                   data-url="{{ route('documents.destroy', $document) }}">Xóa
+                                                </a>
                                             </li>
                                         </ul>
                                     @endif
@@ -225,35 +223,64 @@
             </div>
         @endif
     </div>
+    <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="deleteModalLabel">Xác nhận xóa</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    Bạn có chắc chắn muốn xóa tài liệu "<span id="documentTitle"></span>" không?
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-primary-color" data-bs-dismiss="modal">Đóng</button>
+                    <form id="deleteForm" method="POST">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" class="btn btn-primary-color">
+                            Xác nhận xóa
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+@endsection
+@push('scripts')
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Auto-submit form when filters change
-            const selectElements = document.querySelectorAll('#searchForm select');
-            selectElements.forEach(select => {
-                select.addEventListener('change', function() {
-                    document.getElementById('searchForm').submit();
-                });
+        $(document).ready(function() {
+            $('#searchForm select').change(function() {
+                $('#searchForm').submit();
             });
 
-            // Search input with debounce
-            const searchInput = document.querySelector('input[name="search"]');
-            let searchTimeout;
-
-            searchInput?.addEventListener('input', function() {
+            var searchTimeout;
+            $('input[name="search"]').on('input', function() {
                 clearTimeout(searchTimeout);
                 searchTimeout = setTimeout(() => {
-                    if (this.value.length >= 3 || this.value.length === 0) {
-                        document.getElementById('searchForm').submit();
+                    if ($(this).val().length >= 3 || $(this).val().length === 0) {
+                        $('#searchForm').submit();
                     }
                 }, 800);
             });
 
-            // Animate cards on load
-            const cards = document.querySelectorAll('.document-card');
-            cards.forEach((card, index) => {
-                card.style.animationDelay = `${index * 0.1}s`;
+            $('.delete-btn').click(function(e) {
+                e.preventDefault();
+                var documentId = $(this).data('id');
+                var documentTitle = $(this).data('title');
+                var deleteUrl = $(this).data('url');
+
+                $('#documentTitle').text(documentTitle);
+                $('#deleteForm').attr('action', deleteUrl);
+                $('#deleteModal').modal('show');
+            });
+
+            $('.document-card').each(function(index) {
+                $(this).css('animation-delay', index * 0.1 + 's');
             });
         });
     </script>
-@endsection
+@endpush
 

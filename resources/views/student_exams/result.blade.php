@@ -55,7 +55,7 @@
                                     <input class="form-check-input" type="radio" disabled
                                            @if($studentAnswer == $option->id) checked @endif>
                                     <label class="form-check-label
-                                    @if($option->is_correct) text-success fw-bold @endif {{-- Đáp án đúng --}}
+                                    @if($option->is_correct) text-success fw-bold @endif
                                     @if($studentAnswer == $option->id && !$option->is_correct) text-danger @endif">
                                         {{ $option->content }}
                                     </label>

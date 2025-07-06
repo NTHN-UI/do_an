@@ -22,11 +22,7 @@ class Notification extends Model
         'failed_count'
     ];
 
-//    protected $dates = [
-//        'sent_at',
-//        'created_at',
-//        'updated_at'
-//    ];
+
     protected $casts = [
         'sent_at' => 'datetime',
     ];

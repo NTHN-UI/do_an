@@ -12,7 +12,6 @@ class StudentExamController extends Controller
     public function index()
     {
         $studentId = auth()->id();
-        // Danh sách đề thi được giao cho học sinh
         $assignments = ExamAssignment::whereHas('class.students', function($query)  use ($studentId) {
             $query->where('user_id', $studentId);
         })
@@ -32,12 +31,10 @@ class StudentExamController extends Controller
 
     public function show(ExamAssignment $assignment)
     {
-        // Kiểm tra học sinh có trong lớp được giao đề không
         if (!$assignment->class->students()->where('user_id', auth()->id())->exists()) {
             abort(403);
         }
 
-        // Kiểm tra thời gian làm bài
         if (now() < $assignment->start_time) {
             return redirect()->back()->with('error', 'Đề thi chưa mở để làm!');
         }
@@ -46,12 +43,10 @@ class StudentExamController extends Controller
             return redirect()->back()->with('error', 'Đề thi đã hết thời gian làm!');
         }
 
-        // Kiểm tra đã làm bài chưa
         if ($assignment->results()->where('student_id', auth()->id())->exists()) {
             return redirect()->route('student_exams.result', $assignment->id);
         }
 
-        // Lấy đề thi và xử lý xáo trộn nếu có
         $exam = $assignment->exam;
         $questions = $exam->questions()->with('options')->get();
 
@@ -70,7 +65,6 @@ class StudentExamController extends Controller
 
     public function submit(Request $request, ExamAssignment $assignment)
     {
-        // Kiểm tra hợp lệ
         if (!$assignment->class->students()->where('user_id', auth()->id())->exists()) {
             abort(403);
         }
@@ -83,7 +77,6 @@ class StudentExamController extends Controller
             return redirect()->route('student_exams.result', $assignment->id);
         }
 
-        // Tính điểm
         $answers = $request->input('answers', []);
         $score = 0;
         $totalMarks = $assignment->exam->total_marks;
@@ -99,10 +92,8 @@ class StudentExamController extends Controller
             }
         }
 
-        // Tính điểm theo thang điểm của đề
         $finalScore = ($score / $assignment->exam->questions->sum('marks')) * $totalMarks;
 
-        // Lưu kết quả
         ExamResult::create([
             'exam_assignment_id' => $assignment->id,
             'student_id' => auth()->id(),
@@ -127,7 +118,6 @@ class StudentExamController extends Controller
     {
         $studentId = auth()->id();
 
-        // Lấy tất cả các đề thi đã được giao cho học sinh hiện tại
         $assignments = ExamAssignment::whereHas('class.students', function($query) use( $studentId) {
             $query->where('user_id', $studentId);
         })

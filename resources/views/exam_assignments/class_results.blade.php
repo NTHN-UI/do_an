@@ -11,7 +11,6 @@
 
         </div>
 
-        <!-- Thống kê nhanh -->
         <div class="row mb-4">
             <div class="col-md-3">
                 <div class="card border-0 bg-light p-3 text-center">
@@ -39,7 +38,6 @@
             </div>
         </div>
 
-        <!-- Bảng kết quả -->
         <div class="card border-0 shadow-sm">
             <div class="table-responsive">
                 <table class="table table-hover mb-0">

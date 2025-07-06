@@ -12,8 +12,7 @@
             margin-bottom: 1rem;
         }
     </style>
-    <div class="container rounded-3 shadow p-4"> {{-- Main container styling --}}
-        {{-- Tiêu đề và nút quay lại, giống form tạo mới/giáo viên --}}
+    <div class="container rounded-3 shadow p-4">
         <div class="d-flex align-items-center mb-4">
             <h3 class="mb-0 text-primary-color">Sửa đề thi</h3>
         </div>
@@ -22,11 +21,10 @@
             @csrf
             @method('PUT')
 
-            <div class="card mb-4 border-0 shadow-sm rounded-2"> {{-- Card styling --}}
-                <div class="card-header bg-transparent text-primary-color fw-semibold">Thông tin chung</div> {{-- Header styling --}}
+            <div class="card mb-4 border-0 shadow-sm rounded-2">
+                <div class="card-header bg-transparent text-primary-color fw-semibold">Thông tin chung</div>
                 <div class="card-body">
-                    {{-- General Information Fields --}}
-                    <div class="mb-3"> {{-- Replaced .row and .col-md-12 with .mb-3 --}}
+                    <div class="mb-3">
                         <label for="title" class="form-label">Tên bài kiểm tra <span class="text-danger">*</span></label>
                         <input type="text" class="form-control @error('title') is-invalid @enderror" id="title" name="title"
                                value="{{ old('title', $exam->title) }}" required maxlength="255">
@@ -37,7 +35,7 @@
 
                     <div class="mb-3">
                         <label for="subject_id" class="form-label">Môn học <span class="text-danger">*</span></label>
-                        <select name="subject_id" id="subject_id" class="form-select @error('subject_id') is-invalid @enderror" required> {{-- Changed to form-select --}}
+                        <select name="subject_id" id="subject_id" class="form-select @error('subject_id') is-invalid @enderror" required>
                             <option value="">--Chọn môn học--</option>
                             @foreach($subjects as $subject)
                                 <option value="{{ $subject->id }}"
@@ -53,7 +51,7 @@
 
                     <div class="mb-3">
                         <label for="academic_year_id" class="form-label">Năm học <span class="text-danger">*</span></label>
-                        <select name="academic_year_id" id="academic_year_id" class="form-select @error('academic_year_id') is-invalid @enderror" required> {{-- Changed to form-select --}}
+                        <select name="academic_year_id" id="academic_year_id" class="form-select @error('academic_year_id') is-invalid @enderror" required>
                             <option value="">--Chọn năm học--</option>
                             @foreach($academicYears as $year)
                                 <option value="{{ $year->id }}"
@@ -69,7 +67,7 @@
 
                     <div class="mb-3">
                         <label for="semester_id" class="form-label">Học kỳ <span class="text-danger">*</span></label>
-                        <select name="semester_id" id="semester_id" class="form-select @error('semester_id') is-invalid @enderror" required> {{-- Changed to form-select --}}
+                        <select name="semester_id" id="semester_id" class="form-select @error('semester_id') is-invalid @enderror" required>
                             <option value="">--Chọn học kỳ--</option>
                             @foreach($semesters as $semester)
                                 <option value="{{ $semester->id }}"
@@ -85,7 +83,7 @@
 
                     <div class="mb-3">
                         <label for="grade_level_id" class="form-label">Khối lớp <span class="text-danger">*</span></label>
-                        <select class="form-select @error('grade_level_id') is-invalid @enderror" id="grade_level_id" name="grade_level_id" required> {{-- Changed to form-select --}}
+                        <select class="form-select @error('grade_level_id') is-invalid @enderror" id="grade_level_id" name="grade_level_id" required>
                             <option value="">--Chọn khối--</option>
                             @foreach($gradeLevels as $grade)
                                 <option value="{{ $grade->id }}"
@@ -101,7 +99,7 @@
 
                     <div class="mb-3">
                         <label for="test_type" class="form-label">Loại đề thi <span class="text-danger">*</span></label>
-                        <select class="form-select @error('test_type') is-invalid @enderror" id="test_type" name="test_type" required> {{-- Changed to form-select --}}
+                        <select class="form-select @error('test_type') is-invalid @enderror" id="test_type" name="test_type" required>
                             <option value="">--Chọn loại đề thi--</option>
                             <option value="fifteen_minutes" {{ (old('test_type', $exam->test_type) == 'fifteen_minutes' ? 'selected' : '') }}>15 phút</option>
                             <option value="one_period" {{ (old('test_type', $exam->test_type) == 'one_period' ? 'selected' : '') }}>1 tiết</option>
@@ -132,7 +130,7 @@
                 </div>
             </div>
 
-            <div class="card mb-4 border-0 shadow-sm rounded-2"> {{-- Card styling --}}
+            <div class="card mb-4 border-0 shadow-sm rounded-2">
                 <div class="card-header bg-transparent text-primary-color fw-semibold d-flex justify-content-between align-items-center">
                     <span>Nhập câu hỏi</span>
                     <div>
@@ -144,10 +142,10 @@
                     </div>
                 </div>
                 <div class="card-body">
-                    <div class="mb-3"> {{-- Form group styling --}}
+                    <div class="mb-3">
                         <label class="form-label">Import từ file Word (DOCX)</label>
-                        <div> {{-- Replaced custom-file with simple div --}}
-                            <input type="file" class="form-control @error('import_file') is-invalid @enderror" id="import_file" name="import_file" accept=".docx"> {{-- Changed to form-control --}}
+                        <div>
+                            <input type="file" class="form-control @error('import_file') is-invalid @enderror" id="import_file" name="import_file" accept=".docx">
                         </div>
                         <small class="form-text text-muted">File phải có định dạng DOCX và kích thước tối đa 10MB</small>
                         @error('import_file')
@@ -165,10 +163,8 @@
                     @endif
 
                     <div id="questionsContainer">
-                        {{-- This section remains complex due to old() data handling --}}
                         @if(old('replace_questions', false) && old('questions'))
                             @foreach(old('questions') as $index => $question)
-                                {{-- Assuming exams.partials.question-item now uses updated classes --}}
                                 @include('exams.partials.question-item', [
                                     'index' => $index,
                                     'question' => (object)[
@@ -190,7 +186,6 @@
                             @endforeach
                         @else
                             @foreach($exam->questions as $index => $question)
-                                {{-- Assuming exams.partials.question-item now uses updated classes --}}
                                 @include('exams.partials.question-item', [
                                     'index' => $index,
                                     'question' => $question,
@@ -208,19 +203,17 @@
                 </div>
             </div>
 
-            <div class="d-flex justify-content-end mt-4"> {{-- Aligned to end and added mt-4 --}}
+            <div class="d-flex justify-content-end mt-4">
                 <div>
-                    <button type="button" name="action" value="preview" class="btn btn-outline-primary-color" id="previewBtn"> {{-- Button styling --}}Xem trước
+                    <button type="button" name="action" value="preview" class="btn btn-outline-primary-color" id="previewBtn"> Xem trước
                     </button>
-                    <button type="submit" name="action" value="update" class="btn btn-primary-color me-2"> {{-- Button styling --}}Cập nhật đề thi
+                    <button type="submit" name="action" value="update" class="btn btn-primary-color me-2"> Cập nhật đề thi
                     </button>
                 </div>
             </div>
         </form>
 
-        {{-- Make sure question-bank-modal is updated to Bootstrap 5 --}}
         @include('exams.partials.question-bank-modal')
-        {{-- Removed question-template include here, as it's generated by JS --}}
     </div>
 @endsection
 

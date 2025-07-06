@@ -32,7 +32,6 @@ class SchoolController extends Controller
      */
     public function create()
     {
-        // Đọc dữ liệu từ file JSON
         $provinces = json_decode(file_get_contents(public_path('data/tinh_tp.json')), true);
 
         return view('schools.create', compact('provinces'));
@@ -45,7 +44,6 @@ class SchoolController extends Controller
             return response()->json(['error' => 'Invalid JSON data'], 500);
         }
 
-        // Lọc quận/huyện theo mã tỉnh
         $districts = array_filter($allDistricts, function($district) use ($provinceCode) {
             return isset($district['parent_code']) && $district['parent_code'] == $provinceCode;
         });
@@ -77,7 +75,6 @@ class SchoolController extends Controller
                 ->withErrors($validator)
                 ->withInput();
         }
-        // Lấy tên tỉnh và quận/huyện từ code
         $provinces = json_decode(file_get_contents(public_path('data/tinh_tp.json')), true);
         $districts = json_decode(file_get_contents(public_path('data/quan_huyen.json')), true);
 
@@ -89,7 +86,6 @@ class SchoolController extends Controller
             'address' => $request->address,
             'district' => $districtName,
             'province' => $provinceName,
-            // Lưu thêm code nếu cần
             'district_code' => $request->district,
             'province_code' => $request->province,
         ]);
@@ -151,7 +147,6 @@ class SchoolController extends Controller
                 ->withInput();
         }
 
-        // Lấy tên tỉnh và quận/huyện từ code
         $provinces = json_decode(file_get_contents(public_path('data/tinh_tp.json')), true);
         $districts = json_decode(file_get_contents(public_path('data/quan_huyen.json')), true);
 
@@ -219,7 +214,6 @@ class SchoolController extends Controller
             'from_address', 'from_name'
         ]);
 
-        // Chỉ cập nhật password nếu có giá trị
         if ($request->filled('password')) {
             $data['password'] = $request->password;
         }

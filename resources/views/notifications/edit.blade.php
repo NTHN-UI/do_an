@@ -9,7 +9,7 @@
         <div class="card border-0 shadow-sm rounded-2">
             <div class="card-body">
                 <form id="notificationForm"
-                      action="{{ route('notifications.update', $notification->id) }}" {{-- Luôn trỏ đến update --}}
+                      action="{{ route('notifications.update', $notification->id) }}"
                       method="POST"
                       enctype="multipart/form-data">
                     @csrf
@@ -24,7 +24,7 @@
                                 <option value="{{ $template->id }}"
                                         data-subject="{{ $template->subject_template }}"
                                         data-content="{{ $template->body_template }}"
-                                    {{ ($notification->template_id == $template->id) ? 'selected' : '' }}> {{-- Điền dữ liệu cũ --}}
+                                    {{ ($notification->template_id == $template->id) ? 'selected' : '' }}>
                                     {{ $template->name }} ({{ $template->type }})
                                 </option>
                             @endforeach
@@ -48,7 +48,7 @@
                             <option value="">-- Chọn mức độ ưu tiên --</option>
                             @foreach($priorities as $priority)
                                 <option value="{{ $priority['value'] }}"
-                                    {{ ($notification->priority == $priority['value']) ? 'selected' : '' }}> {{-- Điền dữ liệu cũ --}}
+                                    {{ ($notification->priority == $priority['value']) ? 'selected' : '' }}>
                                     {{ $priority['label'] }}
                                 </option>
                             @endforeach
@@ -63,7 +63,7 @@
                         </label>
                         <input type="text" class="form-control @error('subject') is-invalid @enderror"
                                id="subject" name="subject"
-                               value="{{ old('subject', $notification->subject) }}" required maxlength="255"> {{-- Điền dữ liệu cũ --}}
+                               value="{{ old('subject', $notification->subject) }}" required maxlength="255">
                         @error('subject')
                         <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
@@ -74,7 +74,7 @@
                             <i class="fas fa-align-left me-1"></i> Nội Dung Thông Báo <span class="text-danger">*</span>
                         </label>
                         <textarea class="form-control @error('content') is-invalid @enderror"
-                                  id="content" name="content" rows="10" required>{{ old('content', $notification->content) }}</textarea> {{-- Điền dữ liệu cũ --}}
+                                  id="content" name="content" rows="10" required>{{ old('content', $notification->content) }}</textarea>
                         @error('content')
                         <div class="invalid-feedback">{{ $message }}</div>
                         @enderror

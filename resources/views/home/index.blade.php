@@ -4,13 +4,11 @@
 
     @if(auth()->user()->role != 'student')
         <div class="container-fluid rounded-3 shadow p-4">
-            <!-- Header Dashboard -->
             <div class="d-sm-flex align-items-center justify-content-between mb-4">
                 <h3 class="mb-3 text-primary-color">Tổng quan @if(isset($currentSchool)) ({{ $currentSchool->name }}) @endif</h3>
                 <div class="d-flex">
                     <form method="GET" action="" class="d-flex">
                         <div class="me-2">
-                            {{-- THÊM id="academic-year-select" VÀO ĐÂY --}}
                             <select name="academic_year" id="academic-year-select" class="form-select">
                                 @foreach($academicYears as $year)
                                     <option value="{{ $year->id }}" {{ $year->id == $currentAcademicYear->id ? 'selected' : '' }}>{{ $year->year }}
@@ -25,16 +23,13 @@
                 </div>
             </div>
 
-            {{-- Hiển thị thông báo lỗi nếu không tìm thấy năm học --}}
             @if(isset($error_message))
                 <div class="alert alert-warning" role="alert">
                     {{ $error_message }}
                 </div>
             @endif
 
-            <!-- Thống kê tổng quan -->
             <div class="row">
-                <!-- Giáo viên -->
                 <div class="col-xl-4 col-md-6 mb-4">
                     <div class="card border-left-primary shadow h-100 py-2">
                         <div class="card-body">
@@ -53,7 +48,6 @@
                     </div>
                 </div>
 
-                <!-- Học sinh -->
                 <div class="col-xl-4 col-md-6 mb-4">
                     <div class="card border-left-success shadow h-100 py-2">
                         <div class="card-body">
@@ -63,7 +57,7 @@
                                         Học sinh
                                     </div>
                                     <div class="h5 mb-0 font-weight-bold text-gray-800">
-                                        {{ $currentYearStudentCount }} {{-- Đảm bảo sử dụng biến này --}}
+                                        {{ $currentYearStudentCount }}
                                     </div>
                                 </div>
                                 <div class="col-auto">
@@ -74,7 +68,6 @@
                     </div>
                 </div>
 
-                <!-- Lớp học -->
                 <div class="col-xl-4 col-md-6 mb-4">
                     <div class="card border-left-info shadow h-100 py-2">
                         <div class="card-body">
@@ -92,10 +85,9 @@
                         </div>
                     </div>
                 </div>
-            </div> {{-- End of row for summary cards --}}
+            </div>
 
             <div class="row">
-                <!-- Phân bổ theo khối -->
                 <div class="col-lg-6 mb-4">
                     <div class="card shadow mb-4">
                         <div class="card-header py-3">
@@ -116,7 +108,6 @@
                     </div>
                 </div>
 
-                <!-- Học lực học sinh -->
                 <div class="col-lg-6 mb-4">
                     <div class="card shadow mb-4">
                         <div class="card-header py-3">
@@ -146,9 +137,8 @@
                         </div>
                     </div>
                 </div>
-            </div> {{-- End of row for charts --}}
+            </div>
 
-            <!-- Thống kê học lực chi tiết -->
             <div class="row">
                 <div class="col-12">
                     <div class="card shadow mb-4">
@@ -224,7 +214,7 @@
                         </div>
                     </div>
                 </div>
-            </div> {{-- End of row for detailed performance table --}}
+            </div>
 
         </div>
     @endif

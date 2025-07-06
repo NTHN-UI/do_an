@@ -12,12 +12,150 @@ use App\Models\Semester;
 use App\Models\TeacherAssignment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Validator;
 use PhpOffice\PhpWord\IOFactory;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 
 class ExamController extends Controller
 {
+    private function getValidationRules(bool $isUpdate = false, int $examId = null): array
+    {
+        $teacherId = auth()->id();
+        $schoolId = auth()->user()->school_id;
+
+        $rules = [
+            'title' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('exams')->where(function ($query) use ($teacherId) {
+                    return $query->where('teacher_id', $teacherId);
+                })->ignore($examId)
+            ],
+            'subject_id' => [
+                'required',
+            ],
+            'grade_level_id' => [
+                'required',
+            ],
+            'academic_year_id' => [
+                'required',
+            ],
+            'semester_id' => [
+                'required',
+
+            ],
+            'test_type' => [
+                'required',
+                'in:fifteen_minutes,one_period'
+            ],
+            'total_marks' => [
+                'required',
+                'numeric',
+                'min:1'
+            ],
+            'duration_override' => [
+                'nullable',
+                'integer',
+                'min:1'
+            ],
+            'questions' => [
+                'required',
+                'array',
+                'min:1'
+            ],
+            'questions.*.content' => [
+                'required',
+                'string'
+            ],
+            'questions.*.marks' => [
+                'required',
+                'numeric',
+            ],
+            'questions.*.options' => [
+                'required',
+                'array',
+            ],
+            'questions.*.options.*.content' => [
+                'required',
+                'string'
+            ],
+            'questions.*.correct_option' => [
+                'required',
+            ],
+            'import_file' => [
+                'nullable',
+                'file',
+                'mimes:docx',
+                'max:10240'
+            ]
+        ];
+
+        return $rules;
+    }
+    private function getValidationMessages(): array
+    {
+        return [
+            'title.required' => 'Tên bài kiểm tra không được để trống',
+            'title.max' => 'Tên bài kiểm tra không được vượt quá 255 ký tự',
+            'subject_id.required' => 'Môn học không được để trống',
+            'grade_level_id.required' => 'Khối lớp không được để trống',
+            'academic_year_id.required' => 'Năm học không được để trống',
+            'semester_id.required' => 'Học kỳ không được để trống',
+            'test_type.required' => 'Loại đề thi không được để trống',
+            'total_marks.required' => 'Tổng điểm không được để trống',
+            'total_marks.numeric' => 'Tổng điểm phải là số',
+            'questions.required' => 'Vui lòng thêm ít nhất 1 câu hỏi',
+            'questions.*.content.required' => 'Nội dung câu hỏi không được để trống',
+            'questions.*.marks.required' => 'Điểm câu hỏi không được để trống',
+            'questions.*.marks.numeric' => 'Điểm câu hỏi phải là số',
+            'questions.*.options.required' => 'Vui lòng thêm đáp án cho câu hỏi',
+            'questions.*.options.*.content.required' => 'Nội dung đáp án không được để trống',
+            'questions.*.correct_option.required' => 'Vui lòng chọn đáp án đúng',
+            'import_file.mimes' => 'Chỉ chấp nhận file Word (.docx)',
+            'import_file.max' => 'Kích thước file tối đa là 10MB'
+        ];
+    }
+    private function validateExamData(Request $request, bool $isUpdate = false, Exam $exam = null)
+    {
+        $validator = Validator::make(
+            $request->all(),
+            $this->getValidationRules($isUpdate, $exam ? $exam->id : null),
+            $this->getValidationMessages()
+        );
+
+        $validator->after(function ($validator) use ($request) {
+            $totalMarks = $request->input('total_marks');
+            $questions = $request->input('questions', []);
+
+            $sumQuestionMarks = array_reduce($questions, function ($carry, $question) {
+                return $carry + ($question['marks'] ?? 0);
+            }, 0);
+
+            if (abs($sumQuestionMarks - $totalMarks) > 0.01) {
+                $validator->errors()->add(
+                    'total_marks',
+                    'Tổng điểm các câu hỏi không khớp với tổng điểm bài kiểm tra'
+                );
+            }
+
+            foreach ($questions as $index => $question) {
+                $options = $question['options'] ?? [];
+                $correctOption = $question['correct_option'] ?? null;
+
+                if ($correctOption === null || !isset($options[$correctOption])) {
+                    $validator->errors()->add(
+                        "questions.$index.correct_option",
+                        "Câu hỏi #" . ($index + 1) . " phải có ít nhất 1 đáp án đúng"
+                    );
+                }
+            }
+        });
+
+        return $validator;
+    }
+
     public function index()
     {
         $exams = Exam::with(['subject', 'gradeLevel', 'academicYear', 'semester'])
@@ -37,7 +175,6 @@ class ExamController extends Controller
             ->unique()
             ->filter();
 
-        // Lấy các khối lớp mà giáo viên được phân công
         $assignedGradeLevels = TeacherAssignment::where('teacher_id', auth()->id())
             ->with('class.gradeLevel')
             ->get()
@@ -45,7 +182,6 @@ class ExamController extends Controller
             ->unique()
             ->filter();
 
-        // Lấy các năm học mà giáo viên được phân công
         $assignedAcademicYears = TeacherAssignment::where('teacher_id', auth()->id())
             ->with('academicYear')
             ->get()
@@ -53,7 +189,6 @@ class ExamController extends Controller
             ->unique()
             ->filter();
 
-        // Lấy học kỳ thuộc các năm học mà giáo viên được phân công
         $semesters = Semester::whereIn('academic_year_id', $assignedAcademicYears->pluck('id'))
             ->where('school_id', auth()->user()->school_id)
             ->get();
@@ -75,7 +210,6 @@ class ExamController extends Controller
 
     public function store(Request $request)
     {
-        // Xử lý dữ liệu questions nếu đến từ preview
         if ($request->has('questions') && is_string($request->questions)) {
             $request->merge([
                 'questions' => json_decode($request->questions, true)
@@ -83,20 +217,16 @@ class ExamController extends Controller
         }
         $validated = $this->validateRequest($request);
 
-        // Tạo đề thi
         $exam = Exam::create($this->prepareExamData($validated));
 
-        // Xử lý import từ file Word
         if ($request->hasFile('import_file')) {
             $this->importFromWord($exam, $request->file('import_file'));
         }
 
-        // Thêm câu hỏi từ ngân hàng câu hỏi
         if (!empty($validated['question_bank_ids'])) {
             $this->addQuestionsFromBank($exam, $validated['question_bank_ids']);
         }
 
-        // Thêm câu hỏi thủ công
         if (!empty($validated['questions'])) {
             $this->addManualQuestions($exam, $validated['questions']);
         }
@@ -116,7 +246,6 @@ class ExamController extends Controller
 
     public function edit(Exam $exam)
     {
-        // Lấy các môn học mà giáo viên được phân công
         $subjects = TeacherAssignment::where('teacher_id', auth()->id())
             ->with('subject')
             ->get()
@@ -124,7 +253,6 @@ class ExamController extends Controller
             ->unique()
             ->filter();
 
-        // Lấy các khối lớp mà giáo viên được phân công
         $gradeLevels = TeacherAssignment::where('teacher_id', auth()->id())
             ->with('class.gradeLevel')
             ->get()
@@ -132,7 +260,6 @@ class ExamController extends Controller
             ->unique()
             ->filter();
 
-        // Lấy các năm học mà giáo viên được phân công
         $academicYears = TeacherAssignment::where('teacher_id', auth()->id())
             ->with('academicYear')
             ->get()
@@ -140,18 +267,15 @@ class ExamController extends Controller
             ->unique()
             ->filter();
 
-        // Lấy học kỳ thuộc các năm học mà giáo viên được phân công
         $semesters = Semester::whereIn('academic_year_id', $academicYears->pluck('id'))
             ->where('school_id', auth()->user()->school_id)
             ->get();
 
-        // Lấy ngân hàng câu hỏi (logic không thay đổi)
         $questionBanks = QuestionBank::where(function($query) {
             $query->where('teacher_id', auth()->id())
                 ->orWhere('school_id', auth()->user()->school_id);
         })->with('options')->get();
 
-        // Tải các câu hỏi và đáp án của đề thi hiện tại
         $exam->load(['questions.options']);
 
         return view('exams.edit', compact(
@@ -164,20 +288,15 @@ class ExamController extends Controller
     {
         $validated = $this->validateRequest($request, $exam);
 
-        // Cập nhật thông tin đề thi
         $exam->update($this->prepareExamData($validated));
 
-        // Xử lý câu hỏi
         if ($request->has('replace_questions') || !$exam->questions()->exists()) {
-            // Xóa toàn bộ câu hỏi cũ nếu chọn replace hoặc đề thi chưa có câu hỏi
             $exam->questions()->delete();
 
-            // Thêm câu hỏi mới
             if (!empty($validated['questions'])) {
                 $this->addManualQuestions($exam, $validated['questions']);
             }
         } else {
-            // Cập nhật từng câu hỏi
             $this->updateExistingQuestions($exam, $validated['questions'] ?? []);
         }
 
@@ -191,7 +310,6 @@ class ExamController extends Controller
 
         foreach ($questionsData as $questionData) {
             if (isset($questionData['id'])) {
-                // Cập nhật câu hỏi đã tồn tại
                 $question = $exam->questions()->find($questionData['id']);
                 if ($question) {
                     $question->update([
@@ -199,17 +317,14 @@ class ExamController extends Controller
                         'marks' => $questionData['marks'] ?? 1,
                     ]);
 
-                    // Cập nhật options
                     $this->updateQuestionOptions($question, $questionData['options'], $questionData['correct_option']);
                     $updatedQuestionIds[] = $question->id;
                 }
             } else {
-                // Thêm câu hỏi mới
                 $this->addManualQuestions($exam, [$questionData]);
             }
         }
 
-        // Xóa các câu hỏi không còn tồn tại trong form
         $toDelete = array_diff($existingQuestionIds, $updatedQuestionIds);
         if (!empty($toDelete)) {
             $exam->questions()->whereIn('id', $toDelete)->delete();
@@ -223,7 +338,6 @@ class ExamController extends Controller
 
         foreach ($optionsData as $index => $optionData) {
             if (isset($optionData['id'])) {
-                // Cập nhật option đã tồn tại
                 $option = $question->options()->find($optionData['id']);
                 if ($option) {
                     $option->update([
@@ -233,7 +347,6 @@ class ExamController extends Controller
                     $updatedOptionIds[] = $option->id;
                 }
             } else {
-                // Thêm option mới
                 $question->options()->create([
                     'content' => $optionData['content'],
                     'is_correct' => $index == $correctOptionIndex,
@@ -242,7 +355,6 @@ class ExamController extends Controller
             }
         }
 
-        // Xóa các option không còn tồn tại trong form
         $toDelete = array_diff($existingOptionIds, $updatedOptionIds);
         if (!empty($toDelete)) {
             $question->options()->whereIn('id', $toDelete)->delete();
@@ -294,7 +406,6 @@ class ExamController extends Controller
 
     public function preview(Request $request)
     {
-        // Validate the request data
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'subject_id' => 'required|exists:subjects,id',
@@ -312,13 +423,11 @@ class ExamController extends Controller
             'questions.*.correct_option' => 'required|integer|min:0',
         ]);
 
-        // Get related models for display
         $subject = Subject::find($validated['subject_id']);
         $gradeLevel = GradeLevel::find($validated['grade_level_id']);
         $academicYear = AcademicYear::find($validated['academic_year_id']);
         $semester = Semester::find($validated['semester_id']);
 
-        // Format questions data for view
         $questions = collect($validated['questions'])->map(function($question, $index) {
             $question['number'] = $index + 1;
             $question['options'] = collect($question['options'])->map(function($option, $optIndex) use ($question) {
@@ -344,7 +453,7 @@ class ExamController extends Controller
             'questions' => $questions,
             'isPreview' => true,
             'exam' => $exam,
-            'duration_override' => $exam->duration_override ?? null // Thêm giá trị mặc định
+            'duration_override' => $exam->duration_override ?? null
 
 
         ]);
@@ -390,7 +499,6 @@ class ExamController extends Controller
             'duration_override' => 'nullable|integer|min:1',
             'is_template' => 'nullable|boolean',
 
-            // Câu hỏi thủ công
             'questions' => 'required_without_all:import_file,question_bank_ids|array|min:1',
             'questions.*.content' => 'required_without_all:import_file,question_bank_ids|string',
             'questions.*.marks' => 'required_without_all:import_file,question_bank_ids|integer|min:1',
@@ -398,10 +506,8 @@ class ExamController extends Controller
             'questions.*.options.*.content' => 'required_without_all:import_file,question_bank_ids|string',
             'questions.*.correct_option' => 'required_without_all:import_file,question_bank_ids|integer|min:0',
 
-            // Import từ file
             'import_file' => 'nullable|file|mimes:docx|max:10240',
 
-            // Câu hỏi từ ngân hàng
             'question_bank_ids' => 'nullable|array',
             'question_bank_ids.*' => [
                 'exists:question_banks,id',
@@ -462,7 +568,6 @@ class ExamController extends Controller
                         if ($element instanceof \PhpOffice\PhpWord\Element\TextRun) {
                             $text = $this->getElementText($element);
 
-                            // Phát hiện câu hỏi (bắt đầu bằng số hoặc chữ "Câu")
                             if (preg_match('/^(Câu\s*\d+|\d+\.)\s*(.+)/', $text, $matches)) {
                                 if ($currentQuestion) {
                                     $questions[] = $currentQuestion;
@@ -470,12 +575,11 @@ class ExamController extends Controller
 
                                 $currentQuestion = [
                                     'content' => $matches[2],
-                                    'marks' => 1, // Mặc định
+                                    'marks' => 1,
                                     'options' => [],
-                                    'correct_option' => 0 // Mặc định
+                                    'correct_option' => 0
                                 ];
                             }
-                            // Phát hiện đáp án (bắt đầu bằng A., B., C., D.)
                             elseif (preg_match('/^([A-D])\.\s*(.+)/', $text, $matches) && $currentQuestion) {
                                 $optionIndex = ord($matches[1]) - ord('A');
                                 $currentQuestion['options'][$optionIndex] = [
@@ -483,7 +587,6 @@ class ExamController extends Controller
                                     'is_correct' => false
                                 ];
 
-                                // Nếu có dấu (*) thì là đáp án đúng
                                 if (strpos($matches[2], '(*)') !== false) {
                                     $currentQuestion['correct_option'] = $optionIndex;
                                     $currentQuestion['options'][$optionIndex]['content'] = str_replace('(*)', '', $matches[2]);
@@ -493,7 +596,6 @@ class ExamController extends Controller
                     }
                 }
 
-                // Thêm câu hỏi cuối cùng
                 if ($currentQuestion) {
                     $questions[] = $currentQuestion;
                 }
@@ -535,7 +637,6 @@ class ExamController extends Controller
                     if ($element instanceof \PhpOffice\PhpWord\Element\TextRun) {
                         $text = $this->getElementText($element);
 
-                        // Phát hiện câu hỏi
                         if (preg_match('/^(Câu\s*\d+|\d+\.)\s*(.+)/', $text, $matches)) {
                             if ($currentQuestion) {
                                 $questions[] = $currentQuestion;
@@ -543,18 +644,16 @@ class ExamController extends Controller
 
                             $currentQuestion = [
                                 'content' => trim($matches[2]),
-                                'marks' => 1, // Mặc định
+                                'marks' => 1,
                                 'options' => [],
-                                'correct_option' => null // Khởi tạo null
+                                'correct_option' => null
                             ];
                         }
-                        // Phát hiện đáp án
                         elseif (preg_match('/^([A-D])\.\s*(.+)/i', $text, $matches) && $currentQuestion) {
                             $optionIndex = ord(strtoupper($matches[1])) - ord('A');
                             $optionContent = trim($matches[2]);
                             $isCorrect = strpos($optionContent, '(*)') !== false;
 
-                            // Nếu là đáp án đúng, gán correct_option và loại bỏ dấu (*)
                             if ($isCorrect) {
                                 $currentQuestion['correct_option'] = $optionIndex;
                                 $optionContent = str_replace('(*)', '', $optionContent);
@@ -569,7 +668,6 @@ class ExamController extends Controller
                 }
             }
 
-            // Thêm câu hỏi cuối cùng
             if ($currentQuestion) {
                 $questions[] = $currentQuestion;
             }
@@ -609,7 +707,7 @@ class ExamController extends Controller
             $question = $exam->questions()->create([
                 'question_bank_id' => $bankQuestion->id,
                 'content' => $bankQuestion->content,
-                'marks' => 1, // Điểm mặc định, có thể điều chỉnh
+                'marks' => 1,
             ]);
 
             foreach ($bankQuestion->options as $option) {

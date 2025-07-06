@@ -157,9 +157,7 @@
     <i class="fas fa-bars"></i>
 </button>
 
-<!-- Sidebar -->
 <div class="sidebar" id="sidebar">
-    <!-- Brand -->
     <a class="sidebar-brand" href="#">
         <img src="{{ asset('build/assets/img/education_4207253.png') }}" alt="Logo">
         <div class="d-flex flex-column">
@@ -168,9 +166,7 @@
         </div>
     </a>
 
-    <!-- Navigation -->
     <ul class="sidebar-nav">
-        <!-- Trang chủ -->
         <li class="sidebar-item">
             <a class="sidebar-link active" href="{{ route('home.index') }}">
                 <i class="fas fa-home sidebar-icon"></i> Trang chủ
@@ -179,7 +175,6 @@
 
         @if(Auth::check())
             @if(Auth::user()->isSchoolAdmin())
-                <!-- Quản lý năm học -->
                 <li class="sidebar-item">
                     <a class="sidebar-link" data-bs-toggle="collapse" href="#academicMenu">
                         <i class="fas fa-calendar-alt sidebar-icon"></i> Quản lý năm học
@@ -201,7 +196,6 @@
                     </div>
                 </li>
 
-                <!-- Quản lý học tập -->
                 <li class="sidebar-item">
                     <a class="sidebar-link" data-bs-toggle="collapse" href="#learningMenu">
                         <i class="fas fa-book-open sidebar-icon"></i> Quản lý học tập
@@ -223,7 +217,6 @@
                     </div>
                 </li>
 
-                <!-- Quản lý người dùng -->
                 <li class="sidebar-item">
                     <a class="sidebar-link" data-bs-toggle="collapse" href="#usersMenu">
                         <i class="fas fa-users-cog sidebar-icon"></i> Quản lý người dùng
@@ -245,7 +238,6 @@
                     </div>
                 </li>
 
-                <!-- Quản lý phân công -->
                 <li class="sidebar-item">
                     <a class="sidebar-link" data-bs-toggle="collapse" href="#assignmentMenu">
                         <i class="fas fa-tasks sidebar-icon"></i> Quản lý phân công
@@ -267,7 +259,6 @@
                     </div>
                 </li>
 
-                <!-- Kết quả học tập -->
                 <li class="sidebar-item">
                     <a class="sidebar-link" data-bs-toggle="collapse" href="#resultsMenu">
                         <i class="fas fa-chart-line sidebar-icon"></i> Kết quả học tập
@@ -286,7 +277,6 @@
             @endif
 
             @if(Auth::user()->isTeacher())
-                <!-- Quản lý điểm -->
                 <li class="sidebar-item">
                     <a class="sidebar-link" data-bs-toggle="collapse" href="#gradesMenu">
                         <i class="fas fa-clipboard-check sidebar-icon"></i> Quản lý điểm
@@ -310,14 +300,12 @@
                     </div>
                 </li>
                     @if(Auth::user()->isHomeroomTeacher(session('academic_year_id')))
-                        <!-- Quản lý lớp chủ nhiệm -->
                         <li class="sidebar-item">
                             <a class="sidebar-link" href="{{ route('homeroom_teacher.index') }}">
                                 <i class="fas fa-users sidebar-icon"></i> Quản lý học sinh
                             </a>
                         </li>
                     @endif
-                <!-- Quản lý đề thi -->
                 <li class="sidebar-item">
                     <a class="sidebar-link" data-bs-toggle="collapse" href="#examsMenu">
                         <i class="fas fa-file-signature sidebar-icon"></i> Quản lý đề thi
@@ -341,7 +329,6 @@
             @endif
 
             @if(Auth::user()->isStudent())
-                <!-- Điểm số -->
                 <li class="sidebar-item">
                     <a class="sidebar-link" data-bs-toggle="collapse" href="#studentGradesMenu">
                         <i class="fas fa-star-half-alt sidebar-icon"></i> Điểm số
@@ -358,7 +345,6 @@
                     </div>
                 </li>
 
-                <!-- Nhận đề thi -->
                 <li class="sidebar-item">
                     <a class="sidebar-link" href="{{ route('student_exams.assigned_exams') }}">
                         <i class="fas fa-file-download sidebar-icon"></i> Nhận đề
@@ -367,7 +353,6 @@
             @endif
 
             @if(Auth::user()->isHomeroomTeacher(session('academic_year_id')))
-                <!-- Thông báo -->
                 <li class="sidebar-item">
                     <a class="sidebar-link" data-bs-toggle="collapse" href="#notificationsMenu">
                         <i class="fas fa-bell sidebar-icon"></i> Thông báo
@@ -391,7 +376,6 @@
             @endif
 
             @if(Auth::user()->isTeacher() || Auth::user()->isStudent())
-                <!-- Tài liệu học tập -->
                 <li class="sidebar-item">
                     <a class="sidebar-link" data-bs-toggle="collapse" href="#resourcesMenu">
                         <i class="fas fa-book-reader sidebar-icon"></i> Tài liệu học tập
@@ -410,7 +394,6 @@
             @endif
 
             @if(Auth::user()->isSuperAdmin())
-                <!-- Quản trị hệ thống -->
                 <li class="sidebar-item">
                     <a class="sidebar-link" data-bs-toggle="collapse" href="#adminMenu">
                         <i class="fas fa-cogs sidebar-icon"></i> Quản trị hệ thống
@@ -435,7 +418,6 @@
         @endif
     </ul>
 
-    <!-- Footer with User Menu -->
     <div class="sidebar-footer">
         <div class="dropdown">
             <a href="#" class="user-menu dropdown-toggle" data-bs-toggle="dropdown">

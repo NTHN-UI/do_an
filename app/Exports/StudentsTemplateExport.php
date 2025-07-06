@@ -1,6 +1,5 @@
 <?php
 
-// app/Exports/StudentsTemplateExport.php
 namespace App\Exports;
 
 use App\Models\GradeLevel;
@@ -19,7 +18,6 @@ class StudentsTemplateExport implements FromArray, WithHeadings
     public function array(): array
     {
         return [
-            // Empty data, just for template
         ];
     }
 
@@ -36,7 +34,6 @@ class StudentsTemplateExport implements FromArray, WithHeadings
             'email_phu_huynh',
         ];
 
-        // Add entry score if grade 10
         $gradeLevel = GradeLevel::find($this->gradeLevelId);
         if ($gradeLevel && $gradeLevel->grade_number == 10) {
             $headings[] = 'diem_dau_vao';

@@ -20,7 +20,6 @@
     <div class="answers-container">
         @php
             $options = $question->options ?? [];
-            // Đảm bảo luôn có ít nhất 4 option
             while(count($options) < 4) {
                 $options[] = (object)['content' => '', 'is_correct' => false, 'id' => null];
             }

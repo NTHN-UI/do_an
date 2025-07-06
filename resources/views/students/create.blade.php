@@ -44,7 +44,7 @@
                         @enderror
                     </div>
                     <div class="col-md-12">
-                        <label for="date_of_birth" class="form-label">Ngày sinh</label>
+                        <label for="date_of_birth" class="form-label">Ngày sinh <span class="text-danger">*</span></label>
                         <input type="date" class="form-control @error('date_of_birth') is-invalid @enderror"
                                id="date_of_birth" name="date_of_birth" value="{{ old('date_of_birth') }}">
                         @error('date_of_birth')
@@ -53,7 +53,7 @@
                     </div>
                     <div class="col-md-12">
 
-                        <label for="gender" class="form-label">Giới tính</label>
+                        <label for="gender" class="form-label">Giới tính <span class="text-danger">*</span></label>
                         <select class="form-select @error('gender') is-invalid @enderror" id="gender" name="gender">
                             <option value="">Chọn giới tính</option>
                             <option value="Nam" {{ old('gender') == 'Nam' ? 'selected' : '' }}>Nam</option>
@@ -89,7 +89,7 @@
                         @enderror
                     </div>
                     <div class="mb-3">
-                        <label for="grade_level_id" class="form-label">Khối học*</label>
+                        <label for="grade_level_id" class="form-label">Khối học <span class="text-danger">*</span></label>
                         <select name="grade_level_id" class="form-select" id="grade_level_id" >
                             <option value="">-- Chọn khối --</option>
                             @foreach($gradeLevels as $grade)
@@ -129,7 +129,7 @@
                         @enderror
                     </div>
                     <div class="col-md-12">
-                        <label for="guardian_email" class="form-label">Email phụ huynh</label>
+                        <label for="guardian_email" class="form-label">Email phụ huynh <span class="text-danger">*</span></label>
                         <input type="email" class="form-control  @error('guardian_email') is-invalid @enderror"
                                id="guardian_email" name="guardian_email"
                                value="{{ old('guardian_email') }}">

@@ -54,7 +54,6 @@ class Grade extends Model
         return $this->hasMany(TeacherAssignment::class, 'teacher_id');
     }
 
-    // Thêm vào Grade model
     public static function validateGradeRequirements($subjectId, $studentId, $semesterId)
     {
         $fifteenMinutesCount = self::where('subject_id', $subjectId)
@@ -75,7 +74,6 @@ class Grade extends Model
             ->where('test_type', 'semester')
             ->count();
 
-        // Yêu cầu tối thiểu: 3 điểm 15p, 1 điểm 1 tiết, 1 điểm cuối kỳ
         return $fifteenMinutesCount >= 3 && $onePeriodCount >= 1 && $finalCount >= 1;
     }
 }

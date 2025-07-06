@@ -134,22 +134,18 @@
 
             $school = School::find(auth()->user()->school_id);
 
-            // Xử lý tên trường để tạo domain
             $schoolName = $school->name;
             $slug = Str::slug(mb_strtolower($schoolName));
             $slugParts = explode('-', $slug);
             $slugParts = array_slice($slugParts, 1, (count($slugParts) - 1));
             $schoolDomain = join('', $slugParts) . '.edu.vn';
 
-            // Tạo email theo định dạng: tên.họ+tên đệm@domain
             $fullName = $request->full_name;
             $nameParts = explode(' ', $fullName);
 
-            // Lấy tên (phần cuối)
             $lastName = array_pop($nameParts);
             $lastName = mb_strtolower(Str::ascii($lastName));
 
-            // Lấy chữ cái đầu của họ và tên đệm
             $firstLetters = '';
             foreach ($nameParts as $part) {
                 $firstLetters .= mb_substr($part, 0, 1);
@@ -158,7 +154,6 @@
 
             $username = $lastName . '.' . $firstLetters;
 
-            // Kiểm tra nếu email đã tồn tại thì thêm số vào cuối
             $email = $username . '@' . $schoolDomain;
             $originalEmail = $email;
             $counter = 1;

@@ -104,7 +104,6 @@ class GradeLevelController extends Controller
             }])
             ->findOrFail($id);
 
-        // Nhóm lớp theo năm học
         $groupedClasses = ClassModel::with('academicYear')
             ->withCount('students')
             ->where('grade_level_id', $gradeLevel->id)

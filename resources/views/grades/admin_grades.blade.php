@@ -2,7 +2,6 @@
 
 @section('content')
     <div class="container-fluid">
-        <!-- Header Section -->
         <div class="d-flex align-items-center justify-content-between mb-4 p-3 bg-white rounded shadow-sm">
             <div class="d-flex align-items-center">
                 <div>
@@ -13,7 +12,6 @@
 
         </div>
 
-        <!-- Filter Section -->
         <div class="card shadow-sm border-0 mb-3">
             <div class="card-body p-3">
                 <form method="GET" action="{{ route('grades.admin_grades') }}" id="filter-form">
@@ -54,7 +52,7 @@
                                     <option value="">-- Chọn học kỳ --</option>
                                     @if($selectedAcademicYearId)
                                         @foreach($semesters as $semester)
-                                            @if($semester->id !== 0) <!-- Bỏ qua option "Cả năm" nếu đã có trong controller -->
+                                            @if($semester->id !== 0)
                                             <option value="{{ $semester->id }}" {{ $selectedSemesterId == $semester->id ? 'selected' : '' }}>
                                                 {{ $semester->name }}
                                             </option>
@@ -66,17 +64,16 @@
                             </div>
                         </div>
                     </div>
-
-
                     <div class="d-flex justify-content-end mt-3">
-                        <button type="submit" class="btn btn-primary-color px-3">Xem kết quả
+                        <button type="submit" id="view-result-btn" class="btn btn-primary-color px-3" disabled>
+                            Xem kết quả
                         </button>
                     </div>
                 </form>
             </div>
         </div>
     </div>
-        <!-- Grades Table Section -->
+
         <div id="grades-container">
             @if($selectedClassId && $selectedSemesterId !== null)
                 <div class="card shadow-sm border-0">
@@ -143,7 +140,6 @@
                                             @endphp
 
                                             @if($selectedSemesterId == 0)
-                                                <!-- Hiển thị điểm cả năm -->
                                                 <td class="text-center">
                                                     @if($isSpecialSubject)
                                                         {{ $subjectData['semester1_text'] ?? 'Chưa đạt' }}
@@ -166,7 +162,6 @@
                                                     @endif
                                                 </td>
                                             @else
-                                                <!-- Hiển thị điểm học kỳ -->
                                                 <td class="text-center">
                                                     @if($isSpecialSubject)
                                                         {{ $subjectData['display_average'] ?? 'Chưa đạt' }}
@@ -200,88 +195,59 @@
 @endsection
 @push('scripts')
     <script>
-        function exportToExcel() {
-            const academicYearId = document.getElementById('academic_year_id').value;
-            const classId = document.getElementById('class_id').value;
-            const semesterId = document.getElementById('semester_id').value;
+        $(document).ready(function() {
+            function checkFormValid() {
+                const isValid = $('#academic_year_id').val() &&
+                    $('#class_id').val() &&
+                    $('#semester_id').val();
 
-            if (!academicYearId || !classId || !semesterId) {
-                alert('Vui lòng chọn đầy đủ năm học, lớp và học kỳ trước khi xuất file');
-                return;
+                $('#view-result-btn').prop('disabled', !isValid);
             }
 
-            const url = "{{ route('grades.admin_export') }}?" + new URLSearchParams({
-                academic_year_id: academicYearId,
-                class_id: classId,
-                semester_id: semesterId
+            $('#academic_year_id, #class_id, #semester_id').change(function() {
+                checkFormValid();
             });
 
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = 'Diem_toan_truong.xlsx';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        }
-        // Trong file script của bạn, sửa lại phần AJAX như sau:
-        $('#academic_year_id').on('change', function() {
-            const yearId = $(this).val();
-            const $classSelect = $('#class_id');
-            const $semesterSelect = $('#semester_id');
+            checkFormValid();
 
-            // Reset các dropdown
-            $classSelect.empty().append('<option value="">-- Chọn lớp --</option>');
-            $semesterSelect.empty().append('<option value="">-- Chọn học kỳ --</option>');
+            $('#academic_year_id').change(function() {
+                const yearId = $(this).val();
+                const $classSelect = $('#class_id');
+                const $semesterSelect = $('#semester_id');
 
-            if (yearId) {
+                $classSelect.html('<option value="">-- Chọn lớp --</option>').prop('disabled', !yearId);
+                $semesterSelect.html('<option value="">-- Chọn học kỳ --</option>').prop('disabled', !yearId);
 
+                if (!yearId) return;
+
+                $classSelect.after('<span id="class-loading" class="ms-2"><i class="fas fa-spinner fa-spin"></i></span>');
 
                 $.ajax({
                     url: '/grades/admin/get-classes-by-year-admin',
                     method: 'GET',
-                    data: {
-                        academic_year_id: yearId,
-                        _token: '{{ csrf_token() }}' // Thêm CSRF token nếu cần
-                    },
+                    data: { academic_year_id: yearId, _token: '{{ csrf_token() }}' },
                     success: function(response) {
-                        // Xóa spinner
                         $('#class-loading').remove();
 
-                        // Cập nhật dropdown lớp học
-                        if (response.classes && response.classes.length > 0) {
-                            response.classes.forEach(function(classItem) {
-                                $classSelect.append(
-                                    `<option value="${classItem.id}">
-                                ${classItem.name}
-                            </option>`
-                                );
+                        if (response.classes?.length) {
+                            response.classes.forEach(c => {
+                                $classSelect.append(`<option value="${c.id}">${c.name}</option>`);
                             });
                         }
 
-                        // Cập nhật dropdown học kỳ
-                        if (response.semesters && response.semesters.length > 0) {
-                            response.semesters.forEach(function(semester) {
-                                $semesterSelect.append(
-                                    `<option value="${semester.id}">${semester.name}</option>`
-                                );
+                        if (response.semesters?.length) {
+                            response.semesters.forEach(s => {
+                                $semesterSelect.append(`<option value="${s.id}">${s.name}</option>`);
                             });
-                            // Thêm option "Cả năm"
                             $semesterSelect.append('<option value="0">Cả năm</option>');
                         }
-
-                        // Kích hoạt lại các dropdown
-                        $classSelect.prop('disabled', false);
-                        $semesterSelect.prop('disabled', false);
                     },
-                    error: function(xhr, status, error) {
+                    error: function() {
                         $('#class-loading').remove();
-                        console.error("AJAX Error:", error);
-                        alert('Có lỗi xảy ra khi tải dữ liệu. Vui lòng thử lại.');
-                        $classSelect.prop('disabled', false);
-                        $semesterSelect.prop('disabled', false);
+                        alert('Có lỗi khi tải dữ liệu. Vui lòng thử lại.');
                     }
                 });
-            }
+            });
         });
     </script>
 @endpush

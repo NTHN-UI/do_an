@@ -4,7 +4,6 @@
     <div class="container-fluid">
         <h3 class="mb-3 text-primary-color fw-bold">Quản lý điểm lớp chủ nhiệm</h3>
 
-        {{-- Filter Section --}}
         <div class="card shadow-sm border-0 mb-4 rounded-3">
             <div class="card-body p-4">
                 <form method="GET" action="{{ route('grades.homeroom') }}" id="filter-form">
@@ -41,7 +40,6 @@
             </div>
         </div>
 
-        {{-- Grades Table Section --}}
         @if($students->isNotEmpty())
             <div class="card shadow-sm border-0 rounded-3">
                 <div class="card-header bg-light py-3 rounded-top-3">
@@ -110,7 +108,6 @@
                                         </td>
                                     @endforeach
 
-                                    {{-- Display Average Grades --}}
                                     <td class="text-center fw-bold text-primary-color">
                                         @if(isset($result['semester1']['average']))
                                             {{ number_format($result['semester1']['average'], 1) }}

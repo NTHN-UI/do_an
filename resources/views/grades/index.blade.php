@@ -2,7 +2,6 @@
 
 @section('content')
     <div class="container-fluid">
-        <!-- Header Section -->
         <div class="d-flex align-items-center justify-content-between mb-4 p-3 bg-white rounded shadow-sm">
             <div class="d-flex align-items-center">
                 <div>
@@ -13,7 +12,6 @@
             </div>
         </div>
 
-        <!-- Filter Section -->
         <div class="card shadow-sm border-0 mb-3">
             <div class="card-body p-3">
                 <form method="GET" action="{{ route('grades.index') }}" id="filter-form">
@@ -76,7 +74,6 @@
             </div>
         </div>
 
-        <!-- Grades Table Section -->
         <div id="grades-container">
             @if($selectedClassId && $selectedSemesterId !== null)
                 <div class="card shadow-sm border-0">
@@ -140,7 +137,6 @@
                                             @endphp
 
                                             @if($selectedSemesterId == 0)
-                                                <!-- Hiển thị điểm cả năm -->
                                                 <td class="text-center">
                                                     {{ $grades[$student->id]['semester1'] ?? '-' }}
                                                 </td>
@@ -148,7 +144,6 @@
                                                     {{ $grades[$student->id]['semester2'] ?? '-' }}
                                                 </td>
                                             @else
-                                                <!-- Hiển thị điểm học kỳ -->
                                                 <td class="text-center">
                                                     @if($isSpecialSubject)
                                                         {{ $subjectData['fifteen_minutes'][0]->text_value ?? '-' }}
@@ -187,7 +182,6 @@
                                             @endif
                                         @endforeach
 
-                                        <!-- Điểm trung bình -->
                                         <td class="text-center">
                                             @if($selectedSemesterId == 0)
                                                 {{ $grades[$student->id]['yearly_average'] ?? '-' }}
@@ -218,7 +212,6 @@
         </div>
     </div>
 
-    <!-- Enhanced Import Modal -->
     <div class="modal fade" id="importModal" tabindex="-1" aria-labelledby="importModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg">
             <div class="modal-content border-0 shadow">

@@ -146,7 +146,7 @@ class StudentController extends Controller
     public function index(Request $request)
     {
         $search = $request->input('search');
-        $classId = $request->input('class_id');
+        $classId = $request->input('class_updateid');
         $academicYearId = $request->input('academic_year_id');
         $gradeLevelId = $request->input('grade_level_id');
 
@@ -180,7 +180,6 @@ class StudentController extends Controller
             ]);
         }
 
-        // Xử lý request thông thường
         $query->when($search, function ($q) use ($search) {
             $q->where(function ($q) use ($search) {
                 $q->where('full_name', 'like', '%' . $search . '%')
@@ -218,7 +217,7 @@ class StudentController extends Controller
         $academicYears = AcademicYear::where('school_id', auth()->user()->school_id)
             ->orderBy('start_date', 'asc')
             ->get();
-        $gradeLevels = GradeLevel::where('school_id', auth()->user()->school_id) // Thêm dòng này
+        $gradeLevels = GradeLevel::where('school_id', auth()->user()->school_id)
         ->orderBy('grade_number', 'asc')
             ->get();
 
@@ -306,7 +305,6 @@ class StudentController extends Controller
             $validated['school_id'] = auth()->user()->school_id;
             $validated['is_active'] = $request->has('is_active');
 
-            // Tạo email tự động
             $school = School::find(auth()->user()->school_id);
             $schoolName = $school->name;
             $slug = Str::slug(mb_strtolower($schoolName));
@@ -339,7 +337,6 @@ class StudentController extends Controller
 
             $student = User::create($validated);
 
-            // Thêm academic_year_id khi thêm vào grade_users
             $student->studentGrades()->attach($request->grade_level_id, [
                 'academic_year_id' => $request->academic_year_id,
                 'school_id' => $school->id,
@@ -372,27 +369,20 @@ class StudentController extends Controller
      */
     public function edit(User $student)
     {
-        if ($student->school_id !== auth()->user()->school_id || !$student->isStudent()) {
-            abort(403, 'Không được phép sửa học sinh từ trường khác');
-        }
+        $student->gradeLevels()->first();
 
-
-        $currentAcademicYear = AcademicYear::where('school_id', auth()->user()->school_id)
-            ->latest()
-            ->first();
-
-        $classes = ClassModel::where('school_id', auth()->user()->school_id)
-            ->where('academic_year_id', $currentAcademicYear->id ?? null)
-            ->with('gradeLevel')
+        $academicYears = AcademicYear::where('school_id', auth()->user()->school_id)
+            ->orderBy('start_date', 'asc')
             ->get();
 
-        $studentClassIds = $student->studentClasses->pluck('id')->toArray();
+        $gradeLevels = GradeLevel::where('school_id', auth()->user()->school_id)
+            ->orderBy('grade_number', 'asc')
+            ->get();
 
         return view('students.edit', compact(
             'student',
-            'classes',
-            'currentAcademicYear',
-            'studentClassIds'
+            'academicYears',
+            'gradeLevels'
         ));
     }
 
@@ -401,6 +391,7 @@ class StudentController extends Controller
      */
     public function update(Request $request, User $student)
     {
+        DB::beginTransaction();
         try {
             if ($student->school_id !== auth()->user()->school_id || !$student->isStudent()) {
                 abort(403, 'Không được phép cập nhật học sinh từ trường khác');
@@ -413,38 +404,42 @@ class StudentController extends Controller
             );
 
             if ($validator->fails()) {
+
                 return redirect()->back()
                     ->withErrors($validator)
                     ->withInput();
             }
 
             $validated = $validator->validated();
-
-            if ($student->studentGrades->first()?->grade_id == 1) {
-                $request->validate([
-                    'entry_score' => 'required|numeric|min:0|max:50'
-                ], [
-                    'entry_score.required' => 'Vui lòng nhập điểm đầu vào cho khối 10',
-                    'entry_score.numeric' => 'Điểm đầu vào phải là số',
-                    'entry_score.min' => 'Điểm đầu vào không được nhỏ hơn 0',
-                    'entry_score.max' => 'Điểm đầu vào không được lớn hơn 50'
-                ]);
-
-                $validated['entry_score'] = $request->entry_score;
-            }
-
-
             $validated['is_active'] = $request->has('is_active');
             $validated['email'] = $student->email;
 
+
+            $gradeLevel = $student->studentGrades->first()->gradeLevel ?? null;
+            if ($gradeLevel && $gradeLevel->grade_number == 10) {
+                $validated['entry_score'] = $request->entry_score;
+            }
+
             $student->update($validated);
+            $student->studentGrades()->sync([
+                $request->grade_level_id => [
+                    'academic_year_id' => $request->academic_year_id,
+                    'school_id' => auth()->user()->school_id
+                ]
+            ]);
 
 
-            return redirect()->route('students.index')->with('success', 'Thông tin học sinh đã được cập nhật.');
+            DB::commit();
+
+            return redirect()->route('students.index')
+                ->with('success', 'Cập nhật học sinh thành công!');
 
         } catch (\Exception $e) {
+            DB::rollBack();
             Log::error('Error updating student: ' . $e->getMessage());
-            return back()->with('error', 'Đã xảy ra lỗi khi cập nhật học sinh: ' . $e->getMessage());
+            return back()
+                ->with('error', 'Đã xảy ra lỗi khi cập nhật học sinh: ' . $e->getMessage())
+                ->withInput();
         }
     }
 
@@ -487,6 +482,18 @@ class StudentController extends Controller
             );
 
             Excel::import($import, $request->file('file'));
+            $errors = $import->getErrors();
+
+            if (!empty($errors)) {
+                DB::rollBack();
+
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Có lỗi xảy ra khi import dữ liệu',
+                    'errors' => $errors,
+                    'error_count' => count($errors)
+                ], 422);
+            }
 
             DB::commit();
 

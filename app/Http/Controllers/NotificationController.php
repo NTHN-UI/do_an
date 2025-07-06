@@ -38,7 +38,6 @@ class NotificationController extends Controller
             ->firstOrFail();
 
 
-        // Lấy lớp chủ nhiệm HIỆN TẠI với tên lớp
         $homeroomClass = $teacher->homeroomClasses()
             ->where('academic_year_id', $currentYear->id)
             ->with(['class' => function($query) {
@@ -79,7 +78,6 @@ class NotificationController extends Controller
             'attachments.*' => 'file|mimes:pdf,doc,docx,xls,xlsx,jpg,jpeg,png|max:5120'
         ]);
 
-        // Kiểm tra lớp chủ nhiệm
         $homeroomClass = $teacher->homeroomClasses()
             ->where('academic_year_id', $currentYear->id)
             ->firstOrFail();
@@ -95,7 +93,6 @@ class NotificationController extends Controller
             'priority' => $request->priority,
         ]);
 
-        // Xử lý file đính kèm
         if ($request->hasFile('attachments')) {
             foreach ($request->file('attachments') as $file) {
                 $path = $file->store('notifications/attachments');
@@ -108,7 +105,6 @@ class NotificationController extends Controller
             }
         }
 
-        // Chuyển hướng đến trang preview
         return redirect()->route('notifications.preview', $notification);
     }
 
@@ -128,7 +124,6 @@ class NotificationController extends Controller
     public function edit(Notification $notification)
     {
 
-        // Lấy thông tin lớp chủ nhiệm hiện tại (vẫn cần để hiển thị tên lớp)
         $teacher = Auth::user();
         $currentYear = AcademicYear::where('start_date', '<=', now())
             ->where('end_date', '>=', now())
@@ -187,7 +182,6 @@ class NotificationController extends Controller
                 $attachment->delete();
             }
 
-            // Thêm file mới
             foreach ($request->file('attachments') as $file) {
                 $path = $file->store('notifications/attachments');
                 $notification->attachments()->create([
@@ -223,14 +217,12 @@ class NotificationController extends Controller
         $teacher = Auth::user();
         $notification->load('attachments');
 
-        // Lấy danh sách học sinh
         $recipients = ClassModel::find($notification->class_id)
             ->students()
             ->whereNotNull('guardian_email')
             ->where('guardian_email', '!=', '')
             ->get();
 
-        // Cấu hình email
         $emailSettings = $notification->class->school->emailSettings;
 
         config([
@@ -249,7 +241,6 @@ class NotificationController extends Controller
             ]
         ]);
         Mail::purge();
-        // Gửi email
         $sentCount = 0;
         $failedCount = 0;
         $failedRecipients = [];
@@ -287,7 +278,6 @@ class NotificationController extends Controller
             }
         }
 
-        // Cập nhật trạng thái đã gửi
         $notification->update([
             'status' => 'sent',
             'sent_at' => now(),
@@ -295,7 +285,6 @@ class NotificationController extends Controller
             'failed_count' => $failedCount
         ]);
 
-        // Chuyển hướng về trang lịch sử
         return redirect()->route('notifications.history')
             ->with('success', "Đã gửi thành công đến $sentCount phụ huynh")
             ->with('failed', $failedRecipients);

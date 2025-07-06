@@ -138,19 +138,15 @@ class SemesterController extends Controller
 
     public function index(Request $request)
     {
-        // Lấy danh sách năm học
         $academicYears = AcademicYear::where('school_id', auth()->user()->school_id)
             ->orderBy('start_date', 'asc')
             ->get();
 
-        // Lấy năm học được chọn (ưu tiên từ request, sau đó từ session, cuối cùng là năm đầu tiên)
         $selectedYearId = $request->input('academic_year_id',
             session('selected_academic_year_id', $academicYears->first()->id ?? null));
 
-        // Lưu năm học đã chọn vào session
         session(['selected_academic_year_id' => $selectedYearId]);
 
-        // Lấy danh sách học kỳ theo năm học được chọn
         $semesters = Semester::with('academicYear')
             ->where('school_id', auth()->user()->school_id)
             ->where('academic_year_id', $selectedYearId)
@@ -181,7 +177,6 @@ class SemesterController extends Controller
                 $this->getValidationMessages()
             );
 
-            // Thêm validation kiểm tra trùng lịch học kỳ
             $validator->after(function ($validator) use ($request) {
                 if ($validator->errors()->any() || !$request->academic_year_id || !$request->start_date || !$request->end_date) {
                     return;
@@ -212,18 +207,14 @@ class SemesterController extends Controller
             $validated = $validator->validated();
             $validated['school_id'] = auth()->user()->school_id;
 
-            // Xử lý is_current
             $isCurrent = $request->input('is_current', false);
 
             if ($isCurrent) {
-                // Đặt học kỳ mới là hiện tại
                 $validated['is_current'] = true;
 
-                // Tắt trạng thái hiện tại của tất cả học kỳ khác
                 Semester::where('school_id', auth()->user()->school_id)
                     ->update(['is_current' => false]);
             } else {
-                // Nếu không check thì mặc định là false
                 $validated['is_current'] = false;
             }
 
@@ -252,7 +243,6 @@ class SemesterController extends Controller
         $semester = Semester::where('school_id', auth()->user()->school_id)
             ->findOrFail($id);
 
-        // Lấy năm học từ session
         $selectedYearId = session('selected_academic_year_id');
 
         $academicYears = AcademicYear::where('school_id', auth()->user()->school_id)->get();
@@ -273,7 +263,6 @@ class SemesterController extends Controller
             $this->getValidationRules(true, $semester),
             $this->getValidationMessages()
         );
-        // Thêm validation kiểm tra trùng lịch học kỳ
         $validator->after(function ($validator) use ($request, $semester) {
             if ($validator->errors()->any() || !$request->academic_year_id || !$request->start_date || !$request->end_date) {
                 return;
@@ -302,20 +291,15 @@ class SemesterController extends Controller
                 ->withInput();
         }
 
-        // Cập nhật học kỳ
         $validated = $validator->validated();
-        // Chỉ xử lý is_current nếu checkbox được chọn
         $isCurrent = $request->input('is_current');
         if ($isCurrent) {
-            // Đặt học kỳ này là hiện tại
             $validated['is_current'] = true;
 
-            // Tắt trạng thái hiện tại của tất cả học kỳ khác
             Semester::where('school_id', auth()->user()->school_id)
                 ->where('id', '!=', $semester->id)
                 ->update(['is_current' => false]);
         } else {
-            // Nếu không check thì giữ nguyên giá trị hiện tại
             $validated['is_current'] = $semester->is_current;
         }
 

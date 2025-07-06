@@ -11,7 +11,6 @@ class LoginController extends Controller
 {
     public function showLoginForm()
     {
-        // Kiểm tra nếu đăng nhập do hết hạn session
         if (session('session_expired')) {
             Auth::logout();
             return view('auth.login')->with('status', 'Phiên làm việc đã hết hạn, vui lòng đăng nhập lại');
@@ -31,24 +30,20 @@ class LoginController extends Controller
             'password.min' => 'Mật khẩu phải có ít nhất 8 ký tự',
         ]);
 
-        // Xác định field đăng nhập (email hoặc phone)
         $field = filter_var($request->login, FILTER_VALIDATE_EMAIL) ? 'email' : 'phone';
 
-        // Tạo credentials với is_active = true
         $credentials = [
             $field => $request->login,
             'password' => $request->password,
-            'is_active' => true // Chỉ cho phép đăng nhập nếu tài khoản đang hoạt động
+            'is_active' => true
         ];
 
-        // Thực hiện đăng nhập
         if (!Auth::attempt($credentials, $request->filled('remember'))) {
             throw ValidationException::withMessages([
                 'login' => 'Tài khoản đã bị khóa',
             ]);
         }
 
-        // Kiểm tra thêm nếu cần (ví dụ: phân quyền)
         $user = Auth::user();
         if (!$user->is_active) {
             Auth::logout();

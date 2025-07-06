@@ -25,7 +25,6 @@ class PublishExamAssignment implements ShouldQueue
     {
         $this->assignment->update(['is_published' => true]);
 
-        // Gửi thông báo cho học sinh
         if ($this->assignment->assignable_type === 'App\Models\ClassModel') {
             $students = $this->assignment->assignable->students;
         } else {

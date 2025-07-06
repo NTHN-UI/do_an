@@ -68,7 +68,6 @@
         </div>
     </div>
 
-    <!-- Preview file name script -->
     <script>
         document.getElementById('file').addEventListener('change', function(e) {
             const fileName = e.target.files[0]?.name || 'Chưa chọn file';
