@@ -29,8 +29,7 @@ class DocumentController extends Controller
             'subject_id' => [
                 'required',
                 function ($attribute, $value, $fail) {
-                    if (Auth::user()->isTeacher() &&
-                        !TeacherAssignment::where('teacher_id', Auth::id())
+                    if (Auth::user()->isTeacher() && !TeacherAssignment::where('teacher_id', Auth::id())
                             ->where('subject_id', $value)
                             ->exists()) {
                         $fail('Bạn không được phép tải lên tài liệu cho môn học này.');

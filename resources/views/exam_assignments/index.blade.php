@@ -7,9 +7,11 @@
             color: var(--bs-white);
             border-color: var(--primary-color);
         }
+
         .table-responsive .dropdown-menu {
             min-width: 90px;
         }
+
         .dropdown-item:active,
         .dropdown-item:focus {
             background-color: var(--primary-color) !important;

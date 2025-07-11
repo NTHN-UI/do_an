@@ -34,7 +34,7 @@
                                         {{ $assignment->start_time->format('d/m/Y H:i') }} -
                                         {{ $assignment->end_time->format('d/m/Y H:i') }}
                                     </td>
-                                    <td class = "text-center">
+                                    <td class="text-center">
                                         @php
                                             $now = now();
                                             $start = $assignment->start_time;
@@ -57,7 +57,7 @@
                                             </div>
                                         @endif
                                     </td>
-                                    <td class = "text-center">
+                                    <td class="text-center">
                                         @php
                                             $now = now();
                                             $start = $assignment->start_time;

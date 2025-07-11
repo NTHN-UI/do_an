@@ -6,6 +6,7 @@ use App\Models\AcademicYear;
 use App\Models\ClassModel;
 use App\Models\Grade;
 use App\Models\GradeLevel;
+use App\Models\School;
 use App\Models\Semester;
 use App\Models\StudentClass;
 use App\Models\Subject;
@@ -13,7 +14,11 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
 class ClassAssignmentController extends Controller
@@ -294,7 +299,6 @@ class ClassAssignmentController extends Controller
             'targetClasses'
         ));
     }
-
     public function changeClassStudent(Request $request, string $id)
     {
         $student = User::find($id);
@@ -518,9 +522,12 @@ class ClassAssignmentController extends Controller
         $specialSubjects = ['Giáo dục quốc phòng và an ninh', 'Giáo dục thể chất', 'Nghệ thuật'];
 
         $specialNotPassed = 0;
+        $countAbove8 = 0;
         $countAbove6_5 = 0;
         $countAbove5 = 0;
         $hasBelow3_5 = false;
+        $totalRegularSubjects = 0;
+
 
         foreach ($subjectAverages as $data) {
             $isSpecial = in_array($data['name'], $specialSubjects);
@@ -530,18 +537,26 @@ class ClassAssignmentController extends Controller
                     $specialNotPassed++;
                 }
             } else {
-                if ($data['value'] >= 6.5) $countAbove6_5++;
-                if ($data['value'] >= 5.0) $countAbove5++;
-                if ($data['value'] < 3.5) $hasBelow3_5 = true;
+                $totalRegularSubjects++;
+                if (is_numeric($data['value'])) {
+                    if ($data['value'] >= 8.0) $countAbove8++;
+                    if ($data['value'] >= 6.5) $countAbove6_5++;
+                    if ($data['value'] >= 5.0) $countAbove5++;
+                    if ($data['value'] < 3.5) $hasBelow3_5 = true;
+                }
             }
         }
 
-        if ($specialNotPassed === 0 && $countAbove6_5 >= 6 && $averageScore >= 6.5) {
-            return 'Tốt';
+        if ($specialNotPassed === 0) {
+            if ($countAbove8 >= 6 && $countAbove6_5 === $totalRegularSubjects) {
+                return 'Tốt';
+            }
+
+            if ($countAbove6_5 >= 6 && $countAbove5 === $totalRegularSubjects) {
+                return 'Khá';
+            }
         }
-        if ($specialNotPassed === 0 && $countAbove5 >= 6 && $averageScore >= 5.0) {
-            return 'Khá';
-        }
+
         if ($specialNotPassed <= 1 && $countAbove5 >= 6 && !$hasBelow3_5) {
             return 'Đạt';
         }
@@ -554,9 +569,8 @@ class ClassAssignmentController extends Controller
 
         $currentGradeNumber = $currentClass->gradeLevel->grade_number;
         $nextGradeNumber = $currentGradeNumber + 1;
-
-        if ($nextGradeNumber > 12) {
-            Log::warning("Học sinh không thể lên lớp vì đã ở khối cuối: {$currentClass->name}");
+        if ($currentGradeNumber == 12) {
+            Log::info("Học sinh lớp 12 đã tốt nghiệp: {$currentClass->name}");
             return null;
         }
 
@@ -569,11 +583,7 @@ class ClassAssignmentController extends Controller
             return null;
         }
 
-        $targetClassName = str_replace(
-            (string)$currentGradeNumber,
-            (string)$nextGradeNumber,
-            $currentClass->name
-        );
+        $targetClassName = preg_replace('/\d+/', $nextGradeNumber, $currentClass->name);
 
         $promotedClass = ClassModel::where('academic_year_id', $nextAcademicYear->id)
             ->where('grade_level_id', $nextGradeLevel->id)
@@ -616,5 +626,216 @@ class ClassAssignmentController extends Controller
 
         return $retainedClass;
     }
+    private function getDirectStudentValidationRules(Request $request, ClassModel $class): array
+    {
+        return [
+            'full_name' => [
+                'required',
+                'string',
+                'max:50',
+                'regex:/^[\p{L}\s\-]+$/u'
+            ],
+            'phone' => [
+                'nullable',
+                'string',
+                'regex:/^(0[3|5|7|8|9])[0-9]{8,9}$/',
+                function ($attribute, $value, $fail) {
+                    if ($value) {
+                        $cleanNumber = preg_replace('/[^0-9]/', '', $value);
+                        if (!in_array(strlen($cleanNumber), [10, 11])) {
+                            $fail('Số điện thoại phải có 10 hoặc 11 số');
+                        }
 
+                        if (User::where('phone', $cleanNumber)
+                            ->where('school_id', auth()->user()->school_id)
+                            ->exists()) {
+                            $fail('Số điện thoại đã được sử dụng');
+                        }
+                    }
+                }
+            ],
+            'gender' => [
+                'required',
+                'in:Nam,Nữ,Khác'
+            ],
+            'date_of_birth' => [
+                'required',
+                'date',
+                'before_or_equal:' . now()->subYears(5)->format('Y-m-d')
+            ],
+            'address' => [
+                'nullable',
+                'string',
+                'max:255',
+                'regex:/^[\p{L}0-9\s\-\/,]+$/u'
+            ],
+            'guardian_name' => [
+                'nullable',
+                'string',
+                'max:50'
+            ],
+            'guardian_phone' => [
+                'nullable',
+                'string',
+                'regex:/^(0[3|5|7|8|9])[0-9]{8,9}$/'
+            ],
+            'guardian_email' => [
+                'required',
+                'email',
+                Rule::unique('users', 'guardian_email')
+            ],
+            'is_active' => [
+                'nullable',
+                'boolean'
+            ]
+        ];
+    }
+
+    private function getDirectStudentValidationMessages(): array
+    {
+        return [
+            'full_name.required' => 'Họ và tên không được để trống',
+            'full_name.max' => 'Họ và tên không được vượt quá 50 ký tự',
+            'full_name.regex' => 'Họ và tên chỉ được chứa chữ cái, khoảng trắng và dấu gạch ngang',
+
+            'phone.regex' => 'Số điện thoại phải bắt đầu bằng 03, 05, 07, 08 hoặc 09',
+
+            'gender.required' => 'Vui lòng chọn giới tính',
+            'gender.in' => 'Giới tính không hợp lệ',
+
+            'date_of_birth.required' => 'Ngày sinh không được để trống',
+            'date_of_birth.date' => 'Ngày sinh không hợp lệ',
+            'date_of_birth.before_or_equal' => 'Học sinh phải từ 5 tuổi trở lên',
+
+            'address.max' => 'Địa chỉ không được vượt quá 255 ký tự',
+            'address.regex' => 'Địa chỉ không được chứa ký tự đặc biệt',
+
+            'guardian_name.max' => 'Tên người giám hộ không được vượt quá 50 ký tự',
+
+            'guardian_phone.regex' => 'Số điện thoại người giám hộ không hợp lệ',
+
+            'guardian_email.required' => 'Email phụ huynh không để trống',
+            'guardian_email.email' => 'Email phụ huynh không hợp lệ',
+            'guardian_email.unique' => 'Email phụ huynh đã được sử dụng',
+
+        ];
+    }
+
+    public function storeDirectStudentToClass(Request $request, $classId)
+    {
+        $class = ClassModel::with('academicYear')->findOrFail($classId);
+
+
+
+        if ($class->academicYear->end_date < now()) {
+            return back()->with('error', 'Không thể thêm học sinh vào lớp thuộc năm học đã kết thúc')->withInput();
+        }
+
+        DB::beginTransaction();
+        try {
+            // Tạo học sinh mới
+            $student = new User();
+            $student->fill([
+                'full_name' => $request->full_name,
+                'phone' => $request->phone,
+                'date_of_birth' => $request->date_of_birth,
+                'gender' => $request->gender,
+                'address' => $request->address,
+                'guardian_name' => $request->guardian_name,
+                'guardian_email' => $request->guardian_email,
+                'guardian_phone' => $request->guardian_phone,
+                'role' => User::ROLE_STUDENT,
+                'school_id' => auth()->user()->school_id,
+                'is_active' => $request->has('is_active'),
+                'password' => Hash::make('12345678'),
+                'email' => $this->generateStudentEmail($request->full_name)
+            ]);
+            $student->save();
+
+            // Thêm vào lớp học
+            StudentClass::create([
+                'user_id' => $student->id,
+                'class_id' => $class->id,
+                'academic_year_id' => $class->academic_year_id
+            ]);
+
+            // Thêm vào khối lớp
+            $student->studentGrades()->attach($class->grade_level_id, [
+                'academic_year_id' => $class->academic_year_id,
+                'school_id' => auth()->user()->school_id
+            ]);
+
+            DB::commit();
+
+            return redirect()->route('class_assignments.show', $class->id)
+                ->with('success', 'Thêm học sinh vào lớp thành công!');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Lỗi thêm học sinh: '.$e->getMessage(), [
+                'request' => $request->all(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            return back()->with('error', 'Lỗi khi thêm học sinh: '.$e->getMessage())->withInput();
+        }
+    }
+    private function generateStudentEmail($fullName)
+    {
+        $school = School::find(auth()->user()->school_id);
+        $schoolName = $school->name;
+
+        // Xử lý tên trường để tạo domain
+        $slug = Str::slug(mb_strtolower($schoolName));
+        $slugParts = explode('-', $slug);
+        $slugParts = array_slice($slugParts, 1, (count($slugParts) - 1)); // Bỏ phần đầu (thường là "trường")
+        $schoolDomain = join('', $slugParts) . '.edu.vn';
+
+        // Xử lý tên học sinh
+        $nameParts = explode(' ', $fullName);
+        $lastName = array_pop($nameParts);
+        $lastName = mb_strtolower(Str::ascii($lastName)); // Chuyển về không dấu
+
+        // Lấy các chữ cái đầu của các tên còn lại
+        $firstLetters = '';
+        foreach ($nameParts as $part) {
+            $firstLetters .= mb_substr($part, 0, 1);
+        }
+        $firstLetters = mb_strtolower(Str::ascii($firstLetters)); // Chuyển về không dấu
+
+        // Tạo email base
+        $username = $lastName . '.' . $firstLetters;
+        $email = $username . '@' . $schoolDomain;
+
+        // Xử lý trường hợp trùng email
+        $counter = 1;
+        $originalEmail = $email;
+        while (User::where('email', $email)->exists()) {
+            $email = $username . $counter . '@' . $schoolDomain;
+            $counter++;
+        }
+
+        return $email;
+    }
+    public function showAddDirectStudentForm($class)
+    {
+        $class = ClassModel::findOrFail($class);
+        $academicYear = AcademicYear::current()->first();
+
+        if (!$academicYear) {
+            return redirect()
+                ->route('class_assignments.show', $class->id)
+                ->with('error', 'Hiện không trong thời gian năm học! Không thể thêm học sinh.');
+        }
+
+        if (now() < $academicYear->start_date || now() > $academicYear->end_date) {
+            return redirect()
+                ->route('class_assignments.show', $class->id)
+                ->with('error', 'Năm học chưa bắt đầu hoặc đã kết thúc, không thể thêm học sinh mới');
+        }
+
+        return view('class_assignments.add_direct_student', [
+            'class' => $class,
+            'academicYear' => $academicYear,
+        ]);
+    }
 }

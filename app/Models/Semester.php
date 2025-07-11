@@ -15,13 +15,11 @@ class Semester extends Model
         'start_date',
         'end_date',
         'school_id',
-        'is_current'
     ];
 
     protected $casts = [
         'start_date' => 'date',
         'end_date' => 'date',
-        'is_current' => 'boolean'
     ];
 
     public function classes()

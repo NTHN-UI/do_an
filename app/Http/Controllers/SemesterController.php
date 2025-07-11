@@ -112,8 +112,7 @@ class SemesterController extends Controller
                     }
                 }
             ],
-            'is_current' => 'sometimes|boolean'
-        ];
+            ];
 
         return $rules;
     }
@@ -207,16 +206,7 @@ class SemesterController extends Controller
             $validated = $validator->validated();
             $validated['school_id'] = auth()->user()->school_id;
 
-            $isCurrent = $request->input('is_current', false);
 
-            if ($isCurrent) {
-                $validated['is_current'] = true;
-
-                Semester::where('school_id', auth()->user()->school_id)
-                    ->update(['is_current' => false]);
-            } else {
-                $validated['is_current'] = false;
-            }
 
             Semester::create($validated);
 

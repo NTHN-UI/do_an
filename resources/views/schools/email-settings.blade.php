@@ -24,7 +24,7 @@
                         <div class="form-group mt-2">
                             <label for="host">SMTP Host <span class="text-danger">*</span></label>
                             <input type="text" class="form-control @error('host') is-invalid @enderror"
-                                   id="host" name="host" value="{{ old('host', $emailSettings->host ?? '') }}" >
+                                   id="host" name="host" value="{{ old('host', $emailSettings->host ?? '') }}">
                             @error('host')
                             <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
@@ -35,7 +35,7 @@
                         <div class="form-group mt-2">
                             <label for="port">Port <span class="text-danger">*</span></label>
                             <input type="number" class="form-control @error('port') is-invalid @enderror"
-                                   id="port" name="port" value="{{ old('port', $emailSettings->port ?? 587) }}" >
+                                   id="port" name="port" value="{{ old('port', $emailSettings->port ?? 587) }}">
                             @error('port')
                             <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
@@ -48,7 +48,8 @@
                         <div class="form-group mt-2">
                             <label for="username">Username <span class="text-danger">*</span></label>
                             <input type="text" class="form-control @error('username') is-invalid @enderror"
-                                   id="username" name="username" value="{{ old('username', $emailSettings->username ?? '') }}" >
+                                   id="username" name="username"
+                                   value="{{ old('username', $emailSettings->username ?? '') }}">
                             @error('username')
                             <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
@@ -72,9 +73,16 @@
                     <div class="col-md-6">
                         <div class="form-group mt-2">
                             <label for="encryption">Encryption</label>
-                            <select class="form-select @error('encryption') is-invalid @enderror" id="encryption" name="encryption">
-                                <option value="tls" {{ (old('encryption', $emailSettings->encryption ?? 'tls') == 'tls' ? 'selected' : '' )}}>TLS</option>
-                                <option value="ssl" {{ (old('encryption', $emailSettings->encryption ?? 'tls') == 'ssl' ? 'selected' : '' )}}>SSL</option>
+                            <select class="form-select @error('encryption') is-invalid @enderror" id="encryption"
+                                    name="encryption">
+                                <option
+                                    value="tls" {{ (old('encryption', $emailSettings->encryption ?? 'tls') == 'tls' ? 'selected' : '' )}}>
+                                    TLS
+                                </option>
+                                <option
+                                    value="ssl" {{ (old('encryption', $emailSettings->encryption ?? 'tls') == 'ssl' ? 'selected' : '' )}}>
+                                    SSL
+                                </option>
                             </select>
                             @error('encryption')
                             <div class="invalid-feedback">{{ $message }}</div>
@@ -88,7 +96,8 @@
                         <div class="form-group mt-2">
                             <label for="from_address">From Address <span class="text-danger">*</span></label>
                             <input type="email" class="form-control @error('from_address') is-invalid @enderror"
-                                   id="from_address" name="from_address" value="{{ old('from_address', $emailSettings->from_address ?? '') }}" >
+                                   id="from_address" name="from_address"
+                                   value="{{ old('from_address', $emailSettings->from_address ?? '') }}">
                             @error('from_address')
                             <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
@@ -99,7 +108,8 @@
                         <div class="form-group mt-2">
                             <label for="from_name">From Name <span class="text-danger">*</span></label>
                             <input type="text" class="form-control @error('from_name') is-invalid @enderror"
-                                   id="from_name" name="from_name" value="{{ old('from_name', $emailSettings->from_name ?? $school->name) }}" >
+                                   id="from_name" name="from_name"
+                                   value="{{ old('from_name', $emailSettings->from_name ?? $school->name) }}">
                             @error('from_name')
                             <div class="invalid-feedback">{{ $message }}</div>
                             @enderror

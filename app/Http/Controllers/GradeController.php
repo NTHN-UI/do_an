@@ -455,13 +455,8 @@ class GradeController extends Controller
                 $forceUpdate
 
             ) extends GradesImport implements WithMultipleSheets {
-
                 public function sheets(): array
-                {
-                    return [
-                        1 => $this,
-                    ];
-                }
+                {return [1 => $this,];}
             };
 
             Excel::import($import, $file);

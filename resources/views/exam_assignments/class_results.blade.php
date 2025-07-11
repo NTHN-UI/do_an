@@ -5,10 +5,9 @@
 
         <div class="d-flex justify-content-between align-items-center mb-4">
             <div class="d-flex align-items-center mb-4">
-                <h3 class="text-primary-color">Kết quả {{ $assignment->exam->title }} {{ $assignment->class->name }}</h3>
-
+                <h3 class="text-primary-color">Kết
+                    quả {{ $assignment->exam->title }} {{ $assignment->class->name }}</h3>
             </div>
-
         </div>
 
         <div class="row mb-4">

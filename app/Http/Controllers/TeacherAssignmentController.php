@@ -201,6 +201,7 @@ class TeacherAssignmentController extends Controller
                     'subject_id' => $request->subject_id,
                     'academic_year_id' => $request->academic_year_id,
                     'is_homeroom' => $request->is_homeroom ?? false,
+                    'school_id' => auth()->user()->school_id,
                 ]);
             }
 

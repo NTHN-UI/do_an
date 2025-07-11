@@ -79,7 +79,9 @@
                     @if($isPreview)
                         <div class="card-footer bg-light">
                             <div class="d-flex justify-content-end">
-                                <form action="{{ isset($exam) ? route('exams.update', $exam->id) : route('exams.store') }}" method="POST" class="d-inline">
+                                <form
+                                    action="{{ isset($exam) ? route('exams.update', $exam->id) : route('exams.store') }}"
+                                    method="POST" class="d-inline">
                                     @csrf
                                     @if(isset($exam))
                                         @method('PUT')
@@ -87,17 +89,23 @@
 
                                     <input type="hidden" name="title" value="{{ $examData['title'] }}">
                                     <input type="hidden" name="subject_id" value="{{ $examData['subject_id'] }}">
-                                    <input type="hidden" name="grade_level_id" value="{{ $examData['grade_level_id'] }}">
-                                    <input type="hidden" name="academic_year_id" value="{{ $examData['academic_year_id'] }}">
+                                    <input type="hidden" name="grade_level_id"
+                                           value="{{ $examData['grade_level_id'] }}">
+                                    <input type="hidden" name="academic_year_id"
+                                           value="{{ $examData['academic_year_id'] }}">
                                     <input type="hidden" name="semester_id" value="{{ $examData['semester_id'] }}">
                                     <input type="hidden" name="test_type" value="{{ $examData['test_type'] }}">
                                     <input type="hidden" name="total_marks" value="{{ $examData['total_marks'] }}">
-                                    <input type="hidden" name="duration_override" value="{{ $examData['duration_override'] ?? '' }}">
+                                    <input type="hidden" name="duration_override"
+                                           value="{{ $examData['duration_override'] ?? '' }}">
 
                                     @foreach($questions as $qIndex => $question)
-                                        <input type="hidden" name="questions[{{ $qIndex }}][content]" value="{{ $question['content'] }}">
-                                        <input type="hidden" name="questions[{{ $qIndex }}][marks]" value="{{ $question['marks'] }}">
-                                        <input type="hidden" name="questions[{{ $qIndex }}][correct_option]" value="{{ $question['correct_option'] }}">
+                                        <input type="hidden" name="questions[{{ $qIndex }}][content]"
+                                               value="{{ $question['content'] }}">
+                                        <input type="hidden" name="questions[{{ $qIndex }}][marks]"
+                                               value="{{ $question['marks'] }}">
+                                        <input type="hidden" name="questions[{{ $qIndex }}][correct_option]"
+                                               value="{{ $question['correct_option'] }}">
 
                                         @foreach($question['options'] as $oIndex => $option)
                                             <input type="hidden"
@@ -109,8 +117,11 @@
                                         @endforeach
                                     @endforeach
 
-                                      <a href="{{route('exams.index')}}" class = 'btn btn-outline-primary-color me-2'>Đóng</a>
-                                    <button type="submit" name="action" value="{{ isset($exam) ? 'update' : 'save' }}" class="btn btn-primary-color ml-2">{{ isset($exam) ? 'Cập nhật' : 'Lưu' }} đề thi
+                                    <a href="{{route('exams.index')}}"
+                                       class='btn btn-outline-primary-color me-2'>Đóng</a>
+                                    <button type="submit" name="action" value="{{ isset($exam) ? 'update' : 'save' }}"
+                                            class="btn btn-primary-color ml-2">{{ isset($exam) ? 'Cập nhật' : 'Lưu' }}
+                                        đề thi
                                     </button>
                                 </form>
                             </div>
@@ -127,55 +138,68 @@
         .exam-preview {
             font-size: 1.1rem;
         }
+
         .exam-header {
             margin-bottom: 2rem;
         }
+
         .school-name {
             font-weight: bold;
             font-size: 1.3rem;
             margin-bottom: 0.5rem;
         }
+
         .exam-title {
             font-weight: bold;
             font-size: 1.5rem;
             margin-bottom: 0.5rem;
         }
+
         .exam-meta {
             font-size: 1rem;
             color: #555;
         }
+
         .question-item {
             page-break-inside: avoid;
         }
+
         .question-content {
             font-weight: 500;
         }
+
         .correct-answer {
             background-color: #e8f5e9;
             padding: 5px;
             border-radius: 4px;
         }
+
         .option-letter {
             font-weight: bold;
             margin-right: 5px;
         }
+
         @media print {
             body {
                 background: white;
                 font-size: 12pt;
             }
+
             .container {
                 width: auto;
                 max-width: 100%;
                 padding: 0;
             }
+
             .card-header, .exam-instructions {
                 background-color: white !important;
                 color: black !important;
             }
+
             .card-footer {
                 display: none;
             }
+
             .correct-answer .badge {
                 display: none;
             }

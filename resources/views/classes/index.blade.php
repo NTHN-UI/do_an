@@ -2,11 +2,11 @@
 
 @section('content')
     <style>
-        .table-responsive .dropdown-menu {
-            position: fixed !important;
-            z-index: 1000 !important;
-            min-width: 90px;
+        .dropdown-menu {
+            min-width: 80px;
         }
+
+
         .dropdown-item:active,
         .dropdown-item:focus {
             background-color: #013066 !important;
@@ -67,20 +67,21 @@
                                         </button>
                                         <ul class="dropdown-menu dropdown-menu-end shadow-sm rounded-3 border-0">
                                             <li>
-                                                <a class="dropdown-item px-3 py-2"
+                                                <a class="dropdown-item"
                                                    href="{{ route('classes.show', $class->id) }}">
                                                     Xem
                                                 </a>
                                             </li>
                                             <li>
-                                                <a class="dropdown-item px-3 py-2"
+                                                <a class="dropdown-item"
                                                    href="{{ route('classes.edit', $class->id) }}">
                                                     Sửa
                                                 </a>
                                             </li>
                                             <li>
-                                                <button class="dropdown-item px-3 py-2"
-                                                        onclick="showDeleteModal('{{ route('classes.destroy', $class->id) }}')">Xóa
+                                                <button class="dropdown-item"
+                                                        onclick="showDeleteModal('{{ route('classes.destroy', $class->id) }}')">
+                                                    Xóa
                                                 </button>
                                             </li>
                                         </ul>

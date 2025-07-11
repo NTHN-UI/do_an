@@ -8,12 +8,15 @@
         </div>
         <div class="card border-0 shadow-sm rounded-2">
             <div class="card-body">
-                <form id="notificationForm" action="{{ route('notifications.store') }}" method="POST" enctype="multipart/form-data">
+                <form id="notificationForm" action="{{ route('notifications.store') }}" method="POST"
+                      enctype="multipart/form-data">
                     @csrf
                     <div class="mb-4 rounded-3 info-box-yellow">
-                        <label for="template_id" class="form-label">Chọn Mẫu Thông Báo <span class="text-danger">*</span>
+                        <label for="template_id" class="form-label">Chọn Mẫu Thông Báo <span
+                                class="text-danger">*</span>
                         </label>
-                        <select class="form-select @error('template_id') is-invalid @enderror" id="template_id" name="template_id" required>
+                        <select class="form-select @error('template_id') is-invalid @enderror" id="template_id"
+                                name="template_id" required>
                             <option value="">-- Chọn mẫu thông báo --</option>
                             @foreach($templates as $template)
                                 <option value="{{ $template->id }}"
@@ -37,8 +40,10 @@
                     </div>
 
                     <div class="mb-4">
-                        <label for="priority" class="form-label">Mức Độ Ưu Tiên <span class="text-danger">*</span></label>
-                        <select class="form-select @error('priority') is-invalid @enderror" id="priority" name="priority" required>
+                        <label for="priority" class="form-label">Mức Độ Ưu Tiên <span
+                                class="text-danger">*</span></label>
+                        <select class="form-select @error('priority') is-invalid @enderror" id="priority"
+                                name="priority" required>
                             <option value="">-- Chọn mức độ ưu tiên --</option>
                             @foreach($priorities as $priority)
                                 <option value="{{ $priority['value'] }}">{{ $priority['label'] }}</option>
@@ -97,8 +102,8 @@
 
 @push('scripts')
     <script>
-        $(document).ready(function() {
-            $('#template_id').change(function() {
+        $(document).ready(function () {
+            $('#template_id').change(function () {
                 var templateId = $(this).val();
 
                 if (templateId) {
@@ -108,13 +113,13 @@
                 }
             });
 
-            // Phiên bản gọi API (nếu cần)
-            $('#template_id').on('change', function() {
+            // gọi API
+            $('#template_id').on('change', function () {
                 var templateId = $(this).val();
                 if (!templateId) return;
 
                 $.get('/notifications/templates/' + templateId)
-                    .done(function(data) {
+                    .done(function (data) {
                         $('#subject').val(data.subject);
                         $('#content').val(data.content);
 
@@ -128,10 +133,10 @@
                             }).insertAfter('#content');
                         }
                     })
-                    .fail(function() {
+                    .fail(function () {
                         alert('Lỗi khi tải nội dung mẫu');
                     })
-                    .always(function() {
+                    .always(function () {
                         loadingIndicator.remove();
                     });
             });

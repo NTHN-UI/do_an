@@ -16,9 +16,11 @@
                     @method('PUT')
 
                     <div class="mb-4 rounded-3 info-box-yellow">
-                        <label for="template_id" class="form-label">Chọn Mẫu Thông Báo <span class="text-danger">*</span>
+                        <label for="template_id" class="form-label">Chọn Mẫu Thông Báo <span
+                                class="text-danger">*</span>
                         </label>
-                        <select class="form-select @error('template_id') is-invalid @enderror" id="template_id" name="template_id" required>
+                        <select class="form-select @error('template_id') is-invalid @enderror" id="template_id"
+                                name="template_id" required>
                             <option value="">-- Chọn mẫu thông báo --</option>
                             @foreach($templates as $template)
                                 <option value="{{ $template->id }}"
@@ -43,8 +45,10 @@
                     </div>
 
                     <div class="mb-4">
-                        <label for="priority" class="form-label">Mức Độ Ưu Tiên <span class="text-danger">*</span></label>
-                        <select class="form-select @error('priority') is-invalid @enderror" id="priority" name="priority" required>
+                        <label for="priority" class="form-label">Mức Độ Ưu Tiên <span
+                                class="text-danger">*</span></label>
+                        <select class="form-select @error('priority') is-invalid @enderror" id="priority"
+                                name="priority" required>
                             <option value="">-- Chọn mức độ ưu tiên --</option>
                             @foreach($priorities as $priority)
                                 <option value="{{ $priority['value'] }}"
@@ -74,7 +78,8 @@
                             <i class="fas fa-align-left me-1"></i> Nội Dung Thông Báo <span class="text-danger">*</span>
                         </label>
                         <textarea class="form-control @error('content') is-invalid @enderror"
-                                  id="content" name="content" rows="10" required>{{ old('content', $notification->content) }}</textarea>
+                                  id="content" name="content" rows="10"
+                                  required>{{ old('content', $notification->content) }}</textarea>
                         @error('content')
                         <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
@@ -92,15 +97,16 @@
                         <small class="text-muted">Định dạng: PDF, Word, Excel, hình ảnh. Tối đa 5MB/file.</small>
 
                         @if($notification->attachments->count() > 0)
-                        <div class="mt-2">
-                            <h6>File đính kèm hiện có:</h6>
-                            <ul class="list-unstyled">
-                                @foreach($notification->attachments as $attachment)
-                                    <li><i class="fas fa-file-alt me-1"></i> {{ $attachment->file_name }}</li>
-                                @endforeach
-                            </ul>
-                            <small class="text-info">Để xóa file cũ, bạn cần triển khai logic riêng trong phương thức update.</small>
-                        </div>
+                            <div class="mt-2">
+                                <h6>File đính kèm hiện có:</h6>
+                                <ul class="list-unstyled">
+                                    @foreach($notification->attachments as $attachment)
+                                        <li><i class="fas fa-file-alt me-1"></i> {{ $attachment->file_name }}</li>
+                                    @endforeach
+                                </ul>
+                                <small class="text-info">Để xóa file cũ, bạn cần triển khai logic riêng trong phương
+                                    thức update.</small>
+                            </div>
                         @endif
                     </div>
 
@@ -120,13 +126,13 @@
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
-        $(document).ready(function() {
-            $('#template_id').change(function() {
+        $(document).ready(function () {
+            $('#template_id').change(function () {
                 var templateId = $(this).val();
                 if (!templateId) return;
 
                 $.get('/notifications/templates/' + templateId)
-                    .done(function(data) {
+                    .done(function (data) {
                         $('#subject').val(data.subject);
                         $('#content').val(data.content);
 
@@ -136,14 +142,14 @@
                                 data.variables.join(', ') + '</div>').insertAfter('#content');
                         }
                     })
-                    .fail(function() {
+                    .fail(function () {
                         alert('Lỗi khi tải nội dung mẫu');
                     })
-                    .always(function() {
+                    .always(function () {
                         $('#template-loading').remove();
                     });
             });
-            $('#template_id').on('change', function() {
+            $('#template_id').on('change', function () {
                 var selectedOption = $(this).find('option:selected');
                 $('#subject').val(selectedOption.data('subject'));
                 $('#content').val(selectedOption.data('content'));

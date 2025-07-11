@@ -32,7 +32,7 @@
             </div>
             <div class="mt-3 d-flex justify-content-end">
                 <a href="{{ route('classes.index', $class->id) }}" class="btn btn-primary-color me-2">
-                     Đóng
+                    Đóng
                 </a>
             </div>
         </div>

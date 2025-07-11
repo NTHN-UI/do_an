@@ -2,16 +2,17 @@
 
 @section('content')
     <style>
-        .table-responsive .dropdown-menu {
-            position: fixed !important;
-            z-index: 1000 !important;
-            min-width: 90px;
+        .dropdown-menu {
+            min-width: 80px;
         }
+
+
         .dropdown-item:active,
         .dropdown-item:focus {
             background-color: #013066;
             color: white;
         }
+
         .pagination .page-item.active .page-link {
             background-color: var(--primary-color);
             color: var(--bs-white);
@@ -55,8 +56,8 @@
                                 <td>{{ $school->name }}</td>
                                 <td>{{ $school->address }}</td>
 
-                                <td  class="text-center">{{ $school->district }}</td>
-                                <td  class="text-center">{{ $school->province }}</td>
+                                <td class="text-center">{{ $school->district }}</td>
+                                <td class="text-center">{{ $school->province }}</td>
                                 <td class="text-end pe-4">
                                     <div class="dropdown">
                                         <button class="btn btn-sm" type="button" data-bs-toggle="dropdown"
@@ -91,7 +92,7 @@
     <script>
         $(document).ready(function () {
             let timeout = null;
-            $('#search-input').on('input', function() {
+            $('#search-input').on('input', function () {
                 clearTimeout(timeout);
                 let $this = $(this);
                 timeout = setTimeout(function () {
@@ -100,13 +101,13 @@
                     }
                 }, 300);
             });
-            $('#search-input').on('keypress', function(e) {
+            $('#search-input').on('keypress', function (e) {
                 if (e.which === 13) {
                     e.preventDefault();
                     $('#search-form').submit();
                 }
             });
-            $('#search-form button[type="submit"]').on('click', function(e) {
+            $('#search-form button[type="submit"]').on('click', function (e) {
                 e.preventDefault();
                 $('#search-form').submit();
             });

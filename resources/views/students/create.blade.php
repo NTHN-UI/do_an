@@ -7,7 +7,7 @@
             border-color: #013066;
         }
     </style>
-    <div class="container rounded-3 shadow p-4" style="background: #fff;">
+    <div class="container rounded-3 shadow p-4">
         <div class="d-flex align-items-center mb-4">
             <h3 class="mb-0 text-primary-color">Thêm mới Học sinh</h3>
         </div>
@@ -44,7 +44,8 @@
                         @enderror
                     </div>
                     <div class="col-md-12">
-                        <label for="date_of_birth" class="form-label">Ngày sinh <span class="text-danger">*</span></label>
+                        <label for="date_of_birth" class="form-label">Ngày sinh <span
+                                class="text-danger">*</span></label>
                         <input type="date" class="form-control @error('date_of_birth') is-invalid @enderror"
                                id="date_of_birth" name="date_of_birth" value="{{ old('date_of_birth') }}">
                         @error('date_of_birth')
@@ -89,8 +90,9 @@
                         @enderror
                     </div>
                     <div class="mb-3">
-                        <label for="grade_level_id" class="form-label">Khối học <span class="text-danger">*</span></label>
-                        <select name="grade_level_id" class="form-select" id="grade_level_id" >
+                        <label for="grade_level_id" class="form-label">Khối học <span
+                                class="text-danger">*</span></label>
+                        <select name="grade_level_id" class="form-select" id="grade_level_id">
                             <option value="">-- Chọn khối --</option>
                             @foreach($gradeLevels as $grade)
                                 <option value="{{ $grade->id }}"
@@ -99,7 +101,8 @@
                                 </option>
                             @endforeach
                         </select>
-                        @error('grade_level_id')<div class="text-danger">{{ $message }}</div>@enderror
+                        @error('grade_level_id')
+                        <div class="text-danger">{{ $message }}</div>@enderror
                     </div>
 
                     <div id="entry_score_field" class="mb-3" style="display:none;">
@@ -107,7 +110,8 @@
                         <input type="number" step="0.1" class="form-control" id="entry_score"
                                name="entry_score" value="{{ old('entry_score') }}"
                                min="0" max="50">
-                        @error('entry_score')<div class="text-danger">{{ $message }}</div>@enderror
+                        @error('entry_score')
+                        <div class="text-danger">{{ $message }}</div>@enderror
                     </div>
                     <input type="hidden" name="password" value="12345678">
                     <div class="col-md-12">
@@ -129,7 +133,8 @@
                         @enderror
                     </div>
                     <div class="col-md-12">
-                        <label for="guardian_email" class="form-label">Email phụ huynh <span class="text-danger">*</span></label>
+                        <label for="guardian_email" class="form-label">Email phụ huynh <span
+                                class="text-danger">*</span></label>
                         <input type="email" class="form-control  @error('guardian_email') is-invalid @enderror"
                                id="guardian_email" name="guardian_email"
                                value="{{ old('guardian_email') }}">
@@ -159,8 +164,8 @@
 @endsection
 @push('scripts')
     <script>
-        $(document).ready(function() {
-            $('#grade_level_id').change(function() {
+        $(document).ready(function () {
+            $('#grade_level_id').change(function () {
                 const gradeId = $(this).val();
                 const entryScoreField = $('#entry_score_field');
 

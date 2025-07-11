@@ -25,7 +25,8 @@
                     </div>
                     @if(Auth::user()->isStudent())
                         <div class="dropdown">
-                            <button class="btn btn-sm btn-outline-primary-color rounded-circle" type="button" data-bs-toggle="dropdown">
+                            <button class="btn btn-sm btn-outline-primary-color rounded-circle" type="button"
+                                    data-bs-toggle="dropdown">
                                 <i class="fas fa-ellipsis-v"></i>
                             </button>
                             <ul class="dropdown-menu dropdown-menu-end shadow-sm">
@@ -107,8 +108,8 @@
 
                 <div class="p-4">
                     <div class="row">
-                        <div class="col-md-6 mb-3 mb-md-0">
-                            <h5 class="fw-bold mb-3">
+                        <div class="col-md-6 mb-3 mb-md-0 pe-md-4 border-end border-primary-subtle"><h5
+                                class="fw-bold mb-3">
                                 <i class="fas fa-info-circle me-2 text-primary-color"></i>Thông tin tệp
                             </h5>
                             <ul class="list-group list-group-flush">
@@ -140,8 +141,9 @@
                                 <i class="fas fa-user-tie me-2 text-primary-color"></i>Giáo viên
                             </h5>
                             <div class="d-flex align-items-center mb-3">
-                                <div class="avatar bg-primary-subtle text-primary-color rounded-circle d-flex align-items-center justify-content-center me-3"
-                                     style="width: 50px; height: 50px;">
+                                <div
+                                    class="avatar bg-primary-subtle text-primary-color rounded-circle d-flex align-items-center justify-content-center me-3"
+                                    style="width: 50px; height: 50px;">
                                     <i class="fas fa-user-tie"></i>
                                 </div>
                                 <div>
@@ -179,7 +181,7 @@
 
     @push('scripts')
         <script>
-            $(document).ready(function() {
+            $(document).ready(function () {
                 $('[data-bs-toggle="tooltip"]').tooltip();
             });
         </script>

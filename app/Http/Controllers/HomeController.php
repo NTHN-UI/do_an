@@ -107,6 +107,8 @@
             }
 
             $academicPerformanceByGrade = [];
+
+
             $totalPerformance = [
                 'semester1' => ['excellent' => 0, 'good' => 0, 'average' => 0, 'weak' => 0, 'unrated' => 0],
                 'semester2' => ['excellent' => 0, 'good' => 0, 'average' => 0, 'weak' => 0, 'unrated' => 0],
@@ -145,7 +147,18 @@
             if (auth()->user()->isSuperAdmin()) {
                 $currentSchool = School::find($schoolId);
             }
-
+            $academicPerformanceData = [
+                'labels' => ['Tốt', 'Khá', 'Đạt', 'Chưa đạt', 'Chưa đánh giá'],
+                'data' => [
+                    $totalPerformance['year']['excellent_percent'],
+                    $totalPerformance['year']['good_percent'],
+                    $totalPerformance['year']['average_percent'],
+                    $totalPerformance['year']['weak_percent'],
+                    $totalPerformance['year']['unrated_percent']
+                ],
+                'colors' => ['#1cc88a', '#36b9cc', '#4e73df', '#f6c23e', '#858796'],
+                'hoverColors' => ['#17a673', '#2c9faf', '#2e59d9', '#dda20a', '#6d6e7a']
+            ];
             return view('home.index', compact(
                 'currentAcademicYear',
                 'academicYears',
@@ -159,7 +172,8 @@
                 'totalPerformance',
                 'currentYearStudentCount',
                 'currentSchool',
-                'request'
+                'request',
+                'academicPerformanceData'
 
             ));
         }
@@ -213,14 +227,42 @@
         }
         private function evaluateStudentPerformance($student, $academicYear)
         {
+            // Lấy tất cả học kỳ của năm học này
+            $semesters = Semester::where('academic_year_id', $academicYear->id)
+                ->orderBy('start_date')
+                ->get();
 
+            // Lấy điểm của học sinh trong năm học này
+            $grades = $student->grades()
+                ->where('academic_year_id', $academicYear->id)
+                ->get()
+                ->groupBy('semester_id');
 
-            $semester1Grades = $student->grades->where('semester_id', 1);
-            $semester2Grades = $student->grades->where('semester_id', 2);
+            $semester1Avg = null;
+            $semester2Avg = null;
 
-            $semester1Avg = $semester1Grades->avg('score');
-            $semester2Avg = $semester2Grades->avg('score');
-            $yearAvg = ($semester1Avg + $semester2Avg) / 2;
+            // Lấy điểm trung bình từng học kỳ
+            foreach ($semesters as $index => $semester) {
+                if ($index === 0) { // Học kỳ 1
+                    $semester1Avg = isset($grades[$semester->id]) ?
+                        $grades[$semester->id]->avg('score') : null;
+                } elseif ($index === 1) { // Học kỳ 2
+                    $semester2Avg = isset($grades[$semester->id]) ?
+                        $grades[$semester->id]->avg('score') : null;
+                }
+            }
+
+            // Tính điểm cả năm theo công thức (HK1 + HK2*2)/3
+            $yearAvg = null;
+            if (!is_null($semester1Avg)) {
+        if (!is_null($semester2Avg)) {
+            $yearAvg = ($semester1Avg + ($semester2Avg * 2)) / 3;
+        } else {
+            $yearAvg = $semester1Avg;
+        }
+        } elseif (!is_null($semester2Avg)) {
+        $yearAvg = $semester2Avg;
+        }
 
             return [
                 'semester1' => $this->getPerformanceLevel($semester1Avg),
@@ -231,13 +273,12 @@
 
         private function getPerformanceLevel($avgScore)
         {
-            if ($avgScore === null) return 'unrated';
+            if (is_null($avgScore)) return 'unrated';
             if ($avgScore >= 8.0) return 'excellent';
             if ($avgScore >= 6.5) return 'good';
             if ($avgScore >= 5.0) return 'average';
             return 'weak';
         }
-
         private function adjustBrightness($hex, $steps)
         {
             $steps = max(-255, min(255, $steps));

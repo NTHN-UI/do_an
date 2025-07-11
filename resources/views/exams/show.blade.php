@@ -6,7 +6,7 @@
             background-color: var(--primary-color);
             border-color: var(--primary-color);
         }
-        /* Style cho các phần thông tin */
+
         .info-item strong {
             color: var(--primary-color);
         }
@@ -17,7 +17,7 @@
             <div class="ms-auto">
                 @if(!$exam->is_published)
                     <form action="{{ route('exams.publish', $exam->id) }}" method="POST" class="d-inline">
-                        csrf
+                        @csrf
                         <button type="submit" class="btn btn-success">
                             <i class="fas fa-check-circle"></i> Xuất bản
                         </button>
@@ -85,7 +85,8 @@
                 @foreach($exam->questions as $index => $question)
                     <div class="question-item mb-4 p-3 border rounded-3 shadow-sm">
                         <div class="d-flex justify-content-between align-items-center mb-2">
-                            <h5 class="mb-0 text-primary-color">Câu {{ $index + 1 }} <small>({{ $question->marks }} điểm)</small></h5>
+                            <h5 class="mb-0 text-primary-color">Câu {{ $index + 1 }} <small>({{ $question->marks }}
+                                    điểm)</small></h5>
                         </div>
                         <div class="question-content mb-3">
                             {!! $question->content !!}
@@ -99,8 +100,9 @@
                                            id="option_{{ $option->id }}"
                                            disabled
                                         {{ $option->is_correct ? 'checked' : '' }}>
-                                    <label class="form-check-label {{ $option->is_correct ? 'text-primary-color fw-bold' : '' }}"
-                                    for="option_{{ $option->id }}">
+                                    <label
+                                        class="form-check-label {{ $option->is_correct ? 'text-primary-color fw-bold' : '' }}"
+                                        for="option_{{ $option->id }}">
                                         {{ chr(65 + $optionIndex) }}. {!! $option->content !!}
                                     </label>
                                 </div>
@@ -110,11 +112,12 @@
                 @endforeach
 
                 <div class="d-flex justify-content-between align-items-center mt-4 pt-3 border-top">
-                    <p class="fw-bold mb-0">Tổng cộng: {{ $exam->questions->count() }} câu - {{ $exam->questions->sum('marks') }} điểm</p>
+                    <p class="fw-bold mb-0">Tổng cộng: {{ $exam->questions->count() }} câu
+                        - {{ $exam->questions->sum('marks') }} điểm</p>
                     <div>
 
                         <a href="{{ route('exams.index') }}" class="btn btn-primary-color">
-                          Đóng
+                            Đóng
                         </a>
                     </div>
                 </div>

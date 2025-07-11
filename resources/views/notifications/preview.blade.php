@@ -45,7 +45,8 @@
                                 <h6 class="fw-semibold text-muted">File đính kèm:</h6>
                                 <ul class="list-unstyled mb-0">
                                     @foreach($notification->attachments as $attachment)
-                                        <li><i class="fas fa-paperclip me-2 text-muted"></i>{{ $attachment->file_name }}</li>
+                                        <li><i class="fas fa-paperclip me-2 text-muted"></i>{{ $attachment->file_name }}
+                                        </li>
                                     @endforeach
                                 </ul>
                             </div>
@@ -54,7 +55,8 @@
                 </div>
 
                 <div class="d-flex justify-content-end mt-4">
-                    <a href="{{ route('notifications.edit', $notification->id) }}" class="btn btn-outline-primary-color me-2">Chỉnh sửa</a>
+                    <a href="{{ route('notifications.edit', $notification->id) }}"
+                       class="btn btn-outline-primary-color me-2">Chỉnh sửa</a>
                     <form action="{{ route('notifications.send', $notification) }}" method="POST">
                         @csrf
                         <button type="submit" class="btn btn-primary-color">Gửi thông báo</button>

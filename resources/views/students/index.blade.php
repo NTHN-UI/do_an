@@ -2,11 +2,10 @@
 
 @section('content')
     <style>
-        .table-responsive .dropdown-menu {
-            position: fixed !important;
-            z-index: 1000 !important;
-            min-width: 90px;
+        .dropdown-menu {
+            min-width: 80px;
         }
+
         .dropdown-item:active,
         .dropdown-item:focus {
             background-color: #013066 !important;
@@ -20,7 +19,7 @@
         }
     </style>
     <div class="container rounded-3 shadow p-4">
-        <h3 class="mb-3 text-primary-color">Danh sách học si1nh</h3>
+        <h3 class="mb-3 text-primary-color">Danh sách học sinh</h3>
 
         <div class="d-flex flex-column flex-md-row justify-content-end align-items-md-center mb-4 gap-3 header-actions">
 
@@ -75,36 +74,37 @@
                         </div>
                         <div class="col-md-4 d-flex align-items-end gap-2 justify-content-end">
                             <div class="flex-shrink-0">
-                            <button type="button" class="btn btn-primary-color me-2 action-btn" onclick="$('#real-import-btn').click()"
-                                    {{ !$academicYearId ? 'disabled' : '' }}
-                                    title="{{ !$academicYearId ? 'Vui lòng chọn năm học trước' : 'Import học sinh' }}">
-                                <i class="fas fa-file-import me-1"></i> Import
-                            </button>
-                            <input type="file" id="real-import-btn" accept=".xlsx,.xls" class="d-none">
-
-                            <div class="dropdown d-inline-block">
-                                <button class="btn btn-secondary dropdown-toggle action-btn" type="button"
-                                        id="exportDropdown" data-bs-toggle="dropdown"
+                                <button type="button" class="btn btn-primary-color me-2 action-btn"
+                                        onclick="$('#real-import-btn').click()"
                                         {{ !$academicYearId ? 'disabled' : '' }}
-                                        @if(!$academicYearId) title="Vui lòng chọn năm học trước" @endif>
-                                    <i class="fas fa-download me-1"></i> Export
+                                        title="{{ !$academicYearId ? 'Vui lòng chọn năm học trước' : 'Import học sinh' }}">
+                                    <i class="fas fa-file-import me-1"></i> Import
                                 </button>
-                                <ul class="dropdown-menu dropdown-menu-end">
-                                    <li>
-                                        <a class="dropdown-item" href="{{ route('students.export.template', [
+                                <input type="file" id="real-import-btn" accept=".xlsx,.xls" class="d-none">
+
+                                <div class="dropdown d-inline-block">
+                                    <button class="btn btn-secondary dropdown-toggle action-btn" type="button"
+                                            id="exportDropdown" data-bs-toggle="dropdown"
+                                            {{ !$academicYearId ? 'disabled' : '' }}
+                                            @if(!$academicYearId) title="Vui lòng chọn năm học trước" @endif>
+                                        <i class="fas fa-download me-1"></i> Export
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end">
+                                        <li>
+                                            <a class="dropdown-item" href="{{ route('students.export.template', [
     'academic_year_id' => $academicYearId ?? null,
     'grade_level_id' => $gradeLevelId ?? null
 ]) }}" id="export-template-link">
-                                            <i class="fas fa-file-excel me-1"></i> Tải file mẫu
-                                        </a>
-                                    </li>
-                                    <li>
+                                                <i class="fas fa-file-excel me-1"></i> Tải file mẫu
+                                            </a>
+                                        </li>
+                                        <li>
 
-                                    </li>
-                                </ul>
+                                        </li>
+                                    </ul>
+                                </div>
                             </div>
                         </div>
-                    </div>
                     </div>
                 </form>
             </div>
@@ -120,7 +120,7 @@
                             <th>STT</th>
                             <th>Họ và tên</th>
                             <th>Email</th>
-                            <th >SĐT</th>
+                            <th>SĐT</th>
                             <th>Trường</th>
                             <th>Trạng thái</th>
                             <th>Thao tác</th>
@@ -135,7 +135,8 @@
             @include('students.partials.pagination', ['students' => $students])
         </div>
     </div>
-    <div class="modal fade" id="importErrorsModal" tabindex="-1" aria-labelledby="importErrorsModalLabel" aria-hidden="true">
+    <div class="modal fade" id="importErrorsModal" tabindex="-1" aria-labelledby="importErrorsModalLabel"
+         aria-hidden="true">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header bg-primary-color text-white">
@@ -173,15 +174,15 @@
 @push('scripts')
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
-        $(document).ready(function() {
-            $('#search-input').on('keyup', function() {
+        $(document).ready(function () {
+            $('#search-input').on('keyup', function () {
                 clearTimeout($(this).data('timer'));
                 $(this).data('timer', setTimeout(() => $('#search-form').submit(), 500));
             });
 
 
             @if(request('search'))
-            $('.btn-outline-secondary').click(function() {
+            $('.btn-outline-secondary').click(function () {
                 $('#search-input').val('');
                 $('#search-form').submit();
             });
@@ -215,19 +216,19 @@
                 };
 
                 $.get(url || '{{ route("students.index") }}', params)
-                    .done(function(response) {
+                    .done(function (response) {
                         $("#students-container").html(response.data);
                         $("#pagination-container").html(response.pagination);
                         setupPagination();
                     })
-                    .fail(function(xhr) {
+                    .fail(function (xhr) {
                         alert('Lỗi: ' + (xhr.responseText || 'Vui lòng thử lại'));
                     });
             }
 
 
             function setupPagination() {
-                $(document).off('click', '.pagination a').on('click', '.pagination a', function(e) {
+                $(document).off('click', '.pagination a').on('click', '.pagination a', function (e) {
                     e.preventDefault();
                     loadStudents($(this).attr('href'));
                 });
@@ -260,7 +261,7 @@
                     data: formData,
                     processData: false,
                     contentType: false,
-                    success: function(response) {
+                    success: function (response) {
                         if (response.success) {
                             Swal.fire({
                                 title: 'Thành công!',
@@ -300,7 +301,7 @@
                             });
                         }
                     },
-                    error: function(xhr) {
+                    error: function (xhr) {
                         if (xhr.status === 422) {
                             // Xóa nội dung cũ
                             $('#importErrorsList').empty();
@@ -333,7 +334,7 @@
                             });
                         }
                     },
-                    complete: function() {
+                    complete: function () {
                         $('#loading-spinner').addClass('d-none');
                         $('#real-import-btn').val('');
                     }

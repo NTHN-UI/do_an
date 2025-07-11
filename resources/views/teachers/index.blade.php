@@ -2,16 +2,16 @@
 
 @section('content')
     <style>
-        .table-responsive .dropdown-menu {
-            position: fixed !important;
-            z-index: 1000 !important;
-            min-width: 90px;
+        .dropdown-menu {
+            min-width: 80px;
         }
+
         .dropdown-item:active,
         .dropdown-item:focus {
             background-color: #013066 !important;
             color: white !important;
         }
+
         .pagination .page-item.active .page-link {
             background-color: var(--primary-color);
             color: var(--bs-white);
@@ -69,7 +69,7 @@
                                 <td class="text-end pe-4">
                                     <div class="dropdown">
                                         <button class="btn btn-sm" type="button" data-bs-toggle="dropdown"
-                                                aria-expanded="false">
+                                                aria-expanded="false"  data-bs-container="body">
                                             <i class="fas fa-ellipsis-v text-muted"></i>
                                         </button>
                                         <ul class="dropdown-menu dropdown-menu-end shadow-sm rounded-3 border-0">
@@ -116,9 +116,9 @@
 
 @push('scripts')
     <script>
-        $(document).ready(function() {
+        $(document).ready(function () {
             let timer;
-            $('#search-input').on('keyup', function() {
+            $('#search-input').on('keyup', function () {
                 clearTimeout(timer);
                 timer = setTimeout(() => {
                     $('#search-form').submit();
@@ -126,7 +126,7 @@
             });
 
             @if(request('search'))
-            $('.btn-outline-secondary').click(function() {
+            $('.btn-outline-secondary').click(function () {
                 $('#search-input').val('');
                 $('#search-form').submit();
             });

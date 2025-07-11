@@ -14,7 +14,7 @@
                 <div class="form-group mb-3">
                     <label for="title">Tiêu đề tài liệu <span class="text-danger">*</span></label>
                     <input type="text" class="form-control @error('title') is-invalid @enderror"
-                           id="title" name="title" value="{{ old('title') }}" >
+                           id="title" name="title" value="{{ old('title') }}">
                     @error('title')
                     <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
@@ -35,7 +35,8 @@
                             id="subject_id" name="subject_id">
                         <option value="">-- Chọn môn học --</option>
                         @foreach($subjects as $subject)
-                            <option value="{{ $subject->id }}" {{ old('subject_id') == $subject->id ? 'selected' : '' }}>
+                            <option
+                                value="{{ $subject->id }}" {{ old('subject_id') == $subject->id ? 'selected' : '' }}>
                                 {{ $subject->name }}
                             </option>
                         @endforeach
@@ -50,7 +51,7 @@
                     <input class="form-control @error('file') is-invalid @enderror"
                            type="file" id="file" name="file"
                            accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx">
-                    <small class="form-text text-muted">
+                    <small class="form-text text-muted" id="file-info">
                         Chấp nhận file: PDF, Word, PowerPoint, Excel (tối đa 10MB)
                     </small>
                     @error('file')
@@ -69,9 +70,11 @@
     </div>
 
     <script>
-        document.getElementById('file').addEventListener('change', function(e) {
-            const fileName = e.target.files[0]?.name || 'Chưa chọn file';
-            document.querySelector('.form-text').textContent = `File đã chọn: ${fileName}`;
+        $(document).ready(function () {
+            $('#file').on('change', function (e) {
+                const fileName = e.target.files[0]?.name || 'Chưa chọn file';
+                $('#file-info').text(`File đã chọn: ${fileName}`);
+            });
         });
     </script>
 @endsection

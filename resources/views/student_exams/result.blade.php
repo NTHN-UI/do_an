@@ -8,7 +8,8 @@
             </div>
             <div class="text-end">
                 <span class="me-2 fw-bold">Điểm số:</span>
-                <strong class="text-primary-color">{{ number_format($result->score, 1) }}/{{ $exam->total_marks }}</strong>
+                <strong class="text-primary-color">{{ number_format($result->score, 1) }}
+                    /{{ $exam->total_marks }}</strong>
             </div>
         </div>
         <div class="card border-0 shadow-sm rounded-2">
@@ -21,7 +22,8 @@
                         <p class="mb-1"><strong>Lớp:</strong> {{ $assignment->class->name }}</p>
                     </div>
                     <div class="col-md-4">
-                        <p class="mb-1"><strong>Thời gian làm bài:</strong> {{ gmdate("i:s", $result->time_taken) }} phút</p>
+                        <p class="mb-1"><strong>Thời gian làm bài:</strong> {{ gmdate("i:s", $result->time_taken) }}
+                            phút</p>
                     </div>
                 </div>
                 <h5 class="mb-3 mt-4">Chi tiết bài làm</h5>

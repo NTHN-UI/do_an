@@ -13,7 +13,7 @@
                 <input type="hidden" name="academic_year_id" value="{{ $selectedYearId }}">
 
                 <div class="form-group mt-2">
-                    <label for="name"  class="mb-2">Tên học kỳ <span class ="text-danger">*</span></label>
+                    <label for="name" class="mb-2">Tên học kỳ <span class="text-danger">*</span></label>
                     <input id="name" type="text" class="form-control @error('name') is-invalid @enderror"
                            name="name" value="{{ old('name', $semester->name) }}" autofocus>
                     @error('name')
@@ -22,25 +22,28 @@
                 </div>
 
                 <div class="form-group mt-2">
-                    <label for="start_date"  class="mb-2">Ngày bắt đầu  <span class ="text-danger">*</span></label>
+                    <label for="start_date" class="mb-2">Ngày bắt đầu <span class="text-danger">*</span></label>
                     <input id="start_date" type="date" class="form-control @error('start_date') is-invalid @enderror"
-                           name="start_date" value="{{ old('start_date', $semester->start_date ? $semester->start_date->format('Y-m-d') : '') }}">
+                           name="start_date"
+                           value="{{ old('start_date', $semester->start_date ? $semester->start_date->format('Y-m-d') : '') }}">
                     @error('start_date')
                     <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
                 </div>
 
                 <div class="form-group mt-2">
-                    <label for="end_date"  class="mb-2">Ngày kết thúc  <span class ="text-danger">*</span></label>
+                    <label for="end_date" class="mb-2">Ngày kết thúc <span class="text-danger">*</span></label>
                     <input id="end_date" type="date" class="form-control @error('end_date') is-invalid @enderror"
-                           name="end_date" value="{{ old('end_date', $semester->end_date ? $semester->end_date->format('Y-m-d') : '') }}">
+                           name="end_date"
+                           value="{{ old('end_date', $semester->end_date ? $semester->end_date->format('Y-m-d') : '') }}">
                     @error('end_date')
                     <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
                 </div>
 
                 <div class="d-flex justify-content-end align-items-center mt-3">
-                    <a href="{{ route('semesters.index', $selectedYearId) }}" class="btn btn-outline-primary-color me-2">
+                    <a href="{{ route('semesters.index', $selectedYearId) }}"
+                       class="btn btn-outline-primary-color me-2">
                         Đóng
                     </a>
                     <button type="submit" class="btn btn-primary-color">

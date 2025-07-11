@@ -170,17 +170,18 @@
 @endsection
         @push('scripts')
             <script>
-                document.addEventListener('DOMContentLoaded', function () {
+                $(document).ready(function () {
+                    function updateStatusText() {
+                        const isChecked = $('#is_active').prop('checked');
+                        $('#statusText').text(isChecked ? 'Hoạt động' : 'Ngừng');
+                    }
 
-                    const checkbox = document.getElementById('is_active');
-                    const statusText = document.getElementById('statusText');
-                    // Sử dụng giá trị từ database thay vì mặc định true
-                    statusText.textContent = checkbox.checked ? 'Hoạt động' : 'Ngừng';
+                    updateStatusText();
+
+                    $('#is_active').on('change', function () {
+                        updateStatusText();
+                    });
                 });
-
-                function toggleStatusText(checkbox) {
-                    document.getElementById('statusText').textContent = checkbox.checked ? 'Hoạt động' : 'Ngừng';
-                }
 
             </script>
 

@@ -20,35 +20,22 @@
                     @enderror
                 </div>
 
-                        <div class="form-group mt-2">
-                            <label for="start_date"  class="mb-2">Ngày bắt đầu <span class="text-danger">*</span></label>
-                            <input type="date" name="start_date"
-                                   class="form-control @error('start_date') is-invalid @enderror"
-                                   value="{{ old('start_date') }}" >
-                            @error('start_date')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
+                <div class="form-group mt-2">
+                    <label for="start_date" class="mb-2">Ngày bắt đầu <span class="text-danger">*</span></label>
+                    <input type="date" name="start_date"
+                           class="form-control @error('start_date') is-invalid @enderror"
+                           value="{{ old('start_date') }}">
+                    @error('start_date')
+                    <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                </div>
 
-                        <div class="form-group mt-2">
-                            <label for="end_date"  class="mb-2">Ngày kết thúc <span class="text-danger">*</span></label>
-                            <input type="date" name="end_date"
-                                   class="form-control @error('end_date') is-invalid @enderror"
-                                   value="{{ old('end_date') }}" >
-                            @error('end_date')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-
-                <div class="form-group form-check mt-3">
-                    <input type="hidden" name="is_current" value="0">
-                    <input type="checkbox" name="is_current" id="is_current"
-                           class="form-check-input @error('is_current') is-invalid @enderror" value="1"
-                        {{ old('is_current') ? 'checked' : '' }}>
-                    <label class="form-check-label" for="is_current">
-                        Học kỳ hiện tại
-                    </label>
-                    @error('is_current')
+                <div class="form-group mt-2">
+                    <label for="end_date" class="mb-2">Ngày kết thúc <span class="text-danger">*</span></label>
+                    <input type="date" name="end_date"
+                           class="form-control @error('end_date') is-invalid @enderror"
+                           value="{{ old('end_date') }}">
+                    @error('end_date')
                     <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
                 </div>

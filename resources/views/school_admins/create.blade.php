@@ -41,7 +41,7 @@
                 <div class="form-group mt-2">
                     <label for="school_id">Trường <span class="text-danger">*</span></label>
                     <select id="school_id" class="form-control @error('school_id') is-invalid @enderror"
-                            name="school_id" >
+                            name="school_id">
                         <option value="">-- Chọn trường --</option>
                         @forelse($schools as $school)
                             <option value="{{ $school->id }}" {{ old('school_id') == $school->id ? 'selected' : '' }}>
@@ -59,7 +59,7 @@
                 <div class="form-group mt-2">
                     <label for="password">Mật khẩu <span class="text-danger">*</span></label>
                     <input id="password" type="password" class="form-control @error('password') is-invalid @enderror"
-                           name="password"  autocomplete="new-password">
+                           name="password" autocomplete="new-password">
                     @error('password')
                     <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
@@ -68,7 +68,7 @@
                 <div class="form-group mt-2">
                     <label for="password-confirm">Xác nhận mật khẩu <span class="text-danger">*</span></label>
                     <input id="password-confirm" type="password" class="form-control"
-                           name="password_confirmation"  autocomplete="new-password">
+                           name="password_confirmation" autocomplete="new-password">
                 </div>
 
                 <div class="d-flex justify-content-end mt-3">

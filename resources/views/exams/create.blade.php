@@ -9,7 +9,6 @@
 
         <form id="examForm" action="{{ route('exams.store') }}" method="POST" enctype="multipart/form-data">
             @csrf
-
             <div class="card mb-4 border-0 shadow-sm rounded-2">
                 <div class="card-header bg-transparent text-primary-color fw-semibold">Thông tin chung</div>
                 <div class="card-body">
@@ -18,7 +17,7 @@
                                 class="text-danger">*</span></label>
                         <input type="text" class="form-control @error('title') is-invalid @enderror" id="title"
                                name="title"
-                               value="{{ old('title', $exam->title ?? '') }}" required maxlength="255">
+                               value="{{ old('title', $exam->title ?? '') }}" maxlength="255">
                         @error('title')
                         <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
@@ -59,10 +58,8 @@
 
 
                     <div class="mb-3">
-                        <label for="academic_year_id" class="form-label">Năm học <span
-                                class="text-danger">*</span></label>
-                        <select name="academic_year_id" id="academic_year_id"
-                                class="form-select @error('academic_year_id') is-invalid @enderror">
+                        <label for="academic_year_id" class="form-label">Năm học <span class="text-danger">*</span></label>
+                        <select name="academic_year_id" id="academic_year_id" class="form-select @error('academic_year_id') is-invalid @enderror">
                             <option value="">--Chọn năm học--</option>
                             @foreach($academicYears as $year)
                                 <option
@@ -88,7 +85,6 @@
                         <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
                     </div>
-
 
                     <div class="mb-3">
                         <label for="test_type" class="form-label">Loại đề thi <span class="text-danger">*</span></label>
@@ -217,20 +213,17 @@
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 
     <script>
-        $(document).ready(function() {
-            //  KHAI BÁO BIẾN
+        $(document).ready(function () {
             const ExamManager = {
                 questionCount: $('#questionsContainer .question-item').length
             };
 
-
-            //  KHỞI TẠO
             function initExamForm() {
                 initFormControls();
                 setupEventHandlers();
                 updateQuestionNumbers();
 
-                // Kiểm tra session để mở modal ngân hàng câu hỏi nếu cần
+                //  mở modal ngân hàng câu hỏi
                 @if(session('open_question_bank') && session('success'))
                 showSuccessMessage('{{ session('success') }}');
                 $('#questionBankModal').modal('show');
@@ -249,7 +242,6 @@
             }
 
             function setupEventHandlers() {
-                // Form controls
                 $('#academic_year_id').change(handleAcademicYearChange);
                 $('#test_type').change(handleTestTypeChange);
                 $('#total_marks').on('change', validateTotalMarks);
@@ -283,9 +275,9 @@
 
                 $semesterSelect.prop('disabled', false);
 
-                $.get('/get-semesters-by-year', { academic_year_id: academicYearId }, function(data) {
+                $.get('/get-semesters-by-year', {academic_year_id: academicYearId}, function (data) {
                     $semesterSelect.empty().append('<option value="">--Chọn học kỳ--</option>');
-                    $.each(data, function(key, value) {
+                    $.each(data, function (key, value) {
                         $semesterSelect.append(`<option value="${value.id}">${value.name}</option>`);
                     });
                 });
@@ -310,7 +302,7 @@
                 const totalMarks = parseFloat($('#total_marks').val()) || 0;
                 let sumQuestionMarks = 0;
 
-                $('input[name^="questions["][name$="[marks]"]').each(function() {
+                $('input[name^="questions["][name$="[marks]"]').each(function () {
                     sumQuestionMarks += parseFloat($(this).val()) || 0;
                 });
 
@@ -374,12 +366,12 @@
                     data: formData,
                     processData: false,
                     contentType: false,
-                    success: function(response) {
+                    success: function (response) {
                         const previewWindow = window.open('', '_blank');
                         previewWindow.document.write(response);
                         previewWindow.document.close();
                     },
-                    error: function(xhr) {
+                    error: function (xhr) {
                         showErrorMessage('Có lỗi xảy ra khi tạo bản xem trước: ' + xhr.responseText);
                     }
                 });
@@ -399,7 +391,7 @@
                 let optionsHtml = '';
                 options.forEach((option, optIdx) => {
                     const isChecked = (correctOption !== null && optIdx === correctOption) ||
-                                    (option.is_correct === true);
+                        (option.is_correct === true);
 
                     optionsHtml += `
                         <div class="form-group mt-2">
@@ -465,25 +457,21 @@
             }
 
             function updateQuestionNumbers() {
-                $('.question-item').each(function(index) {
-                    // Cập nhật số thứ tự hiển thị
+                $('.question-item').each(function (index) {
                     $(this).find('.question-number').text(index + 1);
 
-                    // Cập nhật data attribute
                     $(this).attr('data-question-index', index);
 
-                    // Cập nhật tên các input
-                    $(this).find('[name^="questions["]').each(function() {
+                    $(this).find('[name^="questions["]').each(function () {
                         const name = $(this).attr('name');
                         const newName = name.replace(/questions\[\d+\]/, `questions[${index}]`);
                         $(this).attr('name', newName);
                     });
                 });
 
-                // Cập nhật biến đếm
                 ExamManager.questionCount = $('.question-item').length;
             }
-            // XỬ LÝ NGÂN HÀNG CÂU HỎI
+
             function loadQuestionBank() {
                 $.ajax({
                     url: '{{ route("question_bank.filter") }}',
@@ -493,14 +481,14 @@
                         grade_level_id: $('#filterGrade').val(),
                         search: $('#searchQuestion').val()
                     },
-                    success: function(response) {
+                    success: function (response) {
                         $('#questionBankTable tbody').html(response.html);
                     }
                 });
             }
 
             function addQuestionsFromBank() {
-                const selectedIds = $('.question-checkbox:checked').map(function() {
+                const selectedIds = $('.question-checkbox:checked').map(function () {
                     return $(this).val();
                 }).get();
 
@@ -509,7 +497,7 @@
                     return;
                 }
 
-                // Đóng modal
+
                 $('#questionBankModal').modal('hide');
 
                 $.ajax({
@@ -519,11 +507,11 @@
                         ids: selectedIds,
                         _token: '{{ csrf_token() }}'
                     },
-                    success: function(response) {
+                    success: function (response) {
                         if (response && response.length > 0) {
                             let questionsHtml = '';
 
-                            response.forEach(function(question) {
+                            response.forEach(function (question) {
                                 const newIndex = ExamManager.questionCount;
                                 questionsHtml += createQuestionHtml(newIndex, question);
                                 ExamManager.questionCount++;
@@ -534,7 +522,7 @@
                             validateTotalMarks();
                         }
                     },
-                    error: function(xhr) {
+                    error: function (xhr) {
                         showErrorMessage('Có lỗi xảy ra khi tải câu hỏi từ ngân hàng');
                         console.error('AJAX error:', xhr);
                     }
@@ -573,7 +561,7 @@
                     data: formData,
                     processData: false,
                     contentType: false,
-                    success: function(response) {
+                    success: function (response) {
                         $('#import-loading').remove();
 
                         if (response.success && response.questions.length > 0) {
@@ -605,7 +593,7 @@
                             $container.append(message);
                         }
                     },
-                    error: function(xhr) {
+                    error: function (xhr) {
                         $('#import-loading').remove();
                         $container.append(`<div class="alert alert-danger">Lỗi khi đọc file: ${xhr.responseJSON?.message || 'Lỗi không xác định'}</div>`);
                     }
@@ -616,9 +604,75 @@
 
             initExamForm();
 
-            // Auto adjust marks when questions are added/removed
             $(document).on('questionAdded questionRemoved', autoAdjustQuestionMarks);
         });
+        $(document).ready(function() {
+            // Lọc câu hỏi
+            function filterQuestions() {
+                const subjectId = $('#filterSubject').val();
+                const gradeId = $('#filterGrade').val();
+                const searchText = $('#searchQuestion').val().toLowerCase();
 
+                $('tbody tr').each(function() {
+                    const $row = $(this);
+                    const rowSubject = $row.find('td:nth-child(4)').text().trim();
+                    const rowGrade = $row.find('td:nth-child(5)').text().trim();
+                    const rowContent = $row.find('td:nth-child(2)').text().toLowerCase();
+
+                    const subjectMatch = !subjectId || $row.find('td:nth-child(4)').data('subject-id') == subjectId;
+                    const gradeMatch = !gradeId || $row.find('td:nth-child(5)').data('grade-id') == gradeId;
+                    const searchMatch = !searchText || rowContent.includes(searchText);
+
+                    if (subjectMatch && gradeMatch && searchMatch) {
+                        $row.show();
+                    } else {
+                        $row.hide();
+                    }
+                });
+            }
+
+            // Thêm data attributes vào các ô td
+            $('tbody tr').each(function() {
+                const $row = $(this);
+                const questionId = $row.find('.question-checkbox').val();
+                const subjectId = {{ $question->subject->id ?? 'null' }};
+                const gradeId = {{ $question->gradeLevel->id ?? 'null' }};
+
+                $row.find('td:nth-child(4)').data('subject-id', subjectId);
+                $row.find('td:nth-child(5)').data('grade-id', gradeId);
+            });
+
+            // Gắn sự kiện cho các bộ lọc
+            $('#filterSubject, #filterGrade, #searchQuestion').on('change keyup', function() {
+                filterQuestions();
+            });
+        });
+        $(document).ready(function() {
+            // Bộ lọc ngân hàng câu hỏi
+            $('#filterSubject, #filterGrade, #searchQuestion').on('change keyup', function() {
+                filterQuestions();
+            });
+
+            function filterQuestions() {
+                const subjectId = $('#filterSubject').val();
+                const gradeId = $('#filterGrade').val();
+                const searchText = $('#searchQuestion').val().toLowerCase();
+
+                $('tbody tr').each(function() {
+                    const $row = $(this);
+                    const rowSubjectId = $row.find('td[data-subject-id]').data('subject-id');
+                    const rowGradeId = $row.find('td[data-grade-id]').data('grade-id');
+                    const rowContent = $row.find('td:nth-child(2)').text().toLowerCase();
+
+                    // Kiểm tra điều kiện lọc
+                    const subjectMatch = !subjectId || rowSubjectId == subjectId;
+                    const gradeMatch = !gradeId || rowGradeId == gradeId;
+                    const searchMatch = !searchText || rowContent.includes(searchText);
+
+                    // Hiển thị/ẩn dòng
+                    $row.toggle(subjectMatch && gradeMatch && searchMatch);
+                });
+            }
+        });
     </script>
 @endpush

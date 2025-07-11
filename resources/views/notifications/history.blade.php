@@ -2,11 +2,11 @@
 
 @section('content')
     <style>
-        .table-responsive .dropdown-menu {
-            position: fixed !important;
-            z-index: 1000 !important;
-            min-width: 90px;
+        .dropdown-menu {
+            min-width: 80px;
         }
+
+
         .dropdown-item:active,
         .dropdown-item:focus {
             background-color: #013066 !important;
@@ -36,7 +36,7 @@
                             <th>Tiêu đề</th>
                             <th class="text-center">Lớp</th>
                             <th class="text-center">Ưu tiên</th>
-                            <th class="text-center" >Ngày gửi</th>
+                            <th class="text-center">Ngày gửi</th>
                             <th class="text-center">Người gửi</th>
                             <th class="text-center">Trạng thái</th>
                             <th class="text-center">Thao tác</th>

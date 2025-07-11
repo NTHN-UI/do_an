@@ -13,7 +13,8 @@
         </div>
         <div class="form-group mt-2">
             <label>Điểm *</label>
-            <input type="number" step="0.1" min="0.1" class="form-control" name="questions[<%= index %>][marks]" value="<%= marks || 1 %>" required>
+            <input type="number" step="0.1" min="0.1" class="form-control" name="questions[<%= index %>][marks]"
+                   value="<%= marks || 1 %>" required>
         </div>
 
         <div class="answers-container">
@@ -23,7 +24,8 @@
             var isCorrect = correctOption !== undefined ? (correctOption == i) : (option.is_correct || i === 0);
             %>
             <div class="form-group mt-2">
-                <input type="hidden" name="questions[<%= index %>][options][<%= i %>][id]" value="<%= option.id || '' %>">
+                <input type="hidden" name="questions[<%= index %>][options][<%= i %>][id]"
+                       value="<%= option.id || '' %>">
                 <label>Đáp án <%= String.fromCharCode(65 + i) %> *</label>
                 <div class="input-group">
                     <input type="text" class="form-control"

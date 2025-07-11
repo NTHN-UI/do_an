@@ -12,7 +12,7 @@ use App\Models\Semester;
 use App\Models\TeacherAssignment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Validation\Validator;
+use Illuminate\Support\Facades\Validator;
 use PhpOffice\PhpWord\IOFactory;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
@@ -119,11 +119,10 @@ class ExamController extends Controller
     }
     private function validateExamData(Request $request, bool $isUpdate = false, Exam $exam = null)
     {
-        $validator = Validator::make(
-            $request->all(),
-            $this->getValidationRules($isUpdate, $exam ? $exam->id : null),
-            $this->getValidationMessages()
-        );
+        $rules = $this->getValidationRules($isUpdate, $exam ? $exam->id : null);
+        $messages = $this->getValidationMessages();
+
+        $validator = Validator::make($request->all(), $rules, $messages);
 
         $validator->after(function ($validator) use ($request) {
             $totalMarks = $request->input('total_marks');
@@ -207,7 +206,21 @@ class ExamController extends Controller
             'questionBanks' => $questionBanks
         ]);
     }
-
+    private function prepareExamData($validated)
+    {
+        return [
+            'title' => $validated['title'],
+            'description' => $validated['description'] ?? null,
+            'subject_id' => $validated['subject_id'],
+            'grade_level_id' => $validated['grade_level_id'],
+            'academic_year_id' => $validated['academic_year_id'],
+            'semester_id' => $validated['semester_id'],
+            'total_marks' => $validated['total_marks'],
+            'duration_override' => $validated['duration_override'] ?? null,
+            'is_template' => $validated['is_template'] ?? false,
+            'teacher_id' => auth()->id(),
+        ];
+    }
     public function store(Request $request)
     {
         if ($request->has('questions') && is_string($request->questions)) {
@@ -215,9 +228,19 @@ class ExamController extends Controller
                 'questions' => json_decode($request->questions, true)
             ]);
         }
-        $validated = $this->validateRequest($request);
 
+        $validator = $this->validateExamData($request, false);
+
+        if ($validator->fails()) {
+            return redirect()->back()
+                ->withErrors($validator)
+                ->withInput();
+        }
+
+        $validated = $validator->validated();
         $exam = Exam::create($this->prepareExamData($validated));
+
+
 
         if ($request->hasFile('import_file')) {
             $this->importFromWord($exam, $request->file('import_file'));
@@ -234,6 +257,7 @@ class ExamController extends Controller
         return redirect()->route('exams.show', $exam->id)
             ->with('success', 'Đề thi đã được tạo thành công!');
     }
+
 
     public function show(Exam $exam)
     {
@@ -286,9 +310,17 @@ class ExamController extends Controller
 
     public function update(Request $request, Exam $exam)
     {
-        $validated = $this->validateRequest($request, $exam);
+        $validator = $this->validateExamData($request, true, $exam);
 
+        if ($validator->fails()) {
+            return redirect()->back()
+                ->withErrors($validator)
+                ->withInput();
+        }
+
+        $validated = $validator->validated();
         $exam->update($this->prepareExamData($validated));
+
 
         if ($request->has('replace_questions') || !$exam->questions()->exists()) {
             $exam->questions()->delete();
@@ -524,23 +556,6 @@ class ExamController extends Controller
             'replace_questions' => 'nullable|boolean'
         ]);
     }
-
-    private function prepareExamData($validated)
-    {
-        return [
-            'title' => $validated['title'],
-            'description' => $validated['description'] ?? null,
-            'subject_id' => $validated['subject_id'],
-            'grade_level_id' => $validated['grade_level_id'],
-            'academic_year_id' => $validated['academic_year_id'],
-            'semester_id' => $validated['semester_id'],
-            'total_marks' => $validated['total_marks'],
-            'duration_override' => $validated['duration_override'] ?? null,
-            'is_template' => $validated['is_template'] ?? false,
-            'teacher_id' => auth()->id(),
-        ];
-    }
-
         private function importFromWord(Exam $exam, $file)
         {
 

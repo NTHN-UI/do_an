@@ -251,12 +251,16 @@
 
 @push('scripts')
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
+        $(document).ready(function() {
+            $('select[name="academic_year_id"]').on('change', function() {
+                $(this).closest('form').submit();
+            });
+
             if (window.location.hash) {
-                const tabTrigger = new bootstrap.Tab(document.querySelector(
-                    `a[href="${window.location.hash}"][data-bs-toggle="tab"]`
-                ));
-                tabTrigger.show();
+                const $tabTrigger = $(`button[data-bs-toggle="tab"][data-bs-target="${window.location.hash}"]`);
+                if ($tabTrigger.length) {
+                    new bootstrap.Tab($tabTrigger[0]).show();
+                }
             }
         });
     </script>

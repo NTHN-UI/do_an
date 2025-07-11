@@ -45,7 +45,7 @@
                 <a href="{{ route('schools.index', $school->id) }}" class="btn btn-outline-primary-color  me-2"> Đóng
                 </a>
                 <a href="{{ route('schools.email-settings', $school) }}" class="btn btn-primary-color">
-                     Cấu hình Email
+                    Cấu hình Email
                 </a>
             </div>
 

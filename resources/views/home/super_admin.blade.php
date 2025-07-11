@@ -7,11 +7,13 @@
             z-index: 1000 !important;
             min-width: 90px;
         }
+
         .dropdown-item:active,
         .dropdown-item:focus {
             background-color: #013066 !important;
             color: white !important;
         }
+
         .badge-count {
             background-color: #f8f9fa;
             color: #6c757d;
@@ -19,6 +21,7 @@
             padding: 3px 8px;
             font-size: 0.85rem;
         }
+
         .pagination .page-item.active .page-link {
             background-color: var(--primary-color);
             color: var(--bs-white);
@@ -45,7 +48,7 @@
                         </thead>
                         <tbody>
                         @forelse ($schools as $school)
-                            <tr >
+                            <tr>
                                 <td>{{ $school->id }}</td>
                                 <td>{{ $school->name }}</td>
                                 <td>{{ $school->address }}</td>
@@ -94,7 +97,7 @@
 
 @push('scripts')
     <script>
-        $(document).ready(function() {
+        $(document).ready(function () {
             $('#schoolsTable').DataTable({
                 "language": {
                     "url": "//cdn.datatables.net/plug-ins/1.10.20/i18n/Vietnamese.json"
@@ -102,11 +105,11 @@
                 "dom": '<"top"f>rt<"bottom"lip><"clear">',
                 "responsive": true,
                 "columnDefs": [
-                    { "orderable": false, "targets": [6] }
+                    {"orderable": false, "targets": [6]}
                 ],
-                "initComplete": function() {
+                "initComplete": function () {
                     $('.dataTables_filter input').addClass('form-control form-control-sm');
-                    $('.dataTables_filter label').contents().filter(function() {
+                    $('.dataTables_filter label').contents().filter(function () {
                         return this.nodeType === 3;
                     }).remove();
                 }

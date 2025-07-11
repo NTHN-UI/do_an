@@ -2,16 +2,16 @@
 
 @section('content')
     <style>
-        .table-responsive .dropdown-menu {
-            position: fixed !important;
-            z-index: 1000 !important;
-            min-width: 90px;
+        .dropdown-menu {
+            min-width: 80px;
         }
+
         .dropdown-item:active,
         .dropdown-item:focus {
             background-color: #013066;
             color: white;
         }
+
         .pagination .page-item.active .page-link {
             background-color: var(--primary-color);
             color: var(--bs-white);
@@ -19,7 +19,7 @@
         }
     </style>
     <div class="container  rounded-3 shadow p-4">
-    <h3 class="mb-3 text-primary-color">Danh sách Admin trường</h3>
+        <h3 class="mb-3 text-primary-color">Danh sách Admin trường</h3>
         <div class="d-flex justify-content-end align-items-center mb-3">
             <form method="GET" action="{{ route('school_admins.index') }}" class="d-flex me-2" id="search-form">
                 <div class="input-group">
@@ -97,7 +97,7 @@
         $(document).ready(function () {
             let timeout = null;
 
-            $('#search-input').on('input', function() {
+            $('#search-input').on('input', function () {
                 clearTimeout(timeout);
                 let $this = $(this);
                 timeout = setTimeout(function () {
@@ -107,14 +107,14 @@
                 }, 300);
             });
 
-            $('#search-input').on('keypress', function(e) {
+            $('#search-input').on('keypress', function (e) {
                 if (e.which === 13) {
                     e.preventDefault();
                     $('#search-form').submit();
                 }
             });
 
-            $('#search-form button[type="submit"]').on('click', function(e) {
+            $('#search-form button[type="submit"]').on('click', function (e) {
                 e.preventDefault();
                 $('#search-form').submit();
             });

@@ -31,12 +31,7 @@ use App\Http\Middleware\HomeroomMiddleware;
 
 use Illuminate\Support\Facades\Route;
 
-// routes/web.php
-
-// Profile routes
-
 Route::get('/', [HomeController::class, 'index'])->name('home.index');
-
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 Route::get("/login", [LoginController::class, 'showLoginForm']);
 Route::post("/login", [LoginController::class, 'login'])->name('login');
@@ -48,7 +43,6 @@ Route::middleware(['auth'])->group(function () {
         // routes/web.php
         Route::resource('schools', SchoolController::class);
         Route::resource('school_admins', SchoolAdminController::class);
-
         Route::get('/districts/{province}', [SchoolController::class, 'getDistricts']);
         Route::prefix('schools/{school}')->group(function () {
             Route::get('/email-settings', [SchoolController::class, 'emailSettings'])->name('schools.email-settings');
@@ -69,14 +63,12 @@ Route::middleware(['auth'])->group(function () {
         Route::get('students/export/template', [StudentController::class, 'exportTemplate'])->name('students.export.template');
         Route::get('students/export', [StudentController::class, 'export'])->name('students.export');
 
-
         Route::get('/teachers/{teacher}/assignments/create', [TeacherAssignmentController::class, 'create'])
             ->name('teacher_assignments.create');
         Route::post('teachers/{teacher}/assignments', [TeacherAssignmentController::class, 'store'])
             ->name('teacher_assignments.store');
         Route::get('teacher-assignments/get-classes-by-year', [TeacherAssignmentController::class, 'getClassesByAcademicYear'])
             ->name('teacher_assignments.getClassesByAcademicYear');
-
         // Phân lớp học sinh
         Route::prefix('class_assignments')->name('class_assignments.')->controller(ClassAssignmentController::class)->group(function () {
             Route::get('/', 'index')->name('index');
@@ -85,6 +77,8 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/{class}', 'showClassStudents')->name('show');
             Route::post('/change_class/{id}', 'changeClassStudent')->name('change_class');
             Route::post('/advance_class', 'advanceClassStudents')->name('advance_class');
+            Route::get('/{class}/add_direct_student', 'showAddDirectStudentForm')->name('add_direct_student');
+            Route::post('/{class}/store_direct_student', 'storeDirectStudentToClass')->name('store_direct_student');
         });
         Route::prefix('grades/admin')->name('grades.admin_')->group(function () {
             Route::get('/', [GradeController::class, 'adminViewAllGrades'])->name('grades');
@@ -92,25 +86,20 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/get-classes-by-year-admin', [GradeController::class, 'getClassesByYearAdmin'])
                 ->name('grades.get_classes_by_year_admin');
         });
-
     });
 
     Route::middleware(HomeroomMiddleware::class)->group(function () {
-        Route::resource('students', StudentController::class)->only([
-            'show', 'edit', 'update'
-        ]);    });
-
+        Route::resource('students', StudentController::class)->only(['show', 'edit', 'update']);
+    });
     Route::middleware(['auth'])->group(function () {
         Route::middleware([TeacherMiddleware::class])->group(function () {
             Route::resource('documents', DocumentController::class)->except('index', 'show');
         });
-
         Route::controller(DocumentController::class)->prefix('documents')->name('documents.')->group(function () {
             Route::get('/', 'index')->name('index');
             Route::get('/{document}/download', 'download')->name('download');
             Route::get('/{document}', 'show')->name('show');
         });
-
         // Nhóm route riêng cho điểm số (grades)
         Route::controller(GradeController::class)
             ->prefix('grades')->name('grades.')
@@ -120,18 +109,15 @@ Route::middleware(['auth'])->group(function () {
                 Route::post('/import', 'import')->name('import');
                 Route::get('/student/{student}', 'viewAllGrades')->name('student_grades');
                 Route::get('/homeroom-grades', 'homeroomGrades')->name('homeroom');
-                // API hỗ trợ
+                // API
                 Route::get('/get-semesters-by-year', 'getSemestersByYear')->name('get_semesters_by_year');
                 Route::get('/get-classes-by-year', 'getClassesByYear')->name('get_classes_by_year');
-
             });
-
         Route::prefix('homeroom_teacher')->name('homeroom_teacher.')->group(function () {
             Route::get('/', [HomeroomTeacherController::class, 'index'])->name('index');
         });
     });
     Route::middleware('auth')->middleware([TeacherMiddleware::class])->group(function () {
-        // Thông báo giáo viên chủ nhiệm
         Route::prefix('notifications')->name('notifications.')->controller(NotificationController::class)->group(function () {
             Route::get('/create', 'create')->name('create');
             Route::post('/', 'store')->name('store');
@@ -155,7 +141,6 @@ Route::middleware(['auth'])->group(function () {
             Route::delete('/{exam}', [ExamController::class, 'destroy'])->name('exams.destroy');
             Route::post('exams/preview', [ExamController::class, 'preview'])->name('exams.preview');
             Route::put('exams/preview', [ExamController::class, 'preview'])->name('exams.preview.put');
-
             // Xuất bản đề thi
             Route::post('/{exam}/publish', [ExamController::class, 'publish'])
                 ->name('exams.publish');
@@ -172,23 +157,17 @@ Route::middleware(['auth'])->group(function () {
 
         });
         Route::get('/get-semesters-by-year', [ExamController::class, 'getSemestersByYear']);
-
         Route::prefix('exam_assignments')->name('exam_assignments.')->group(function () {
-            // Tạo form giao đề
             Route::get('/', [ExamAssignmentController::class, 'index'])
                 ->name('index');
-
             Route::get('/create/{exam}', [ExamAssignmentController::class, 'create'])
                 ->name('create');
-
-            // Lưu thông tin giao đề
             Route::post('/store/{exam}', [ExamAssignmentController::class, 'store'])
                 ->name('store');
             Route::get('/{assignment}', [ExamAssignmentController::class, 'show'])
                 ->name('exam_assignments.show');
             Route::get('/{assignment}/results', [ExamAssignmentController::class, 'classResults'])
                 ->name('class_results');
-
         });
     });
     Route::middleware(['auth'])->prefix('student_exams')->name('student_exams.')->group(function () {
@@ -198,20 +177,14 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/{assignment}/submit', [StudentExamController::class, 'submit'])->name('submit');
         Route::get('/{assignment}/result', [StudentExamController::class, 'result'])->name('result');
     });
-    // routes/web.php
     Route::middleware(['auth'])->group(function () {
         Route::get('/student_grades', [StudentGradeController::class, 'index'])->name('student_grades');
         Route::get('/student_grades/detail/{academic_year_id}/{semester_id}', [StudentGradeController::class, 'detail'])->name('student_grades.detail');;
     });
     Route::get('/grades/get-semesters', [GradeController::class, 'getSemesters'])
         ->name('grades.get-semesters');
-
-    // Route lấy lớp được phân công (nếu chưa có)
     Route::get('/grades/get-assigned-classes', [GradeController::class, 'getAssignedClasses'])
         ->name('grades.get-assigned-classes');
-
-
-
 });
 
 

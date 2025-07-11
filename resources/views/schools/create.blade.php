@@ -22,7 +22,7 @@
                 <div class="form-group mt-2">
                     <label for="name">Tên trường <span class="text-danger">*</span></label>
                     <input type="text" class="form-control @error('name') is-invalid @enderror"
-                           id="name" name="name" value="{{ old('name') }}" >
+                           id="name" name="name" value="{{ old('name') }}">
                     @error('name')
                     <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
@@ -31,7 +31,7 @@
                 <div class="form-group mt-2">
                     <label for="address">Địa chỉ <span class="text-danger">*</span></label>
                     <input type="text" class="form-control @error('address') is-invalid @enderror"
-                           id="address" name="address" value="{{ old('address') }}" >
+                           id="address" name="address" value="{{ old('address') }}">
                     @error('address')
                     <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
@@ -43,7 +43,8 @@
                             id="province" name="province">
                         <option value="">-- Chọn tỉnh/thành --</option>
                         @foreach($provinces as $province)
-                            <option value="{{ $province['code'] }}" {{ old('province') == $province['code'] ? 'selected' : '' }}>
+                            <option
+                                value="{{ $province['code'] }}" {{ old('province') == $province['code'] ? 'selected' : '' }}>
                                 {{ $province['name'] }}
                             </option>
                         @endforeach
@@ -77,8 +78,8 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
         // Phần script trong blade
-        $(document).ready(function() {
-            $('#province').change(function() {
+        $(document).ready(function () {
+            $('#province').change(function () {
                 var provinceCode = $(this).val();
                 console.log('Selected province code:', provinceCode);
 
@@ -91,11 +92,11 @@
                         headers: {
                             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                         },
-                        success: function(data) {
+                        success: function (data) {
                             console.log('Received districts data:', data);
                             $('#district').empty().append('<option value="">-- Chọn quận/huyện --</option>');
 
-                            $.each(data, function(key, district) {
+                            $.each(data, function (key, district) {
                                 $('#district').append($('<option>', {
                                     value: district.code,
                                     text: district.name
@@ -106,7 +107,7 @@
                             $('#district').val('{{ old('district') }}');
                             @endif
                         },
-                        error: function(xhr) {
+                        error: function (xhr) {
                             console.error('Error:', xhr.responseText);
                             $('#district').empty().append('<option value="">-- Lỗi tải dữ liệu --</option>');
                         }

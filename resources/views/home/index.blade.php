@@ -5,13 +5,16 @@
     @if(auth()->user()->role != 'student')
         <div class="container-fluid rounded-3 shadow p-4">
             <div class="d-sm-flex align-items-center justify-content-between mb-4">
-                <h3 class="mb-3 text-primary-color">Tổng quan @if(isset($currentSchool)) ({{ $currentSchool->name }}) @endif</h3>
+                <h3 class="mb-3 text-primary-color">Tổng quan @if(isset($currentSchool))
+                        ({{ $currentSchool->name }})
+                    @endif</h3>
                 <div class="d-flex">
                     <form method="GET" action="" class="d-flex">
                         <div class="me-2">
                             <select name="academic_year" id="academic-year-select" class="form-select">
                                 @foreach($academicYears as $year)
-                                    <option value="{{ $year->id }}" {{ $year->id == $currentAcademicYear->id ? 'selected' : '' }}>{{ $year->year }}
+                                    <option
+                                        value="{{ $year->id }}" {{ $year->id == $currentAcademicYear->id ? 'selected' : '' }}>{{ $year->year }}
                                     </option>
                                 @endforeach
                             </select>
@@ -118,21 +121,11 @@
                                 <canvas id="academicPerformanceChart"></canvas>
                             </div>
                             <div class="mt-4 text-center small">
-                                <span class="mr-2">
-                                    <i class="fas fa-circle text-success"></i> Tốt
-                                </span>
-                                <span class="mr-2">
-                                    <i class="fas fa-circle text-info"></i> Khá
-                                </span>
-                                <span class="mr-2">
-                                    <i class="fas fa-circle text-primary"></i> Đạt
-                                </span>
-                                <span class="mr-2">
-                                    <i class="fas fa-circle text-warning"></i> Chưa đạt
-                                </span>
-                                <span class="mr-2">
-                                    <i class="fas fa-circle text-secondary"></i> Chưa đánh giá
-                                </span>
+                                @foreach($academicPerformanceData['labels'] as $index => $label)
+                                    <span class="mr-2">
+                        <i class="fas fa-circle" style="color: {{ $academicPerformanceData['colors'][$index] }}"></i> {{ $label }}
+                    </span>
+                                @endforeach
                             </div>
                         </div>
                     </div>
@@ -223,7 +216,6 @@
 @push('scripts')
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
-        // Cấu hình chung cho biểu đồ
         const chartOptions = {
             maintainAspectRatio: false,
             tooltips: {
@@ -242,12 +234,10 @@
             cutoutPercentage: 80,
         };
 
-        // Khởi tạo biểu đồ khi trang tải xong
-        document.addEventListener('DOMContentLoaded', function() {
-            // Chart phân bổ khối
-            const gradeDistributionCtx = document.getElementById('gradeDistributionChart');
-            if (gradeDistributionCtx) {
-                new Chart(gradeDistributionCtx.getContext('2d'), {
+        $(document).ready(function () {
+            const $gradeDistributionCtx = $('#gradeDistributionChart');
+            if ($gradeDistributionCtx.length) {
+                new Chart($gradeDistributionCtx[0].getContext('2d'), {
                     type: 'doughnut',
                     data: {
                         labels: {!! json_encode(array_map(function($item) { return 'Khối ' . $item['grade_number']; }, $gradeDistribution)) !!},
@@ -264,61 +254,61 @@
                 console.error("Canvas element with ID 'gradeDistributionChart' not found.");
             }
 
-
-            // Chart học lực
-            const academicPerformanceCtx = document.getElementById('academicPerformanceChart');
-            if (academicPerformanceCtx) {
-                new Chart(academicPerformanceCtx.getContext('2d'), {
+            const $academicPerformanceCtx = $('#academicPerformanceChart');
+            if ($academicPerformanceCtx.length) {
+                new Chart($academicPerformanceCtx[0].getContext('2d'), {
                     type: 'doughnut',
                     data: {
-                        labels: ['Tốt', 'Khá', 'Đạt', 'Chưa đạt', 'Chưa đánh giá'], // Thêm 'Chưa đánh giá'
+                        labels: {!! json_encode($academicPerformanceData['labels']) !!},
                         datasets: [{
-                            data: [
-                                {{ $totalPerformance['year']['excellent'] }},
-                                {{ $totalPerformance['year']['good'] }},
-                                {{ $totalPerformance['year']['average'] }},
-                                {{ $totalPerformance['year']['weak'] }},
-                                {{ $totalPerformance['year']['unrated'] }} // Thêm dữ liệu cho 'Chưa đánh giá'
-                            ],
-                            backgroundColor: ['#1cc88a', '#36b9cc', '#4e73df', '#f6c23e', '#858796'], // Thêm màu cho 'Chưa đánh giá'
-                            hoverBackgroundColor: ['#17a673', '#2c9faf', '#2e59d9', '#dda20a', '#6d6e7a'], // Thêm màu hover
+                            data: {!! json_encode($academicPerformanceData['data']) !!},
+                            backgroundColor: {!! json_encode($academicPerformanceData['colors']) !!},
+                            hoverBackgroundColor: {!! json_encode($academicPerformanceData['hoverColors']) !!},
                             hoverBorderColor: "rgba(234, 236, 244, 1)",
                         }],
                     },
-                    options: chartOptions
+                    options: {
+                        maintainAspectRatio: false,
+                        tooltips: {
+                            callbacks: {
+                                label: function(tooltipItem, data) {
+                                    const label = data.labels[tooltipItem.index];
+                                    const value = data.datasets[0].data[tooltipItem.index];
+                                    return `${label}: ${value}%`;
+                                }
+                            }
+                        },
+                        legend: {
+                            display: false
+                        },
+                        cutoutPercentage: 80,
+                    }
                 });
-            } else {
-                console.error("Canvas element with ID 'academicPerformanceChart' not found.");
             }
-        });
 
-        // Xử lý thay đổi năm học
-        document.getElementById('academic-year-select').addEventListener('change', function() {
-            let url = new URL(window.location.href);
-            url.searchParams.set('academic_year', this.value);
-            // Giữ lại tham số school_id nếu có
-            const schoolIdParam = url.searchParams.get('school_id');
-            if (schoolIdParam) {
-                url.searchParams.set('school_id', schoolIdParam);
-            }
-            window.location.href = url.toString();
-        });
-
-        // Xử lý thay đổi học kỳ (nếu có select học kỳ) - cần id="semester-select" trên thẻ select
-        // Nếu bạn có một thẻ select cho học kỳ, hãy thêm id="semester-select" vào đó.
-        // Ví dụ: <select name="semester" id="semester-select" class="form-select">...</select>
-        const semesterSelect = document.getElementById('semester-select');
-        if (semesterSelect) {
-            semesterSelect.addEventListener('change', function() {
+            $('#academic-year-select').on('change', function () {
                 let url = new URL(window.location.href);
-                url.searchParams.set('academic_year', document.getElementById('academic-year-select').value);
-                url.searchParams.set('semester', this.value);
+                url.searchParams.set('academic_year', $(this).val());
                 const schoolIdParam = url.searchParams.get('school_id');
                 if (schoolIdParam) {
                     url.searchParams.set('school_id', schoolIdParam);
                 }
                 window.location.href = url.toString();
             });
-        }
+
+            const $semesterSelect = $('#semester-select');
+            if ($semesterSelect.length) {
+                $semesterSelect.on('change', function () {
+                    let url = new URL(window.location.href);
+                    url.searchParams.set('academic_year', $('#academic-year-select').val());
+                    url.searchParams.set('semester', $(this).val());
+                    const schoolIdParam = url.searchParams.get('school_id');
+                    if (schoolIdParam) {
+                        url.searchParams.set('school_id', schoolIdParam);
+                    }
+                    window.location.href = url.toString();
+                });
+            }
+        });
     </script>
 @endpush

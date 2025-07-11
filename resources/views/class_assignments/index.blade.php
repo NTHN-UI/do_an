@@ -2,16 +2,17 @@
 
 @section('content')
     <style>
-        .table-responsive .dropdown-menu {
-            position: fixed !important;
-            z-index: 1000 !important;
-            min-width: 90px;
+        .dropdown-menu {
+            min-width: 80px;
         }
+
+
         .dropdown-item:active,
         .dropdown-item:focus {
             background-color: #013066 !important;
             color: white !important;
         }
+
         .pagination .page-item.active .page-link {
             background-color: var(--primary-color);
             color: var(--bs-white);
@@ -23,7 +24,7 @@
         <h3 class="mb-3 text-primary-color">Quản lý phân lớp học sinh</h3>
         <div class="mb-3 d-flex justify-content-end align-items-center">
             <a href="{{ route('class_assignments.auto_assign') }}" class="btn btn-primary-color me-2">
-               Phân công tự động
+                Phân công tự động
             </a>
         </div>
         <div class="card border-0 shadow-sm rounded-2 mb-4">
@@ -35,7 +36,8 @@
                                 onchange="this.form.submit()">
                             <option value="">-- Chọn năm học --</option>
                             @foreach($academicYears as $year)
-                                <option value="{{ $year->id }}" {{ $selectedAcademicYear == $year->id ? 'selected' : '' }}>
+                                <option
+                                    value="{{ $year->id }}" {{ $selectedAcademicYear == $year->id ? 'selected' : '' }}>
                                     {{ $year->year }}
                                 </option>
                             @endforeach
@@ -66,8 +68,8 @@
                                 <td>{{ $class->name }}</td>
                                 <td>Khối {{ $class->gradeLevel->grade_number }}</td>
                                 <td>
-                                    @if($class->homeroomTeacher)
-                                        {{ $class->homeroomTeacher->full_name }}
+                                    @if($class->homeroomAssignment)
+                                        {{ $class->homeroomAssignment->teacher->full_name }}
                                     @else
                                         <span class="text-muted">Chưa có</span>
                                     @endif

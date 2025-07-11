@@ -1,5 +1,5 @@
-<!-- resources/views/exams/partials/question-bank-modal.blade.php -->
-<div class="modal fade" id="questionBankModal" tabindex="-1" aria-labelledby="questionBankModalLabel" aria-hidden="true">
+<div class="modal fade" id="questionBankModal" tabindex="-1" aria-labelledby="questionBankModalLabel"
+     aria-hidden="true">
     <div class="modal-dialog modal-xl">
         <div class="modal-content">
             <div class="modal-header">
@@ -57,7 +57,8 @@
                                     @if($question->options->isNotEmpty())
                                         <div class="answer-container">
                                             @foreach($question->options as $option)
-                                                <div class="answer-option @if($option->is_correct) text-success fw-bold @endif">
+                                                <div
+                                                    class="answer-option @if($option->is_correct) text-success fw-bold @endif">
                                                     <span class="option-letter">{{ chr(65 + $option->order) }}.</span>
                                                     <span class="option-content">{{ $option->content }}</span>
                                                 </div>
@@ -84,8 +85,11 @@
 
             <div class="modal-footer">
                 <button type="button" class="btn btn-outline-primary-color" data-bs-dismiss="modal">Đóng</button>
-                <button type="button" class="btn btn-primary-color" id="addSelectedQuestions">Thêm câu hỏi đã chọn</button>
+                <button type="button" class="btn btn-primary-color" id="addSelectedQuestions">Thêm câu hỏi đã chọn
+                </button>
             </div>
         </div>
     </div>
 </div>
+
+

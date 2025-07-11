@@ -48,7 +48,8 @@
 
 <div class="main-content">
     <main class="container-fluid px-4 py-3">
-        <div id="app-alert-container" class="position-fixed top-0 start-50 translate-middle-x p-3" style="z-index: 1060;"></div>
+        <div id="app-alert-container" class="position-fixed top-0 start-50 translate-middle-x p-3"
+             style="z-index: 1060;"></div>
 
         <div class="content-wrapper mt-4">
             @yield('content')
@@ -64,7 +65,8 @@
                             <i class="fas {{ session('success') ? 'fa-check-circle' : (session('error') ? 'fa-exclamation-circle' : 'fa-info-circle') }} me-2"></i>
                             {{ session('success') ?? session('error') ?? session('info') }}
                         </div>
-                        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"
+                                aria-label="Close"></button>
                     </div>
                 </div>
             </div>
@@ -72,35 +74,33 @@
     </main>
 </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.21/lodash.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" async></script>
-    <script>
-        $(document).ready(function () {
-            window.csrfToken = "{{ csrf_token() }}"
-            $('.nav-link').click(function () {
-                $('.nav-link').removeClass('active');
-                $(this).addClass('active');
-            });
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.21/lodash.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" async></script>
+<script>
+    $(document).ready(function () {
+        window.csrfToken = "{{ csrf_token() }}"
+        $('.nav-link').on('click', function () {
+            $('.nav-link').removeClass('active');
+            $(this).addClass('active');
         });
 
         @if(session('success') || session('error') || session('info'))
-        document.addEventListener('DOMContentLoaded', function () {
-            var toastEl = document.querySelector('.toast');
-            if (toastEl) { // Kiểm tra nếu phần tử toast tồn tại
-                var toast = new bootstrap.Toast(toastEl, {
-                    animation: true,
-                    autohide: true,
-                    delay: 3000
-                });
-                toast.show();
-            }
-        });
+        var $toastEl = $('.toast');
+        if ($toastEl.length) {
+            var toast = new bootstrap.Toast($toastEl[0], {
+                animation: true,
+                autohide: true,
+                delay: 3000
+            });
+            toast.show();
+        }
         @endif
+    });
 
-    </script>
+</script>
 
-    @stack('scripts')
+@stack('scripts')
 </body>
 </html>

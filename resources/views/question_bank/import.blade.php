@@ -13,7 +13,8 @@
                     @csrf
 
                     <div class="mb-4">
-                        <label for="import_file" class="form-label">Chọn file Excel <span class="text-danger">*</span></label>
+                        <label for="import_file" class="form-label">Chọn file Excel <span
+                                class="text-danger">*</span></label>
                         <div class="input-group">
                             <input type="file" class="form-control @error('import_file') is-invalid @enderror"
                                    id="import_file" name="import_file" required accept=".xlsx,.xls">
@@ -23,7 +24,8 @@
                         </div>
                         <div class="mt-2">
                             <small class="text-muted">
-                                <a href="{{ route('question_bank.template') }}" class="text-primary-color text-decoration-none">
+                                <a href="{{ route('question_bank.template') }}"
+                                   class="text-primary-color text-decoration-none">
                                     <i class="fas fa-download me-1"></i> Tải file mẫu
                                 </a>
                             </small>

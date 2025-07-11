@@ -23,10 +23,9 @@
                 </div>
 
 
-
                 <div class="col-md-12">
                     <label class="form-label">Lớp học <span class="text-danger">*</span></label>
-                    <select name="class_id" class="form-select" >
+                    <select name="class_id" class="form-select">
                         @foreach($classes as $class)
                             <option value="{{ $class->id }}"
                                 {{ $teacherAssignment->class_id == $class->id ? 'selected' : '' }}>

@@ -85,8 +85,8 @@
 @push('scripts')
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
-        $(document).ready(function() {
-            $('#province').change(function() {
+        $(document).ready(function () {
+            $('#province').change(function () {
                 var provinceCode = $(this).val();
 
                 if (provinceCode) {
@@ -95,10 +95,10 @@
                     $.ajax({
                         url: '/districts/' + provinceCode,
                         type: 'GET',
-                        success: function(data) {
+                        success: function (data) {
                             $('#district').empty().append('<option value="">-- Chọn quận/huyện --</option>');
 
-                            $.each(data, function(key, district) {
+                            $.each(data, function (key, district) {
                                 $('#district').append($('<option>', {
                                     value: district.code,
                                     text: district.name
@@ -110,7 +110,7 @@
                             $('#district').val('{{ old('district', $school->district_code) }}');
                             @endif
                         },
-                        error: function(xhr) {
+                        error: function (xhr) {
                             console.error('Error:', xhr.responseText);
                             $('#district').empty().append('<option value="">-- Lỗi tải dữ liệu --</option>');
                         }

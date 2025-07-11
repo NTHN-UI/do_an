@@ -118,33 +118,30 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-    // Hiển thị năm hiện tại
-    document.getElementById('currentYear').textContent = new Date().getFullYear();
+    $(document).ready(function () {
+        $('#currentYear').text(new Date().getFullYear());
 
-    // Toggle hiển thị mật khẩu
-    document.querySelectorAll('.toggle-password').forEach(function (element) {
-        element.addEventListener('click', function () {
-            const passwordInput = this.closest('.input-group').querySelector('input');
-            const icon = this.querySelector('i');
+        $('.toggle-password').on('click', function () {
+            const $passwordInput = $(this).closest('.input-group').find('input');
+            const $icon = $(this).find('i');
 
-            if (passwordInput.type === 'password') {
-                passwordInput.type = 'text';
-                icon.classList.replace('fa-eye', 'fa-eye-slash');
+            if ($passwordInput.attr('type') === 'password') {
+                $passwordInput.attr('type', 'text');
+                $icon.removeClass('fa-eye').addClass('fa-eye-slash');
             } else {
-                passwordInput.type = 'password';
-                icon.classList.replace('fa-eye-slash', 'fa-eye');
+                $passwordInput.attr('type', 'password');
+                $icon.removeClass('fa-eye-slash').addClass('fa-eye');
             }
         });
+
+        $('.needs-validation').on('submit', function (event) {
+            if (!this.checkValidity()) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+            $(this).addClass('was-validated');
+        });
     });
-
-    document.querySelector('.needs-validation').addEventListener('submit', function (event) {
-        if (!this.checkValidity()) {
-            event.preventDefault();
-            event.stopPropagation();
-        }
-
-        this.classList.add('was-validated'); // ✔️ Bootstrap dùng class này để hiển thị validate
-    }, false);
 </script>
 </body>
 </html>

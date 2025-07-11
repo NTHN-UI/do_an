@@ -126,7 +126,6 @@
 
             updateSelectedClasses();
 
-            // Update when checkbox changes
             $(document).on('change', '.class-checkbox', function() {
                 updateSelectedClasses();
             });
@@ -135,7 +134,6 @@
                 const yearId = $(this).val();
 
                 if (yearId) {
-                    // Gọi AJAX để lấy danh sách lớp theo năm học
                     $.ajax({
                         url: '{{ route("teacher_assignments.getClassesByAcademicYear") }}',
                         method: 'GET',

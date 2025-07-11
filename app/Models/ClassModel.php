@@ -55,7 +55,12 @@ class ClassModel extends Model
         return $this->hasOne(TeacherAssignment::class, 'class_id')
             ->where('is_homeroom', true);
     }
-
+    public function homeroomAssignment()
+    {
+        return $this->hasOne(TeacherAssignment::class, 'class_id')
+            ->where('is_homeroom', true)
+            ->with('teacher');
+    }
     public function teacherAssignments()
     {
         return $this->hasMany(TeacherAssignment::class, 'class_id');

@@ -1,5 +1,5 @@
 @foreach($students as $index => $student)
-    <tr class ="text-center">
+    <tr class="text-center">
         <td class="ps-4">{{ $index + 1 }}</td>
         <td>{{ $student->full_name }}</td>
         <td>{{ $student->email }}</td>

@@ -19,13 +19,15 @@
                         <div class="col-lg-4 col-md-6">
                             <div class="form-group mt-2">
                                 <label for="academic_year_id" class="form-label fw-semibold">
-                                   Năm học
+                                    Năm học
                                 </label>
-                                <select class="form-select border-2" id="academic_year_id" name="academic_year_id" >
+                                <select class="form-select border-2" id="academic_year_id" name="academic_year_id">
                                     <option value="">-- Chọn năm học --</option>
                                     @foreach($academicYears as $year)
-                                        <option value="{{ $year->id }}" {{ $selectedAcademicYearId == $year->id ? 'selected' : '' }}>
-                                            {{ $year->year }} ({{ $year->start_date->format('d/m/Y') }} - {{ $year->end_date->format('d/m/Y') }})
+                                        <option
+                                            value="{{ $year->id }}" {{ $selectedAcademicYearId == $year->id ? 'selected' : '' }}>
+                                            {{ $year->year }} ({{ $year->start_date->format('d/m/Y') }}
+                                            - {{ $year->end_date->format('d/m/Y') }})
                                         </option>
                                     @endforeach
                                 </select>
@@ -36,11 +38,12 @@
                             <div class="form-group mt-2">
                                 <label for="class_id" class="form-label fw-semibold">Lớp học
                                 </label>
-                                <select class="form-select border-2" id="class_id" name="class_id" >
+                                <select class="form-select border-2" id="class_id" name="class_id">
                                     <option value="">-- Chọn lớp --</option>
                                     @foreach($assignedClasses as $classId => $assignments)
                                         @php $class = $assignments->first()->class; @endphp
-                                        <option value="{{ $class->id }}" {{ $selectedClassId == $class->id ? 'selected' : '' }}>
+                                        <option
+                                            value="{{ $class->id }}" {{ $selectedClassId == $class->id ? 'selected' : '' }}>
                                             {{ $class->name }}
                                         </option>
                                     @endforeach
@@ -52,10 +55,11 @@
                             <div class="form-group mt-2">
                                 <label for="semester_id" class="form-label fw-semibold">Học kỳ
                                 </label>
-                                <select class="form-select border-2" id="semester_id" name="semester_id" >
+                                <select class="form-select border-2" id="semester_id" name="semester_id">
                                     <option value="">-- Chọn học kỳ --</option>
                                     @foreach($semesters as $semester)
-                                        <option value="{{ $semester->id }}" {{ $selectedSemesterId == $semester->id ? 'selected' : '' }}>
+                                        <option
+                                            value="{{ $semester->id }}" {{ $selectedSemesterId == $semester->id ? 'selected' : '' }}>
                                             {{ $semester->name }}
                                         </option>
                                     @endforeach
@@ -83,7 +87,8 @@
                             </h5>
                             <small class="text-muted">Dữ liệu được cập nhật theo thời gian thực</small>
                         </div>
-                        <button type="button" class="btn btn-primary-color px-2" data-bs-toggle="modal" data-bs-target="#importModal">
+                        <button type="button" class="btn btn-primary-color px-2" data-bs-toggle="modal"
+                                data-bs-target="#importModal">
                             <i class="fas fa-upload me-2"></i>Import điểm
                         </button>
                     </div>
@@ -219,7 +224,8 @@
                     <h5 class="modal-title fw-bold" id="importModalLabel">
                         <i class="fas fa-upload me-2"></i>Import điểm từ file Excel
                     </h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                            aria-label="Close"></button>
                 </div>
                 <div class="modal-body p-4">
                     <div class="alert alert-warning border-0 mb-4">
@@ -245,7 +251,7 @@
                         </label>
                         <div class="input-group">
                             <input type="file" class="form-control form-control-lg border-2" id="fileInput" name="file"
-                                   accept=".xlsx,.xls" >
+                                   accept=".xlsx,.xls">
                             <span class="input-group-text bg-light">
                                 <i class="fas fa-file-excel text-success"></i>
                             </span>
@@ -281,8 +287,7 @@
 
 @push('scripts')
     <script>
-        $(document).ready(function(){
-            // Hàm cập nhật nút download template
+        $(document).ready(function () {
             function updateDownloadButton() {
                 const academicYear = $('#academic_year_id').val();
                 const classId = $('#class_id').val();
@@ -290,11 +295,8 @@
                 const $btnDownload = $('#btn-download');
 
                 if (academicYear && classId && semesterId) {
-                    // Cập nhật link download
-                    const downloadUrl = "{{ route('grades.export.template') }}" +
-                        `?academic_year_id=${academicYear}&class_id=${classId}&semester_id=${semesterId}`;
+                    const downloadUrl = "{{ route('grades.export.template') }}" + `?academic_year_id=${academicYear}&class_id=${classId}&semester_id=${semesterId}`;
 
-                    // Thay thế button bằng link download nếu chưa có
                     if ($btnDownload.is('button')) {
                         $btnDownload.replaceWith(`
                     <a href="${downloadUrl}" class="btn btn-primary-color px-2" id="btn-download">
@@ -302,11 +304,9 @@
                     </a>
                     `);
                     } else {
-                        // Nếu đã là thẻ a thì chỉ cập nhật href
                         $btnDownload.attr('href', downloadUrl);
                     }
                 } else {
-                    // Đảm bảo luôn có nút disabled khi không đủ điều kiện
                     if ($btnDownload.is('a')) {
                         $btnDownload.replaceWith(`
                     <button class="btn btn-outline-secondary  px-2" id="btn-download" disabled
@@ -320,16 +320,13 @@
                 }
             }
 
-            // Xử lý khi năm học thay đổi
-            $('#academic_year_id').change(function() {
+            $('#academic_year_id').change(function () {
                 const yearId = $(this).val();
 
-                // Reset các dropdown phụ thuộc
                 $('#class_id').empty().append('<option value="">-- Chọn lớp --</option>');
                 $('#semester_id').empty().append('<option value="">-- Chọn học kỳ --</option>');
 
                 if (yearId) {
-                    // Load danh sách lớp mà giáo viên được phân công
                     $.ajax({
                         url: '{{ route("grades.get-assigned-classes") }}',
                         type: 'GET',
@@ -337,9 +334,9 @@
                             academic_year_id: yearId,
                             teacher_id: {{ Auth::id() }}
                         },
-                        success: function(response) {
+                        success: function (response) {
                             const classSelect = $('#class_id');
-                            response.forEach(function(classItem) {
+                            response.forEach(function (classItem) {
                                 classSelect.append(
                                     `<option value="${classItem.id}">${classItem.name}</option>`
                                 );
@@ -347,19 +344,17 @@
                         }
                     });
 
-                    // Load danh sách học kỳ
                     $.ajax({
                         url: '{{ route("grades.get-semesters") }}',
                         type: 'GET',
-                        data: { academic_year_id: yearId },
-                        success: function(response) {
+                        data: {academic_year_id: yearId},
+                        success: function (response) {
                             const semesterSelect = $('#semester_id');
-                            response.forEach(function(semester) {
+                            response.forEach(function (semester) {
                                 semesterSelect.append(
                                     `<option value="${semester.id}">${semester.name}</option>`
                                 );
                             });
-                            // Thêm option "Cả năm"
                             semesterSelect.append('<option value="0">Cả năm</option>');
                         }
                     });
@@ -368,25 +363,21 @@
                 updateDownloadButton();
             });
 
-            // Xử lý khi lớp hoặc học kỳ thay đổi
-            $('#class_id, #semester_id').change(function() {
+            $('#class_id, #semester_id').change(function () {
                 updateDownloadButton();
 
                 if ($('#academic_year_id').val() && $('#class_id').val() && $('#semester_id').val()) {
-                    // Hiển thị loading indicator
                     $('#grades-container').html('<div class="text-center py-5"><div class="spinner-border text-primary" role="status"></div></div>');
 
-                    // Lấy dữ liệu bằng AJAX
                     $.ajax({
                         url: $('#filter-form').attr('action'),
                         method: 'GET',
                         data: $('#filter-form').serialize(),
-                        success: function(response) {
-                            // Tách và lấy phần nội dung cần thiết từ response
+                        success: function (response) {
                             var newContent = $(response).find('#grades-container').html();
                             $('#grades-container').html(newContent);
                         },
-                        error: function() {
+                        error: function () {
                             $('#grades-container').html('<div class="alert alert-danger">Có lỗi xảy ra khi tải dữ liệu</div>');
                         }
                     });
@@ -394,50 +385,41 @@
                 updateDownloadButton();
             });
 
-            // Xử lý khi lớp hoặc học kỳ thay đổi
-            $('#class_id, #semester_id').change(function() {
+            $('#class_id, #semester_id').change(function () {
                 updateDownloadButton();
 
                 if ($('#academic_year_id').val() && $('#class_id').val() && $('#semester_id').val()) {
-                    // Hiển thị loading indicator
                     $('#grades-container').html('<div class="text-center py-5"><div class="spinner-border text-primary" role="status"></div></div>');
 
-                    // Lấy dữ liệu bằng AJAX
                     $.ajax({
                         url: $('#filter-form').attr('action'),
                         method: 'GET',
                         data: $('#filter-form').serialize(),
-                        success: function(response) {
-                            // Tách và lấy phần nội dung cần thiết từ response
+                        success: function (response) {
                             var newContent = $(response).find('#grades-container').html();
                             $('#grades-container').html(newContent);
                         },
-                        error: function() {
+                        error: function () {
                             $('#grades-container').html('<div class="alert alert-danger">Có lỗi xảy ra khi tải dữ liệu</div>');
                         }
                     });
                 }
             });
 
-            // Gọi khi trang load lần đầu
             updateDownloadButton();
 
-            // Cập nhật thông tin import modal
             function updateImportModalInfo() {
                 const academicYear = $('#academic_year_id').val();
                 const classId = $('#class_id').val();
                 const semesterId = $('#semester_id').val();
 
                 if (academicYear && classId && semesterId) {
-                    // Lấy thông tin từ các dropdown
                     const className = $('#class_id option:selected').text();
                     const semesterName = $('#semester_id option:selected').text();
                     const academicYearName = $('#academic_year_id option:selected').text();
 
-                    // Lấy tên môn học từ tiêu đề bảng điểm (lấy môn đầu tiên)
                     const subjectName = $('#dataTable thead th.text-center').eq(2).text().trim();
 
-                    // Cập nhật thông tin trong modal
                     $('#import-class-name').text(className);
                     $('#import-subject-name').text(subjectName);
                     $('#import-semester-name').text(semesterName);
@@ -450,13 +432,11 @@
                 }
             }
 
-            // Gọi khi mở modal import
-            $('#importModal').on('show.bs.modal', function() {
+            $('#importModal').on('show.bs.modal', function () {
                 updateImportModalInfo();
             });
 
-            // Xử lý hiển thị tên file khi chọn
-            $('#fileInput').on('change', function() {
+            $('#fileInput').on('change', function () {
                 let fileName = $(this).val().split('\\').pop();
                 if (fileName) {
                     $(this).addClass('is-valid');
@@ -465,8 +445,7 @@
                 }
             });
 
-            // Xử lý import điểm
-            $('#importModal').on('click', '.btn-primary-color', function() {
+            $('#importModal').on('click', '.btn-primary-color', function () {
                 const fileInput = $('#fileInput')[0];
                 const academicYearId = $('#academic_year_id').val();
                 const classId = $('#class_id').val();
@@ -499,18 +478,18 @@
                     data: formData,
                     processData: false,
                     contentType: false,
-                    beforeSend: function() {
+                    beforeSend: function () {
                         $('.btn-primary-color', $('#importModal')).prop('disabled', true)
                             .html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Đang import...');
                     },
-                    success: function(response) {
+                    success: function (response) {
                         showAlert('success', response.message);
                         $('#importModal').modal('hide');
                         setTimeout(() => {
                             window.location.reload();
                         }, 2000);
                     },
-                    error: function(xhr) {
+                    error: function (xhr) {
                         let errorMessage = 'Đã xảy ra lỗi không xác định.';
                         if (xhr.responseJSON && xhr.responseJSON.message) {
                             errorMessage = xhr.responseJSON.message;
@@ -519,14 +498,13 @@
                         }
                         showAlert('danger', errorMessage);
                     },
-                    complete: function() {
+                    complete: function () {
                         $('.btn-primary-color', $('#importModal')).prop('disabled', false)
                             .html('<i class="fas fa-check me-2"></i>Xác nhận Import');
                     }
                 });
             });
 
-            // Hàm hiển thị thông báo
             function showAlert(type, message) {
                 const alertContainer = $('#app-alert-container');
                 if (alertContainer.length === 0) {

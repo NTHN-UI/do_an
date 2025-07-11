@@ -523,36 +523,4 @@ class StudentController extends Controller
             ], 500);
         }
     }
-
-        public function getStudentsByGrade(Request $request)
-        {
-            try {
-                if ($request->ajax()) {
-                    $grade_id = $request->input('grade_id');
-                    $academic_year_id = $request->input('academic_year_id');
-
-                    $students = User::join('grade_users', 'users.id', '=', 'grade_users.user_id')
-                        ->where('grade_id', '=', $grade_id)
-                        ->where('academic_year_id', '=', $academic_year_id)
-                        ->select('users.id', 'users.full_name', 'users.email',
-                            'users.phone', 'users.is_active', 'users.school_id')
-                        ->with(['school' => function ($query) {
-                            $query->select('id', 'name');
-                        }])
-                        ->paginate(10);
-
-                    return response()->json([
-                        'success' => true,
-                        'data' => view('students.partials.results', ['students' => $students])->render(),
-                        'pagination' => view('students.partials.pagination', ['students' => $students])->render()
-                    ]);
-                }
-            } catch (\Exception $ex) {
-                Log::error('Error in StudentController@getStudentsByGrade: ' . $ex->getMessage());
-                return response()->json([
-
-                'error' => 'Có lỗi xảy ra',
-                ]);
-            }
-        }
     }

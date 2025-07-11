@@ -11,7 +11,8 @@
                         <div class="col-lg-4 col-md-6">
                             <div class="form-group mt-2">
                                 <label for="academic_year_id" class="form-label fw-semibold">Năm học</label>
-                                <select class="form-select border-2 rounded-3" id="academic_year_id" name="academic_year_id" onchange="this.form.submit()">
+                                <select class="form-select border-2 rounded-3" id="academic_year_id"
+                                        name="academic_year_id" onchange="this.form.submit()">
                                     @foreach($homeroomClasses->unique('academic_year_id') as $assignment)
                                         <option value="{{ $assignment->academic_year_id }}"
                                             {{ $selectedAcademicYearId == $assignment->academic_year_id ? 'selected' : '' }}>
@@ -25,7 +26,8 @@
                         <div class="col-lg-4 col-md-6">
                             <div class="form-group mt-2">
                                 <label for="class_id" class="form-label fw-semibold">Lớp chủ nhiệm</label>
-                                <select class="form-select border-2 rounded-3" id="class_id" name="class_id" onchange="this.form.submit()">
+                                <select class="form-select border-2 rounded-3" id="class_id" name="class_id"
+                                        onchange="this.form.submit()">
                                     @foreach($homeroomClasses->where('academic_year_id', $selectedAcademicYearId) as $assignment)
                                         <option value="{{ $assignment->class_id }}"
                                             {{ $selectedClassId == $assignment->class_id ? 'selected' : '' }}>
@@ -44,7 +46,8 @@
             <div class="card shadow-sm border-0 rounded-3">
                 <div class="card-header bg-light py-3 rounded-top-3">
                     <h6 class="m-0 text-primary-color fw-bold">
-                        Bảng điểm lớp {{ $class->name }} - Năm học {{ $homeroomClasses->firstWhere('academic_year_id', $selectedAcademicYearId)->academicYear->year }}
+                        Bảng điểm lớp {{ $class->name }} - Năm
+                        học {{ $homeroomClasses->firstWhere('academic_year_id', $selectedAcademicYearId)->academicYear->year }}
                     </h6>
                 </div>
                 <div class="card-body p-0">
@@ -112,7 +115,9 @@
                                         @if(isset($result['semester1']['average']))
                                             {{ number_format($result['semester1']['average'], 1) }}
                                             @if(isset($result['semester1']['classification']) && $result['semester1']['classification'] !== '')
-                                                <br><small class="text-muted">({{ $result['semester1']['classification'] }})</small>
+                                                <br><small
+                                                    class="text-muted">({{ $result['semester1']['classification'] }}
+                                                    )</small>
                                             @endif
                                         @else
                                             -
@@ -122,7 +127,9 @@
                                         @if(isset($result['semester2']['average']))
                                             {{ number_format($result['semester2']['average'], 1) }}
                                             @if(isset($result['semester2']['classification']) && $result['semester2']['classification'] !== '')
-                                                <br><small class="text-muted">({{ $result['semester2']['classification'] }})</small>
+                                                <br><small
+                                                    class="text-muted">({{ $result['semester2']['classification'] }}
+                                                    )</small>
                                             @endif
                                         @else
                                             -
@@ -132,7 +139,8 @@
                                         @if(isset($result['yearly']['average']))
                                             {{ number_format($result['yearly']['average'], 1) }}
                                             @if(isset($result['yearly']['classification']) && $result['yearly']['classification'] !== '')
-                                                <br><small class="text-muted">({{ $result['yearly']['classification'] }})</small>
+                                                <br><small class="text-muted">({{ $result['yearly']['classification'] }}
+                                                    )</small>
                                             @endif
                                         @else
                                             -

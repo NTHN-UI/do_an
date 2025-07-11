@@ -18,9 +18,12 @@
         <div class="card-body">
             <div class="row mb-4">
                 <div class="col-md-3 text-center">
-                    <div class="avatar-lg mx-auto bg-light rounded-circle d-flex align-items-center justify-content-center mb-3" style="width: 100px; height: 100px; overflow: hidden;">
+                    <div
+                        class="avatar-lg mx-auto bg-light rounded-circle d-flex align-items-center justify-content-center mb-3"
+                        style="width: 100px; height: 100px; overflow: hidden;">
                         @if($student->avatar_url)
-                            <img src="{{ $student->avatar_url }}" alt="Avatar" class="rounded-circle" style="width: 100%; height: 100%; object-fit: cover;">
+                            <img src="{{ $student->avatar_url }}" alt="Avatar" class="rounded-circle"
+                                 style="width: 100%; height: 100%; object-fit: cover;">
                         @else
                             <i class="fas fa-user-graduate fa-2x text-secondary"></i>
                         @endif
@@ -78,7 +81,8 @@
                 </div>
             </div>
             <div class="mt-3 d-flex justify-content-end">
-                <a href="{{ route('students.index', $student->id) }}" class="btn btn-primary-color fw-bold" style="width: 90px">
+                <a href="{{ route('students.index', $student->id) }}" class="btn btn-primary-color fw-bold"
+                   style="width: 90px">
                     Đóng
                 </a>
             </div>

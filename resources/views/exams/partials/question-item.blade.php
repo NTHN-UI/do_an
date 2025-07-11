@@ -8,7 +8,8 @@
     </div>
     <div class="form-group mt-2">
         <label>Nội dung câu hỏi *</label>
-        <textarea class="form-control question-content" name="questions[{{ $index }}][content]" required>{{ old("questions.$index.content", $question->content ?? '') }}</textarea>
+        <textarea class="form-control question-content" name="questions[{{ $index }}][content]"
+                  required>{{ old("questions.$index.content", $question->content ?? '') }}</textarea>
     </div>
     <div class="form-group mt-2">
         <label>Điểm *</label>
@@ -27,12 +28,14 @@
 
         @foreach($options as $optIdx => $option)
             <div class="form-group mt-2">
-                <input type="hidden" name="questions[{{ $index }}][options][{{ $optIdx }}][id]" value="{{ $option->id ?? '' }}">
+                <input type="hidden" name="questions[{{ $index }}][options][{{ $optIdx }}][id]"
+                       value="{{ $option->id ?? '' }}">
                 <label>Đáp án {{ chr(65 + $optIdx) }} *</label>
                 <div class="input-group">
                     <input type="text" class="form-control"
                            name="questions[{{ $index }}][options][{{ $optIdx }}][content]"
-                           value="{{ old("questions.$index.options.$optIdx.content", $option->content ?? '') }}" required>
+                           value="{{ old("questions.$index.options.$optIdx.content", $option->content ?? '') }}"
+                           required>
                     <div class="input-group-append">
                         <div class="input-group-text">
                             <input type="radio"

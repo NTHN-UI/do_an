@@ -7,10 +7,11 @@
             border-radius: 8px;
             padding: 18px 16px;
             margin-bottom: 18px;
-            box-shadow: 0 2px 8px rgba(1,48,102,0.07);
+            box-shadow: 0 2px 8px rgba(1, 48, 102, 0.07);
             display: flex;
             align-items: center;
         }
+
         .info-box-icon {
             font-size: 2rem;
             margin-right: 16px;
@@ -22,18 +23,26 @@
             align-items: center;
             justify-content: center;
         }
-        .bg-info { background: #0dcaf0 !important; }
-        .bg-success { background: #198754 !important; }
+
+        .bg-info {
+            background: #0dcaf0 !important;
+        }
+
+        .bg-success {
+            background: #198754 !important;
+        }
+
         .class-card {
             transition: all 0.3s;
             background: #fff;
             border: 1px solid #e3e6f0;
             border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(1,48,102,0.04);
+            box-shadow: 0 2px 8px rgba(1, 48, 102, 0.04);
         }
+
         .class-card:hover {
             transform: translateY(-3px) scale(1.03);
-            box-shadow: 0 6px 16px rgba(1,48,102,0.12);
+            box-shadow: 0 6px 16px rgba(1, 48, 102, 0.12);
         }
     </style>
     <div class="container rounded-3 shadow p-4">
@@ -49,7 +58,8 @@
                         <div class="card mb-2">
                             <div class="card-header" id="heading{{ $yearId }}">
                                 <h2 class="mb-0">
-                                    <button class="btn btn-link text-primary-color fw-bold" style="text-decoration: none;"
+                                    <button class="btn btn-link text-primary-color fw-bold"
+                                            style="text-decoration: none;"
                                             type="button" data-bs-toggle="collapse"
                                             data-bs-target="#collapse{{ $yearId }}"
                                             aria-expanded="true" aria-controls="collapse{{ $yearId }}">

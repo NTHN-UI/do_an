@@ -16,12 +16,12 @@
                 <table class="table table-hover align-middle mb-0">
                     <thead class="table-light">
                     <tr>
-                        <th >Môn học</th>
+                        <th>Môn học</th>
                         <th>Điểm 15 phút</th>
                         <th class="text-center">Điểm 1 tiết</th>
                         <th class="text-center">Điểm cuối kỳ</th>
                         <th class="text-center">Kết quả</th>
-                     </tr>
+                    </tr>
                     </thead>
                     <tbody>
                     @foreach($grades as $subjectId => $subjectGrades)
@@ -40,11 +40,11 @@
                                     <div class="d-flex gap-2">
                                         @foreach($subjectGrades['fifteen_minutes'] as $grade)
                                             @if($isSpecialSubject)
-                                                <span >
+                                                <span>
                                                         {{ $grade->text_value ?? ($grade->score >= 5 ? 'Đạt' : 'Chưa đạt') }}
                                                     </span>
                                             @else
-                                                <span >
+                                                <span>
                                                         {{ $grade->score }}
                                                     </span>
                                             @endif
@@ -58,11 +58,11 @@
                             <td class="text-center">
                                 @if(isset($subjectGrades['one_period']))
                                     @if($isSpecialSubject)
-                                        <span >
+                                        <span>
                                                 {{ $subjectGrades['one_period'][0]->text_value ?? ($subjectGrades['one_period'][0]->score >= 5 ? 'Đạt' : 'Chưa đạt') }}
                                             </span>
                                     @else
-                                        <span >
+                                        <span>
                                                 {{ $subjectGrades['one_period'][0]->score }}
                                             </span>
                                     @endif
@@ -73,13 +73,13 @@
 
                             <td class="text-center">
 
-                            @if(isset($subjectGrades['semester']))
+                                @if(isset($subjectGrades['semester']))
                                     @if($isSpecialSubject)
                                         <span>
                                                 {{ $subjectGrades['semester'][0]->text_value ?? ($subjectGrades['semester'][0]->score >= 5 ? 'Đạt' : 'Chưa đạt') }}
                                             </span>
                                     @else
-                                        <span >
+                                        <span>
                                                 {{ $subjectGrades['semester'][0]->score }}
                                             </span>
                                     @endif
@@ -122,9 +122,11 @@
             border-top: none;
             border-bottom: 2px solid #e9ecef;
         }
+
         .table td {
             vertical-align: middle;
         }
+
         .badge.rounded-circle {
             min-width: 32px;
         }

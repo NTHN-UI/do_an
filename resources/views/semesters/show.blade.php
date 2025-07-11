@@ -25,14 +25,12 @@
                         <dt class="col-sm-4">Ngày kết thúc:</dt>
                         <dd class="col-sm-8">{{ $semester->end_date->format('d/m/Y') }}</dd>
 
-                        <dt class="col-sm-4">Học kỳ hiện tại:</dt>
-                        <dd class="col-sm-8">{{ $semester->is_current ? '✓' : '✗' }}</dd>
                     </dl>
                 </div>
             </div>
             <div class="mt-3 d-flex justify-content-end">
                 <a href="{{ route('semesters.index', $semester->id) }}" class="btn btn-primary-color">
-                   Đóng
+                    Đóng
                 </a>
             </div>
         </div>

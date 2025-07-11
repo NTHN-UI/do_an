@@ -2,11 +2,10 @@
 
 @section('content')
     <style>
-        .table-responsive .dropdown-menu {
-            position: fixed !important;
-            z-index: 1000 !important;
-            min-width: 90px;
+        .dropdown-menu {
+            min-width: 80px;
         }
+
         .dropdown-item:active,
         .dropdown-item:focus {
             background-color: #013066 !important;
@@ -196,7 +195,6 @@
                 $('#deleteConfirmationModal').modal('show');
             });
 
-            // Xử lý submit form xóa
             $('#deleteForm').on('submit', function(e) {
                 e.preventDefault();
 
@@ -223,12 +221,10 @@
                 });
             });
 
-            // Tự động submit form khi có thay đổi filter
             $('#academic-year-filter, #class-filter, [name="subject_id"], [name="is_homeroom"]').change(function () {
                 $('#filter-form').submit();
             });
 
-            // Xử lý form thêm phân công
             $('#assignment-form').on('submit', function (e) {
                 e.preventDefault();
 

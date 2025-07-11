@@ -30,7 +30,8 @@
                         <dd class="col-sm-8">{{ $admin->school->name ?? 'N/A' }}</dd>
 
                         <dt class="col-sm-4">Địa chỉ trường:</dt>
-                        <dd class="col-sm-8">{{ $admin->school->address ?? '' }},{{ $admin->school->district ?? '' }}, {{ $admin->school->province ?? '' }}</dd>
+                        <dd class="col-sm-8">{{ $admin->school->address ?? '' }},{{ $admin->school->district ?? '' }}
+                            , {{ $admin->school->province ?? '' }}</dd>
                     </dl>
                 </div>
             </div>

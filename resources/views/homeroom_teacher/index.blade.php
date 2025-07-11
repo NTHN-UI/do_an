@@ -2,11 +2,10 @@
 
 @section('content')
     <style>
-        .table-responsive .dropdown-menu {
-            position: fixed !important;
-            z-index: 1000 !important;
-            min-width: 60px;
+        .dropdown-menu {
+            min-width: 80px;
         }
+
 
         .dropdown-item:active,
         .dropdown-item:focus {
@@ -58,14 +57,14 @@
                                         <ul class="dropdown-menu dropdown-menu-end shadow-sm rounded-3 border-0">
                                             <li>
                                                 <a href="{{ route('students.show', $student) }}"
-                                                   class="btn btn-sm text-primary-color">
+                                                   class="dropdown-item text-primary-color">
                                                     Xem
                                                 </a>
                                             </li>
 
                                             <li>
                                                 <a href="{{ route('students.edit', $student) }}"
-                                                   class="btn btn-sm text-primary-color">
+                                                   class="dropdown-item text-primary-color">
                                                     Sửa
                                                 </a>
                                             </li>

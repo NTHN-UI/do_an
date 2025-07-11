@@ -2,11 +2,11 @@
 
 @section('content')
     <style>
-        .table-responsive .dropdown-menu {
-            position: fixed !important;
-            z-index: 1000 !important;
-            min-width: 90px;
+        .dropdown-menu {
+            min-width: 80px;
         }
+
+
         .dropdown-item:active,
         .dropdown-item:focus {
             background-color: #013066 !important;
