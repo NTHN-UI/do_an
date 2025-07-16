@@ -48,7 +48,28 @@
 
                         <dt class="col-sm-4">Điểm đầu vào:</dt>
                         <dd class="col-sm-8">{{ $student->entry_score ?? 'N/A' }}</dd>
-
+                        <dt class="col-sm-4">Khối đăng ký:</dt>
+                        <dd class="col-sm-8">
+                            @switch($student->exam_block)
+                                @case('A')
+                                    Khối A (Toán, Lý, Hóa)
+                                    @break
+                                @case('A1')
+                                    Khối A1 (Toán, Lý, Anh)
+                                    @break
+                                @case('B')
+                                    Khối B (Toán, Hóa, Sinh)
+                                    @break
+                                @case('C')
+                                    Khối C (Văn, Sử, Địa)
+                                    @break
+                                @case('D')
+                                    Khối D (Toán, Văn, Anh)
+                                    @break
+                                @default
+                                    N/A
+                            @endswitch
+                        </dd>
                         <dt class="col-sm-4">Trạng thái:</dt>
                         <dd class="col-sm-8">
                             @if($student->is_active)

@@ -86,7 +86,7 @@
                     <label for="address" class="form-label">Địa chỉ</label>
                     <input type="text" name="address" id="address"
                            class="form-control @error('address') is-invalid @enderror"
-                           value="{{ old('address', $student->address) }}" required>
+                           value="{{ old('address', $student->address) }}" >
                     @error('address')
                     <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
@@ -129,6 +129,21 @@
                         {{ $student->entry_score }}
                     </div>
                 </div>
+                <div class="col-md-12 mb-3">
+                    <label for="exam_block" class="form-label">Khối đăng ký <span class="text-danger">*</span></label>
+                    <select name="exam_block" id="exam_block"
+                            class="form-select @error('exam_block') is-invalid @enderror" required>
+                        <option value="">-- Chọn khối thi --</option>
+                        <option value="A" {{ old('exam_block', $student->exam_block) == 'A' ? 'selected' : '' }}>Khối A</option>
+                        <option value="A1" {{ old('exam_block', $student->exam_block) == 'A1' ? 'selected' : '' }}>Khối A1</option>
+                        <option value="B" {{ old('exam_block', $student->exam_block) == 'B' ? 'selected' : '' }}>Khối B</option>
+                        <option value="C" {{ old('exam_block', $student->exam_block) == 'C' ? 'selected' : '' }}>Khối C</option>
+                        <option value="D" {{ old('exam_block', $student->exam_block) == 'D' ? 'selected' : '' }}>Khối D</option>
+                    </select>
+                    @error('exam_block')
+                    <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                </div>địa
                 <div class="col-md-12 mb-3">
                     <h5 class="text-primary-color">Thông tin phụ huynh</h5>
                 </div>

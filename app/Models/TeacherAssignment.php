@@ -52,5 +52,49 @@ class TeacherAssignment extends Model
             'grade_level_id'
         );
     }
+    public static function getHomeroomTeacher($classId, $academicYearId)
+    {
+        return self::with(['teacher' => function($query) {
+            $query->select('id', 'full_name', 'email', 'phone');
+        }])
+            ->where('class_id', $classId)
+            ->where('academic_year_id', $academicYearId)
+            ->where('is_homeroom', true)
+            ->first();
+    }
+
+    /**
+     * Lấy danh sách giáo viên bộ môn của lớp
+     */
+    public static function getSubjectTeachers($classId, $academicYearId)
+    {
+        return self::with([
+            'teacher' => function($query) {
+                $query->select('id', 'full_name', 'email', 'phone');
+            },
+            'subject' => function($query) {
+                $query->select('id', 'name');
+            }
+        ])
+            ->where('class_id', $classId)
+            ->where('academic_year_id', $academicYearId)
+            ->where('is_homeroom', false)
+            ->orderBy('subject_id')
+            ->get();
+    }
+
+    /**
+     * Lấy lớp chủ nhiệm của giáo viên
+     */
+    public static function getHomeroomClass($teacherId, $academicYearId)
+    {
+        return self::with(['class' => function($query) {
+            $query->with('gradeLevel');
+        }])
+            ->where('teacher_id', $teacherId)
+            ->where('academic_year_id', $academicYearId)
+            ->where('is_homeroom', true)
+            ->first();
+    }
 
 }

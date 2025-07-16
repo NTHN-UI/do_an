@@ -39,7 +39,6 @@ class ProfileController extends Controller
             'full_name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email,'.$user->id,
             'phone' => 'nullable|string|max:20',
-            'avatar' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'current_password' => 'nullable|required_with:new_password',
             'new_password' => 'nullable|min:8|confirmed',
         ];
@@ -57,13 +56,6 @@ class ProfileController extends Controller
 
         $user->update($updateData);
 
-        if ($request->hasFile('avatar')) {
-            if ($user->avatar) {
-                Storage::delete($user->avatar);
-            }
-            $path = $request->file('avatar')->store('avatars');
-            $user->update(['avatar' => $path]);
-        }
 
         if ($request->filled('current_password')) {
             if (Hash::check($validated['current_password'], $user->password)) {

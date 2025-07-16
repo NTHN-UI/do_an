@@ -188,7 +188,7 @@ class GradeTemplateSubjectSheet implements FromCollection, WithHeadings, WithTit
             $validation->setError('Chỉ được nhập "Đạt" hoặc "Chưa đạt"');
             $validation->setPromptTitle('Chọn giá trị');
             $validation->setPrompt('Chọn "Đạt" hoặc "Chưa đạt"');
-            $validation->setFormula1('"Đạt,Chưa đạt"');
+            $validation->setFormula1('"Đạt,Chưa đạt"'); //
 
             for ($row = 7; $row <= $lastRow; $row++) {
                 for ($col = 'C'; $col <= 'G'; $col++) {

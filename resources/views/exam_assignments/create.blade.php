@@ -10,13 +10,14 @@
             <form action="{{ route('exam_assignments.store', $exam->id) }}" method="POST">
                 @csrf
 
-                <div class="form-group mb-3">
-                    <label for="class_id">Lớp học <span class="text-danger">*</span></label>
-                    <select name="class_id" id="class_id" class="form-control @error('class_id') is-invalid @enderror"
-                            required>
+                <div class="mb-3">
+                    <label for="class_id" class="form-label">Lớp học <span class="text-danger">*</span></label>
+                    <select name="class_id" id="class_id" class="form-control @error('class_id') is-invalid @enderror" required>
+                        <option value="">-- Chọn lớp học --</option>
                         @foreach($classes as $class)
-                            <option
-                                value="{{ $class->id }}" {{ old('class_id') == $class->id ? 'selected' : '' }}>{{ $class->name }}</option>
+                            <option value="{{ $class->id }}" {{ old('class_id') == $class->id ? 'selected' : '' }}>
+                                {{ $class->name }}
+                            </option>
                         @endforeach
                     </select>
                     @error('class_id')
@@ -71,3 +72,31 @@
         </div>
     </div>
 @endsection
+@push('script')
+    <script>
+        $(document).ready(function() {
+            // Nếu cần load động theo năm học (nếu có select năm học)
+            $('#academic_year_id').change(function() {
+                var academicYearId = $(this).val();
+
+                if (academicYearId) {
+                    $.ajax({
+                        url: '/api/classes-by-year/' + academicYearId,
+                        type: 'GET',
+                        success: function(data) {
+                            $('#class_id').empty();
+                            $('#class_id').append('<option value="">-- Chọn lớp học --</option>');
+
+                            $.each(data, function(key, value) {
+                                $('#class_id').append('<option value="'+ key +'">'+ value +'</option>');
+                            });
+                        }
+                    });
+                } else {
+                    $('#class_id').empty();
+                    $('#class_id').append('<option value="">-- Chọn lớp học --</option>');
+                }
+            });
+        });
+    </script>
+@endpush

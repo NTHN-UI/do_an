@@ -53,6 +53,21 @@ class AcademicYear extends Model
         return $query->where('start_date', '<=', $today)
             ->where('end_date', '>=', $today);
     }
+    public static function getCurrentYear()
+    {
+        return self::where('start_date', '<=', now())
+            ->where('end_date', '>=', now())
+            ->where('school_id', auth()->user()->school_id)
+            ->first();
+    }
+
+    // Lấy tất cả năm học của trường
+    public static function getAllYears()
+    {
+        return self::where('school_id', auth()->user()->school_id)
+            ->orderBy('start_date', 'desc')
+            ->get();
+    }
 
 
 }

@@ -2,9 +2,12 @@
 
 @section('content')
     <style>
-        .dropdown-menu {
-            min-width: 80px;
+        .table-responsive .dropdown-menu {
+            position: fixed !important;
+            z-index: 1000 ;
+            min-width: 90px;
         }
+
 
         .dropdown-item:active,
         .dropdown-item:focus {

@@ -115,9 +115,9 @@
                                         @if(isset($result['semester1']['average']))
                                             {{ number_format($result['semester1']['average'], 1) }}
                                             @if(isset($result['semester1']['classification']) && $result['semester1']['classification'] !== '')
-                                                <br><small
-                                                    class="text-muted">({{ $result['semester1']['classification'] }}
-                                                    )</small>
+                                                <br>
+                                                <small
+                                                    class="text-muted">({{ $result['semester1']['classification'] }})</small>
                                             @endif
                                         @else
                                             -

@@ -503,4 +503,5 @@ class TeacherAssignmentController extends Controller
 
             return response()->json($classes);
         }
+
     }

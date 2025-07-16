@@ -97,6 +97,11 @@ class StudentController extends Controller
                 'email',
                 Rule::unique('users', 'guardian_email')->ignore($isUpdate ? $student->id : null)
             ],
+            'exam_block'=>[
+                'required',
+                'string',
+                'in:A,A1,B,C,D',
+            ]
 
         ];
         $gradeLevel = GradeLevel::find($request->grade_level_id);
@@ -135,10 +140,12 @@ class StudentController extends Controller
             'guardian_email.email' => 'Email phụ huynh không hợp lệ',
             'guardian_email.unique' => 'Email phụ huynh đã được sử dụng',
 
-            'entry_score.required' => 'Vui lòng nhập điểm đầu vào cho khối 10',
+            'entry_score.required' => 'Vui lòng nhập điểm đầu vào',
             'entry_score.numeric' => 'Điểm đầu vào phải là số',
             'entry_score.min' => 'Điểm đầu vào không được nhỏ hơn 0',
             'entry_score.max' => 'Điểm đầu vào không được lớn hơn 50',
+
+            'exam_block.required' => 'Vui lòng chọn khối thi',
 
         ];
     }
@@ -146,90 +153,41 @@ class StudentController extends Controller
     public function index(Request $request)
     {
         $search = $request->input('search');
-        $classId = $request->input('class_updateid');
         $academicYearId = $request->input('academic_year_id');
-        $gradeLevelId = $request->input('grade_level_id');
-
 
         $query = User::where('role', User::ROLE_STUDENT)
-            ->where('users.school_id', auth()->user()->school_id);
+            ->where('users.school_id', auth()->user()->school_id)
+            ->whereHas('studentGrades', function($q) {
+                $q->where('grade_number', 10);
+            });
 
-
-        if ($request->ajax()) {
-            $query->when($request->grade_id, function ($q) use ($request) {
-                $q->join('grade_users', 'users.id', '=', 'grade_users.user_id')
-                    ->where('grade_id', $request->grade_id);
-            })
-                ->when($request->academic_year_id, function ($q) use ($request) {
-                    $q->where('academic_year_id', $request->academic_year_id);
-                });
-
-            $students = $query->select('users.*')
-                ->with(['school:id,name'])
-                ->latest('created_at')
-                ->paginate(10)
-                ->appends($request->all());
-
-            return response()->json([
-                'success' => true,
-                'data' => view('students.partials.results', ['students' => $students])->render(),
-                'pagination' => view('students.partials.pagination', [
-                    'students' => $students,
-                    'filters' => $request->only(['grade_id', 'academic_year_id'])
-                ])->render()
-            ]);
+        if ($search) {
+            $query->where(function($q) use ($search) {
+                $q->where('full_name', 'like', '%'.$search.'%')
+                    ->orWhere('email', 'like', '%'.$search.'%');
+            });
         }
 
-        $query->when($search, function ($q) use ($search) {
-            $q->where(function ($q) use ($search) {
-                $q->where('full_name', 'like', '%' . $search . '%')
-                    ->orWhere('email', 'like', '%' . $search . '%')
-                    ->orWhere('phone', 'like', '%' . $search . '%');
+        if ($academicYearId) {
+            $query->whereHas('studentGrades', function($q) use ($academicYearId) {
+                $q->where('academic_year_id', $academicYearId);
             });
-        })
-            ->when($classId, function ($q, $classId) {
-                $q->whereHas('studentClasses', function ($q) use ($classId) {
-                    $q->where('class_id', $classId);
-                });
-            })
-            ->when($academicYearId, function ($q, $academicYearId) {
-                $q->whereHas('studentAcademicYears', function ($q) use ($academicYearId) {
-                    $q->where('academic_year_id', $academicYearId);
-                });
-            })
-            ->when($gradeLevelId, function ($q, $gradeLevelId) {
-                $q->whereHas('studentClasses', function ($q) use ($gradeLevelId) {
-                    $q->whereHas('gradeLevel', function ($q) use ($gradeLevelId) {
-                        $q->where('id', $gradeLevelId);
-                    });
-                });
-            });
+        }
 
-        $students = $query->with(['school', 'studentClasses.gradeLevel'])
+        $students = $query->with(['school'])
             ->latest('created_at')
             ->paginate(10)
             ->appends($request->except('page'));
 
-        $classes = ClassModel::where('school_id', auth()->user()->school_id)
-            ->with('gradeLevel')
-            ->get();
-
         $academicYears = AcademicYear::where('school_id', auth()->user()->school_id)
             ->orderBy('start_date', 'asc')
-            ->get();
-        $gradeLevels = GradeLevel::where('school_id', auth()->user()->school_id)
-        ->orderBy('grade_number', 'asc')
             ->get();
 
         return view('students.index', compact(
             'students',
             'search',
-            'classes',
-            'classId',
             'academicYears',
-            'academicYearId',
-            'gradeLevels',
-            'gradeLevelId'
+            'academicYearId'
         ));
     }
 
@@ -238,41 +196,32 @@ class StudentController extends Controller
      */
     public function create()
     {
-        $academicYearId = request()->input('academic_year_id');
-        $gradeLevelId = request()->input('grade_level_id');
+        $currentDate = now();
+        $currentAcademicYear = AcademicYear::where('school_id', auth()->user()->school_id)
+            ->where('start_date', '<=', $currentDate)
+            ->where('end_date', '>=', $currentDate)
+            ->first();
 
-        $currentAcademicYear = $academicYearId
-            ? AcademicYear::find($academicYearId)
-            : AcademicYear::where('school_id', auth()->user()->school_id)
-                ->latest()
+        if (!$currentAcademicYear) {
+            $currentAcademicYear = AcademicYear::where('school_id', auth()->user()->school_id)
+                ->latest('start_date')
                 ->first();
+        }
+        $grade10 = GradeLevel::where('school_id', auth()->user()->school_id)
+            ->where('grade_number', 10)
+            ->first();
 
-        $classes = ClassModel::where('school_id', auth()->user()->school_id)
-            ->when($currentAcademicYear, function ($query) use ($currentAcademicYear) {
-                $query->where('academic_year_id', $currentAcademicYear->id ?? null);
-            })
-            ->with('gradeLevel')
-            ->get();
-
-        $academicYears = AcademicYear::where('school_id', auth()->user()->school_id)
-            ->orderBy('start_date', 'asc')
-            ->get();
-
-        $gradeLevels = GradeLevel::where('school_id', auth()->user()->school_id)
-            ->orderBy('grade_number', 'asc')
-            ->get();
-
-        $selectedGradeLevel = $gradeLevelId ? GradeLevel::find($gradeLevelId) : null;
+        if (!$grade10) {
+            return redirect()->back()->with('error', 'Không tìm thấy thông tin khối 10');
+        }
 
         return view('students.create', [
-            'classes' => $classes,
             'currentAcademicYear' => $currentAcademicYear,
-            'selectedAcademicYearId' => $academicYearId,
-            'selectedGradeLevelId' => $gradeLevelId,
-            'selectedGradeLevel' => $selectedGradeLevel,
-            'academicYears' => $academicYears,
-            'gradeLevels' => $gradeLevels,
-            'showEntryScoreField' => $selectedGradeLevel && $selectedGradeLevel->grade_number == 10
+            'selectedAcademicYearId' => $currentAcademicYear ? $currentAcademicYear->id : null,
+            'academicYears' => AcademicYear::where('school_id', auth()->user()->school_id)
+                ->orderBy('start_date', 'asc')
+                ->get(),
+            'grade10' => $grade10
         ]);
     }
     /**
@@ -339,8 +288,9 @@ class StudentController extends Controller
 
             $student->studentGrades()->attach($request->grade_level_id, [
                 'academic_year_id' => $request->academic_year_id,
-                'school_id' => $school->id,
+                'school_id' => auth()->user()->school_id
             ]);
+
 
             DB::commit();
             return redirect()->route('students.index')->with('success', 'Học sinh đã được thêm thành công.');
@@ -413,6 +363,8 @@ class StudentController extends Controller
             $validated = $validator->validated();
             $validated['is_active'] = $request->has('is_active');
             $validated['email'] = $student->email;
+            $validated['exam_block'] = $request->exam_block;
+
 
 
             $gradeLevel = $student->studentGrades->first()->gradeLevel ?? null;
@@ -456,14 +408,12 @@ class StudentController extends Controller
     public function exportTemplate(Request $request)
     {
         $request->validate([
-            'academic_year_id' => 'required|exists:academic_years,id',
-            'grade_level_id' => 'required|exists:grade_levels,id'
+            'academic_year_id' => 'required|exists:academic_years,id'
         ]);
 
-        $gradeLevelId = $request->grade_level_id;
-        $fileName = 'student_import_template_' . $gradeLevelId . '.xlsx';
+        $fileName = 'student_import_template.xlsx';
 
-        return Excel::download(new StudentsTemplateExport($gradeLevelId), $fileName);
+        return Excel::download(new StudentsTemplateExport($request->academic_year_id), $fileName);
     }
 
     public function importDirect(Request $request)
@@ -471,15 +421,15 @@ class StudentController extends Controller
         $request->validate([
             'file' => 'required|mimes:xlsx,xls|max:5120',
             'academic_year_id' => 'required|exists:academic_years,id',
-            'grade_level_id' => 'required|exists:grade_levels,id'
         ]);
 
         DB::beginTransaction();
         try {
-            $import = new StudentsImport(
-                $request->academic_year_id,
-                $request->grade_level_id
-            );
+            $grade10 = GradeLevel::where('school_id', auth()->user()->school_id)
+                ->where('grade_number', 10)
+                ->firstOrFail();
+
+            $import = new StudentsImport($request->academic_year_id);
 
             Excel::import($import, $request->file('file'));
             $errors = $import->getErrors();
@@ -499,8 +449,8 @@ class StudentController extends Controller
 
             $newStudents = User::where('role', User::ROLE_STUDENT)
                 ->where('school_id', auth()->user()->school_id)
-                ->whereHas('studentGrades', function($q) use ($request) {
-                    $q->where('grade_id', $request->grade_level_id)
+                ->whereHas('studentGrades', function($q) use ($request, $grade10) {
+                    $q->where('grade_id', $grade10->id)
                         ->where('academic_year_id', $request->academic_year_id);
                 })
                 ->with('school')
@@ -510,7 +460,7 @@ class StudentController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Đã import thành công ' . $import->getRowCount() . ' học sinh',
+                'message' => 'Đã import thành công ' . $import->getRowCount() . ' học sinh khối 10',
                 'new_student' => $import->getRowCount() === 1 ? $newStudents->first() : null,
                 'reload' => $import->getRowCount() > 1
             ]);

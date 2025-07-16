@@ -44,11 +44,11 @@
                 </div>
             </div>
         </div>
-        <div class="card mb-3 ">
+        <div class="card mb-3">
             <div class="card-body">
                 <form method="GET" action="{{ route('students.index') }}" id="filter-form">
                     <div class="row g-3">
-                        <div class="col-md-4">
+                        <div class="col-md-8">
                             <label for="academic_year_id" class="form-label">Năm học</label>
                             <select class="form-select" id="academic_year_id" name="academic_year_id">
                                 <option value="">-- Chọn năm học --</option>
@@ -56,18 +56,6 @@
                                     <option value="{{ $year->id }}"
                                         {{ old('academic_year_id', $academicYearId ?? null) == $year->id ? 'selected' : '' }}>
                                         {{ $year->year }}
-                                    </option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div class="col-md-4">
-                            <label for="grade_level_id" class="form-label">Khối học</label>
-                            <select class="form-select" id="grade_level_id" name="grade_level_id">
-                                <option value="">-- Chọn khối --</option>
-                                @foreach($gradeLevels as $grade)
-                                    <option value="{{ $grade->id }}"
-                                        {{ old('grade_level_id', $gradeLevelId ?? null) == $grade->id ? 'selected' : '' }}>
-                                        {{ $grade->grade_number }}
                                     </option>
                                 @endforeach
                             </select>
@@ -91,10 +79,8 @@
                                     </button>
                                     <ul class="dropdown-menu dropdown-menu-end">
                                         <li>
-                                            <a class="dropdown-item" href="{{ route('students.export.template', [
-    'academic_year_id' => $academicYearId ?? null,
-    'grade_level_id' => $gradeLevelId ?? null
-]) }}" id="export-template-link">
+                                            <a class="dropdown-item" href="{{ route('students.export.template', ['academic_year_id' => $academicYearId ?? '']) }}"
+                                               id="export-template-link" target="_blank">
                                                 <i class="fas fa-file-excel me-1"></i> Tải file mẫu
                                             </a>
                                         </li>
@@ -180,7 +166,6 @@
                 $(this).data('timer', setTimeout(() => $('#search-form').submit(), 500));
             });
 
-
             @if(request('search'))
             $('.btn-outline-secondary').click(function () {
                 $('#search-input').val('');
@@ -189,28 +174,28 @@
             @endif
 
             const academicYearSelect = $('#academic_year_id');
-            const gradeLevelSelect = $('#grade_level_id');
             const inputFile = $("#real-import-btn");
 
-            // Bật/tắt nút action
+            // Bật/tắt nút action chỉ dựa trên năm học
             function toggleActionButtons() {
-                const enable = academicYearSelect.val() && gradeLevelSelect.val();
+                const enable = academicYearSelect.val();
                 $('.action-btn').prop('disabled', !enable);
             }
 
-            // khi thay đổi năm học/khối
+            // Khi thay đổi năm học
             function handleFilterChange() {
                 toggleActionButtons();
-                if (academicYearSelect.val() && gradeLevelSelect.val()) {
+                if (academicYearSelect.val()) {
                     loadStudents();
                 }
                 updateExportLink();
+                $('#filter-form').submit();
+
             }
 
             // Load danh sách học sinh
             function loadStudents(url = null) {
                 const params = {
-                    grade_id: gradeLevelSelect.val(),
                     academic_year_id: academicYearSelect.val(),
                     _token: '{{ csrf_token() }}'
                 };
@@ -226,7 +211,6 @@
                     });
             }
 
-
             function setupPagination() {
                 $(document).off('click', '.pagination a').on('click', '.pagination a', function (e) {
                     e.preventDefault();
@@ -239,10 +223,9 @@
                 if (!this.files.length) return;
 
                 const academicYearId = academicYearSelect.val();
-                const gradeLevelId = gradeLevelSelect.val();
 
-                if (!academicYearId || !gradeLevelId) {
-                    alert("Vui lòng chọn năm học và khối học trước khi import");
+                if (!academicYearId) {
+                    alert("Vui lòng chọn năm học trước khi import");
                     this.value = '';
                     return;
                 }
@@ -250,7 +233,6 @@
                 const formData = new FormData();
                 formData.append('file', this.files[0]);
                 formData.append('academic_year_id', academicYearId);
-                formData.append('grade_level_id', gradeLevelId);
                 formData.append('_token', '{{ csrf_token() }}');
 
                 $('#loading-spinner').removeClass('d-none');
@@ -320,7 +302,7 @@
 
                             // Cập nhật link tải file mẫu
                             $('#downloadTemplateBtn').attr('href',
-                                `{{ route('students.export.template') }}?academic_year_id=${academicYearId}&grade_level_id=${gradeLevelId}`
+                                `{{ route('students.export.template') }}?academic_year_id=${academicYearId}`
                             );
 
                             // Hiển thị modal
@@ -362,17 +344,14 @@
             }
 
             function updateExportLink() {
-                const academicYearId = academicYearSelect.val();
-                const gradeLevelId = gradeLevelSelect.val();
-
-                if (academicYearId && gradeLevelId) {
-                    const url = "{{ route('students.export.template') }}?academic_year_id=" + academicYearId + "&grade_level_id=" + gradeLevelId;
+                const academicYearId = $('#academic_year_id').val();
+                if (academicYearId) {
+                    const url = "{{ route('students.export.template') }}?academic_year_id=" + academicYearId;
                     $('#export-template-link').attr('href', url);
                 }
             }
 
             academicYearSelect.on('change', handleFilterChange);
-            gradeLevelSelect.on('change', handleFilterChange);
             inputFile.on('change', handleFileImport);
 
             toggleActionButtons();

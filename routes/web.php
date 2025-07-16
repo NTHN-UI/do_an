@@ -24,6 +24,7 @@ use App\Http\Controllers\StudentGradeController;
 use App\Http\Controllers\TeacherAssignmentController;
 use App\Http\Controllers\TeacherController;
 
+use App\Http\Controllers\TeacherViewController;
 use App\Http\Middleware\AdminMiddleware;
 use App\Http\Middleware\SuperAdminMiddleware;
 use App\Http\Middleware\TeacherMiddleware;
@@ -168,7 +169,8 @@ Route::middleware(['auth'])->group(function () {
                 ->name('exam_assignments.show');
             Route::get('/{assignment}/results', [ExamAssignmentController::class, 'classResults'])
                 ->name('class_results');
-        });
+            Route::get('/get-classes', [ExamAssignmentController::class, 'getClassesByAcademicYear'])
+                ->name('getClassesByAcademicYear');        });
     });
     Route::middleware(['auth'])->prefix('student_exams')->name('student_exams.')->group(function () {
         Route::get('/assigned-exams', [StudentExamController::class, 'assignedExams'])->name('assigned_exams');
@@ -185,6 +187,21 @@ Route::middleware(['auth'])->group(function () {
         ->name('grades.get-semesters');
     Route::get('/grades/get-assigned-classes', [GradeController::class, 'getAssignedClasses'])
         ->name('grades.get-assigned-classes');
+    Route::get('/student/teachers', [StudentController::class, 'viewTeachers'])
+        ->name('student.teachers');
+
+
+// Route cho học sinh xem giáo viên
+    Route::middleware(['auth'])->group(function () {
+        Route::get('/student/teachers', [TeacherViewController::class, 'showForStudent'])
+            ->name('student.teachers');
+    });
+
+// Route cho giáo viên chủ nhiệm xem GV bộ môn
+    Route::middleware('auth')->middleware([TeacherMiddleware::class])->group(function () {
+        Route::get('/teacher/subject-teachers', [TeacherViewController::class, 'showForHomeroomTeacher'])
+            ->name('teacher.subject_teachers');
+    });
 });
 
 

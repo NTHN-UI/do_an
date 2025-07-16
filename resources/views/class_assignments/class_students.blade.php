@@ -74,10 +74,7 @@
                                             </button>
                                             <ul class="dropdown-menu dropdown-menu-end shadow-sm rounded-3 border-0">
                                                 <li>
-                                                    <a href="{{ route('students.show', $student) }}"
-                                                       class="dropdown-item text-primary-color">
-                                                        Xem
-                                                    </a>
+                                                    <a class="dropdown-item text-primary-color"  href="{{ route('students.show', $student) }}">Xem</a>
                                                 </li>
                                                 <li>
                                                     <button class="dropdown-item text-primary-color"
@@ -208,19 +205,20 @@
                     },
                     // Trong phần AJAX success
                     success: function (response) {
-                        if (response.status === 'success') {
+                        if (response.success) {
                             alert(response.message);
-                            location.reload();
                         } else {
-                            alert('Có lỗi xảy ra: ' + response.message);
+                            alert(response.message);
                         }
                     },
                     error: function (xhr) {
-                        let errorMessage = 'Đã xảy ra lỗi khi chuyển lớp.';
+                        let errorMessage = 'Lỗi hệ thống';
                         if (xhr.responseJSON && xhr.responseJSON.message) {
                             errorMessage = xhr.responseJSON.message;
                         }
+                        alert(errorMessage);
                     },
+
                     complete: function () {
 
                         advanceClassSpinner.addClass('d-none');

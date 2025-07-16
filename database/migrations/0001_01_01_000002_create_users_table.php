@@ -25,6 +25,7 @@ return new class extends Migration {
             $table->string('guardian_email')->nullable()->unique();
             $table->string('guardian_phone', 11)->nullable();
             $table->decimal('entry_score', 5, 2)->nullable();
+            $table->string('exam_block')->nullable();
             $table->text('address')->nullable();
             $table->string('phone', 11)->nullable();
             $table->enum('gender', ['Nam', 'Nữ', 'Khác'])->nullable();

@@ -73,45 +73,59 @@
                         </div>
                     </div>
                     <div class="col-md-12">
-                        <label for="academic_year_id" class="form-label">Năm học <span
-                                class="text-danger">*</span></label>
-                        <select class="form-select @error('academic_year_id') is-invalid @enderror"
-                                id="academic_year_id" name="academic_year_id">
-                            <option value="">-- Chọn năm học --</option>
-                            @foreach($academicYears as $year)
-                                <option value="{{ $year->id }}"
-                                    {{ old('academic_year_id', $selectedAcademicYearId ?? null) == $year->id ? 'selected' : '' }}>
-                                    {{ $year->year }}
-                                </option>
-                            @endforeach
-                        </select>
-                        @error('academic_year_id')
+                        <label for="academic_year_id" class="form-label">Năm học <span class="text-danger">*</span></label>
+                        @if($currentAcademicYear)
+                            <input type="hidden" name="academic_year_id" value="{{ $currentAcademicYear->id }}">
+                            <div class="form-control bg-light">
+                                {{ $currentAcademicYear->year }}
+                            </div>
+                        @else
+                            <select class="form-select @error('academic_year_id') is-invalid @enderror"
+                                    id="academic_year_id" name="academic_year_id" >
+                                <option value="">-- Chọn năm học --</option>
+                                @foreach($academicYears as $year)
+                                    <option value="{{ $year->id }}" {{ old('academic_year_id') == $year->id ? 'selected' : '' }}>
+                                        {{ $year->year }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            @error('academic_year_id')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        @endif
+                    </div>
+
+                    <div class="col-md-12">
+                        <label class="form-label">Khối học</label>
+                        <input type="hidden" name="grade_level_id" value="{{ $grade10->id }}">
+                        <div class="form-control bg-light">
+                            Khối 10
+                        </div>
+                    </div>
+
+                    <div class="col-md-12">
+                        <label for="entry_score" class="form-label">Điểm đầu vào <span class="text-danger">*</span></label>
+                        <input type="number" step="0.1"
+                               class="form-control @error('entry_score') is-invalid @enderror"
+                               id="entry_score" name="entry_score"
+                               value="{{ old('entry_score') }}" min="0" max="50" >
+                        @error('entry_score')
                         <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
                     </div>
                     <div class="mb-3">
-                        <label for="grade_level_id" class="form-label">Khối học <span
-                                class="text-danger">*</span></label>
-                        <select name="grade_level_id" class="form-select" id="grade_level_id">
-                            <option value="">-- Chọn khối --</option>
-                            @foreach($gradeLevels as $grade)
-                                <option value="{{ $grade->id }}"
-                                    @selected(old('grade_level_id') == $grade->id)>
-                                    Khối {{ $grade->grade_number }}
-                                </option>
-                            @endforeach
+                        <label for="exam_block" class="form-label">Khối đăng ký <span class="text-danger">*</span></label>
+                        <select name="exam_block" class="form-select" id="exam_block" >
+                            <option value="">-- Chọn khối thi --</option>
+                            <option value="A" {{ old('exam_block') == 'A' ? 'selected' : '' }}>Khối A</option>
+                            <option value="A1" {{ old('exam_block') == 'A1' ? 'selected' : '' }}>Khối A1</option>
+                            <option value="B" {{ old('exam_block') == 'B' ? 'selected' : '' }}>Khối B</option>
+                            <option value="C" {{ old('exam_block') == 'C' ? 'selected' : '' }}>Khối C</option>
+                            <option value="D" {{ old('exam_block') == 'D' ? 'selected' : '' }}>Khối D</option>
                         </select>
-                        @error('grade_level_id')
-                        <div class="text-danger">{{ $message }}</div>@enderror
-                    </div>
-
-                    <div id="entry_score_field" class="mb-3" style="display:none;">
-                        <label for="entry_score" class="form-label">Điểm đầu vào*</label>
-                        <input type="number" step="0.1" class="form-control" id="entry_score"
-                               name="entry_score" value="{{ old('entry_score') }}"
-                               min="0" max="50">
-                        @error('entry_score')
-                        <div class="text-danger">{{ $message }}</div>@enderror
+                        @error('exam_block')
+                        <div class="text-danger">{{ $message }}</div>
+                        @enderror
                     </div>
                     <input type="hidden" name="password" value="12345678">
                     <div class="col-md-12">

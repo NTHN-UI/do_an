@@ -350,13 +350,11 @@
             }
 
             function handlePreview(e) {
+                e.preventDefault();
                 if (!validateTotalMarks()) {
-                    e.preventDefault();
                     showErrorMessage('Vui lòng điều chỉnh điểm các câu hỏi để tổng điểm khớp với điểm bài kiểm tra');
                     return false;
                 }
-
-                e.preventDefault();
 
                 const formData = new FormData($('#examForm')[0]);
 
@@ -386,7 +384,11 @@
                     content: '',
                     is_correct: false
                 }));
-                const correctOption = questionData ? questionData.correct_option : null;
+                const correctOption = questionData ?
+                    (typeof questionData.correct_option !== 'undefined' ?
+                        questionData.correct_option :
+                        options.findIndex(opt => opt.is_correct)) :
+                    null;
 
                 let optionsHtml = '';
                 options.forEach((option, optIdx) => {
@@ -394,52 +396,51 @@
                         (option.is_correct === true);
 
                     optionsHtml += `
-                        <div class="form-group mt-2">
-                            <label>Đáp án ${String.fromCharCode(65 + optIdx)} *</label>
-                            <div class="input-group">
-                                <textarea class="form-control"
-                                          name="questions[${index}][options][${optIdx}][content]"
-                                          required>${option.content || ''}</textarea>
-                                <div class="input-group-append">
-                                    <div class="input-group-text">
-                                        <input type="radio"
-                                               name="questions[${index}][correct_option]"
-                                               value="${optIdx}"
-                                               ${isChecked ? 'checked' : ''}
-                                               required>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>`;
+            <div class="form-group mt-2">
+                <label>Đáp án ${String.fromCharCode(65 + optIdx)} *</label>
+                <div class="input-group">
+                    <textarea class="form-control"
+                              name="questions[${index}][options][${optIdx}][content]"
+                              required>${option.content || ''}</textarea>
+                    <div class="input-group-append">
+                        <div class="input-group-text">
+                            <input type="radio"
+                                   name="questions[${index}][correct_option]"
+                                   value="${optIdx}"
+                                   ${isChecked ? 'checked' : ''}
+                                   required>
+                        </div>
+                    </div>
+                </div>
+            </div>`;
                 });
 
                 return `
-                    <div class="question-item mb-4 p-3 border rounded" data-question-index="${index}">
-                        <div class="d-flex justify-content-between mb-2">
-                            <h5 class="mb-0">Câu hỏi <span class="question-number">${index + 1}</span></h5>
-                            <button type="button" class="btn btn-sm btn-danger remove-question">
-                                <i class="fas fa-trash"></i> Xóa
-                            </button>
-                        </div>
-                        <div class="form-group mt-2">
-                            <label>Nội dung câu hỏi *</label>
-                            <textarea class="form-control question-content"
-                                      name="questions[${index}][content]"
-                                      required>${content}</textarea>
-                        </div>
-                        <div class="form-group mt-2">
-                            <label>Điểm *</label>
-                            <input type="number" step="0.1" min="0.1" class="form-control"
-                                   name="questions[${index}][marks]"
-                                   value="${marks}"
-                                   required>
-                        </div>
-                        <div class="answers-container">
-                            ${optionsHtml}
-                        </div>
-                    </div>`;
+        <div class="question-item mb-4 p-3 border rounded" data-question-index="${index}">
+            <div class="d-flex justify-content-between mb-2">
+                <h5 class="mb-0">Câu hỏi <span class="question-number">${index + 1}</span></h5>
+                <button type="button" class="btn btn-sm btn-danger remove-question">
+                    <i class="fas fa-trash"></i> Xóa
+                </button>
+            </div>
+            <div class="form-group mt-2">
+                <label>Nội dung câu hỏi *</label>
+                <textarea class="form-control question-content"
+                          name="questions[${index}][content]"
+                          required>${content}</textarea>
+            </div>
+            <div class="form-group mt-2">
+                <label>Điểm *</label>
+                <input type="number" step="0.1" min="0.1" class="form-control"
+                       name="questions[${index}][marks]"
+                       value="${marks}"
+                       required>
+            </div>
+            <div class="answers-container">
+                ${optionsHtml}
+            </div>
+        </div>`;
             }
-
             function addNewQuestion() {
                 const questionHtml = createQuestionHtml(ExamManager.questionCount);
                 $('#questionsContainer').append(questionHtml);
@@ -488,7 +489,7 @@
             }
 
             function addQuestionsFromBank() {
-                const selectedIds = $('.question-checkbox:checked').map(function () {
+                const selectedIds = $('.question-checkbox:checked').map(function() {
                     return $(this).val();
                 }).get();
 
@@ -496,7 +497,6 @@
                     showErrorMessage('Vui lòng chọn ít nhất 1 câu hỏi từ ngân hàng!');
                     return;
                 }
-
 
                 $('#questionBankModal').modal('hide');
 
@@ -507,28 +507,31 @@
                         ids: selectedIds,
                         _token: '{{ csrf_token() }}'
                     },
-                    success: function (response) {
+                    success: function(response) {
                         if (response && response.length > 0) {
-                            let questionsHtml = '';
+                            response.forEach(function(question) {
+                                const newIndex = ExamManager.questionCount++;
 
-                            response.forEach(function (question) {
-                                const newIndex = ExamManager.questionCount;
-                                questionsHtml += createQuestionHtml(newIndex, question);
-                                ExamManager.questionCount++;
+                                // Tạo HTML cho câu hỏi mới
+                                const questionHtml = createQuestionHtml(newIndex, {
+                                    content: question.content,
+                                    marks: question.marks,
+                                    options: question.options,
+                                    correct_option: question.correct_option
+                                });
+
+                                $('#questionsContainer').append(questionHtml);
                             });
 
-                            $('#questionsContainer').append(questionsHtml);
-                            $('.question-checkbox').prop('checked', false);
                             validateTotalMarks();
+                            $('.question-checkbox').prop('checked', false);
                         }
                     },
-                    error: function (xhr) {
+                    error: function(xhr) {
                         showErrorMessage('Có lỗi xảy ra khi tải câu hỏi từ ngân hàng');
-                        console.error('AJAX error:', xhr);
+                        console.error('Error:', xhr.responseText);
                     }
                 });
-
-                $(document).trigger('questionAdded');
             }
 
             // XỬ LÝ IMPORT TỪ FILE

@@ -33,14 +33,16 @@ class StudentsImport implements ToModel, WithHeadingRow, WithValidation, SkipsOn
     protected $gradeNumber;
     protected $errors = [];
 
-    public function __construct($academicYearId, $gradeLevelId)
+    public function __construct($academicYearId)
     {
         $this->academicYearId = $academicYearId;
-        $this->gradeLevelId = $gradeLevelId;
-
         $this->school = School::find(auth()->user()->school_id);
-        $gradeLevel = GradeLevel::find($gradeLevelId);
-        $this->gradeNumber = $gradeLevel ? $gradeLevel->grade_number : null;
+
+        $this->gradeLevelId = GradeLevel::where('school_id', $this->school->id)
+            ->where('grade_number', 10)
+            ->firstOrFail()
+            ->id;
+
     }
     protected $rowCount = 0;
 
@@ -70,6 +72,8 @@ class StudentsImport implements ToModel, WithHeadingRow, WithValidation, SkipsOn
             'date_of_birth' => $this->transformDate($row['ngay_sinh']),
             'phone' => $row['so_dien_thoai'] ?? null,
             'address' => $row['dia_chi'] ?? null,
+            'entry_score' => $row['diem_dau_vao'] ?? null,
+            'exam_block' => $row['khoi_dang_ky'] ?? null,
             'guardian_name' => $row['ten_phu_huynh'] ?? null,
             'guardian_phone' => $row['sdt_phu_huynh'] ?? null,
             'guardian_email' => $row['email_phu_huynh'] ?? null,
@@ -77,12 +81,10 @@ class StudentsImport implements ToModel, WithHeadingRow, WithValidation, SkipsOn
             'school_id' => $this->school->id,
             'is_active' => true,
             'academic_year_id' => $this->academicYearId,
+            'grade_level_id' => $this->gradeLevelId,
 
         ];
 
-        if ($this->gradeNumber == 10 && isset($row['diem_dau_vao'])) {
-            $studentData['entry_score'] = $row['diem_dau_vao'];
-        }
 
         $student = new User($studentData);
         $student->save();
@@ -132,6 +134,8 @@ class StudentsImport implements ToModel, WithHeadingRow, WithValidation, SkipsOn
                     }
                 }
             ],
+            '*.khoi_dang_ky' => 'required|in:A,A1,B,C,D',
+
             '*.email_phu_huynh' => [
                 'required',
                 'email',
@@ -179,6 +183,8 @@ class StudentsImport implements ToModel, WithHeadingRow, WithValidation, SkipsOn
             '*.gioi_tinh.in' => 'Giới tính phải là Nam, Nữ hoặc Khác',
 
             '*.so_dien_thoai.regex' => 'Số điện thoại phải bắt đầu bằng 03, 05, 07, 08 hoặc 09',
+
+            '*.khoi_dang_ky.required' => 'Khối đăng ký không được để trống',
 
             '*.email_phu_huynh.required' => 'Email phụ huynh không được để trống',
             '*.email_phu_huynh.email' => 'Email phụ huynh không hợp lệ',

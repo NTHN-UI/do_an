@@ -6,8 +6,6 @@
             <div class="d-flex align-items-center ms-2">
                 <div>
                     <h3 class="mb-0 text-primary-color fw-bold">Tài liệu học tập</h3>
-                    <small class="text-muted d-block">Quản lý tài liệu từ các môn học, dễ dàng tìm kiếm và tải
-                        về.</small>
                     <span class="badge bg-primary-color text-white px-3 py-2 rounded-pill mt-2">
                     {{ $documents->total() ?? 0 }} tài liệu
                 </span>

@@ -45,9 +45,9 @@
                         <th>STT</th>
                         <th>Học sinh</th>
                         <th class="text-center">Điểm</th>
-                        <th class="text-center">Thời gian</th>
+                        <th class="text-center">Thời gian còn lại</th>
                         <th class="text-center">Trạng thái</th>
-                        <th class="text-center">Hành động</th>
+{{--                        <th class="text-center">Hành động</th>--}}
                     </tr>
                     </thead>
                     <tbody>
@@ -72,16 +72,16 @@
                                     {{ $statusText }}
                                 </span>
                             </td>
-                            <td class="text-center">
-                                @if($result)
-                                    <a href="{{ route('student_exams.result', ['assignment' => $assignment->id, 'student' => $student->id]) }}"
-                                       class="text-primary-color">
-                                        <i class="fas fa-eye"></i>
-                                    </a>
-                                @else
-                                    <span class="text-muted">-</span>
-                                @endif
-                            </td>
+{{--                            <td class="text-center">--}}
+{{--                                @if($result)--}}
+{{--                                    <a href="{{ route('student_exams.result', ['assignment' => $assignment->id, 'student' => $student->id]) }}"--}}
+{{--                                       class="text-primary-color">--}}
+{{--                                        <i class="fas fa-eye"></i>--}}
+{{--                                    </a>--}}
+{{--                                @else--}}
+{{--                                    <span class="text-muted">-</span>--}}
+{{--                                @endif--}}
+{{--                            </td>--}}
                         </tr>
                     @endforeach
                     </tbody>

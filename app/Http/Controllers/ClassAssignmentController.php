@@ -132,7 +132,6 @@ class ClassAssignmentController extends Controller
                     if (!$academicYear) {
                         return $fail('Năm học không hợp lệ.');
                     }
-
                     $currentAcademicYear = AcademicYear::where('school_id', $schoolId)
                         ->where('start_date', '<=', now())
                         ->where('end_date', '>=', now())
@@ -163,6 +162,12 @@ class ClassAssignmentController extends Controller
             $gradeLevel = GradeLevel::find($gradeLevelId);
             $isGrade10 = $gradeLevel && $gradeLevel->grade_number == 10;
 
+            // Chỉ cho phép phân lớp tự động với khối 10
+            if (!$isGrade10) {
+                return back()->with('error', 'Chức năng phân lớp tự động chỉ áp dụng cho khối 10')->withInput();
+            }
+
+
             $classes = ClassModel::where('grade_level_id', $gradeLevelId)
                 ->where('academic_year_id', $academicYearId)
                 ->where('school_id', $schoolId)
@@ -170,9 +175,36 @@ class ClassAssignmentController extends Controller
                 ->get();
 
             if ($classes->isEmpty()) {
-                return back()->with('error', 'Không có lớp nào trong khối và năm học được chọn.')->withInput();
+                return back()->with('error', 'Không có lớp nào trong khối và năm học được chọn')->withInput();
             }
 
+            // Nhóm lớp theo khối đăng ký
+            $groupedClasses = $classes->groupBy(function($class) {
+                // Xử lý tên lớp dạng "Lớp 10A1", "Lớp 10A11",...
+                if (preg_match('/^Lớp 10([A-Za-z]\d{1,2})$/', $class->name, $matches)) {
+                    if (!isset($matches[1])) {
+                        return 'invalid_format';
+                    }
+
+                    $blockCode = $matches[1];
+
+                    // Phân biệt khối A (1 chữ số) và A1 (2 chữ số)
+                    if (strlen($blockCode) == 2 && is_numeric(substr($blockCode, 1, 1))) {
+                        return substr($blockCode, 0, 1); // A1 → A
+                    }
+                    return $blockCode;
+                }
+                return 'invalid_format';
+            })->reject(function ($value, $key) {
+                return $key === 'invalid_format';
+            });
+
+            if ($groupedClasses->isEmpty()) {
+                $exampleClasses = collect(['Lớp 10A1', 'Lớp 10A11', 'Lớp 10B1', 'Lớp 10C1']);
+                return back()->with('error', 'Không có lớp nào có tên đúng định dạng. Ví dụ: ' . $exampleClasses->implode(', '))->withInput();
+            }
+
+            // Lấy học sinh chưa phân lớp
             $unassignedStudents = User::where('role', User::ROLE_STUDENT)
                 ->where('school_id', $schoolId)
                 ->whereHas('studentGrades', function ($query) use ($gradeLevelId, $academicYearId) {
@@ -182,65 +214,120 @@ class ClassAssignmentController extends Controller
                 ->whereDoesntHave('studentClasses', function ($query) use ($academicYearId) {
                     $query->where('student_classes.academic_year_id', $academicYearId);
                 })
-                ->when($isGrade10, function ($query) {
-                    return $query->orderByDesc('entry_score');
-                }, function ($query) {
-                    return $query->orderBy('full_name');
-                })
+                ->orderBy('exam_block')
+                ->orderBy('gender')
+                ->orderByDesc('entry_score')
                 ->get();
 
             if ($unassignedStudents->isEmpty()) {
-                if ($unassignedStudents->isEmpty()) {
-                    return back()->with('error', 'Không có học sinh nào cần phân lớp trong khối và năm học được chọn.')->withInput();
-                }
+                return back()->with('error', 'Không có học sinh nào cần phân lớp trong khối và năm học được chọn.')->withInput();
             }
 
-            if ($isGrade10) {
-                $studentsWithoutEntryScore = $unassignedStudents->filter(function ($student) {
-                    return $student->entry_score === null;
-                });
+            // Kiểm tra học sinh chưa có điểm đầu vào
+            $studentsWithoutEntryScore = $unassignedStudents->filter(function ($student) {
+                return $student->entry_score === null;
+            });
 
-                if ($studentsWithoutEntryScore->isNotEmpty()) {
-                    $countWithoutScore = $studentsWithoutEntryScore->count();
-                    $studentNames = $studentsWithoutEntryScore->pluck('full_name')->implode(', ');
+            if ($studentsWithoutEntryScore->isNotEmpty()) {
+                $countWithoutScore = $studentsWithoutEntryScore->count();
+                $studentNames = $studentsWithoutEntryScore->pluck('full_name')->take(5)->implode(', ');
+                $message = "Có $countWithoutScore học sinh chưa có điểm đầu vào";
+                $message .= $countWithoutScore > 5 ? " (hiển thị 5 đầu tiên: $studentNames, ...)" : ": $studentNames";
+                $message .= ". Vui lòng cập nhật điểm đầu vào cho học sinh trước khi thực hiện phân lớp theo điểm số.";
 
-                    return back()->with('error', "Có $countWithoutScore học sinh chưa có điểm đầu vào: $studentNames. Vui lòng cập nhật điểm đầu vào cho học sinh trước khi thực hiện phân lớp theo điểm số.")->withInput();
-                }
+                return back()->with('error', $message)->withInput();
             }
-            $totalStudents = $unassignedStudents->count();
-            $classCount = $classes->count();
-            $studentsPerClass = $classCount > 0 ? ceil($totalStudents / $classCount) : 0;
+
+            // Phân loại học sinh theo khối đăng ký với chuẩn hóa
+            $studentsByBlockAndGender = $unassignedStudents->groupBy(function($student) {
+                $block = strtoupper(preg_replace('/^(Khối\s*)?/i', '', $student->exam_block));
+
+                // Chuẩn hóa khối đăng ký
+                if ($block === 'A1' || $block === 'A-1') {
+                    $block = 'A1';
+                } else {
+                    $block = preg_replace('/[^A-Z]/', '', $block);
+                }
+
+                return $block . '_' . $student->gender;
+            });
 
             $assignmentDetails = [];
-
             $assignments = [];
             $now = now();
+            $direction = 1; // 1 = tăng, -1 = giảm
+            $classIndex = 0;
 
-            foreach ($unassignedStudents as $index => $student) {
-                $classIndex = floor($index / $studentsPerClass);
-                if ($classIndex >= $classCount) {
-                    $classIndex = $classCount - 1;
+            foreach ($studentsByBlockAndGender as $blockGender => $students) {
+                list($block, $gender) = explode('_', $blockGender);
+
+                // Tìm lớp phù hợp với khối đăng ký
+                $matchingClasses = $classes->filter(function($class) use ($block) {
+                    if ($block === 'A') {
+                        return preg_match('/^Lớp 10A\d$/', $class->name);
+                    } else if ($block === 'A1') {
+                        return preg_match('/^Lớp 10A\d{2}$/', $class->name);
+                    } else if ($block === 'B') {
+                        return preg_match('/^Lớp 10B\d$/', $class->name);
+                    } else {
+                        return preg_match('/^Lớp 10'.$block.'\d$/', $class->name);
+                    }
+                })->sortBy('name')->values();
+
+                if ($matchingClasses->isEmpty()) {
+                    continue;
                 }
 
-                $selectedClass = $classes[$classIndex];
+                // Sắp xếp lại classes để đảm bảo thứ tự
+                $classCount = $matchingClasses->count();
+                $students = $students->values();
+                foreach ($students as $i => $student) {
+                    if ($i % 2 === 0) {
+                        // Chẵn: từ lớp đầu tiên đi lên
+                        $classIndex = ($i / 2) % $classCount;
+                    } else {
+                        // Lẻ: từ lớp cuối đi xuống
+                        $classIndex = $classCount - 1 - (($i - 1) / 2) % $classCount;
+                    }
 
-                $assignments[] = [
-                    'user_id' => $student->id,
-                    'class_id' => $selectedClass->id,
-                    'academic_year_id' => $academicYearId,
-                    'created_at' => $now,
-                    'updated_at' => $now
-                ];
+                    $selectedClass = $matchingClasses[$classIndex];
 
-                $assignmentDetails[$selectedClass->id][] = [
-                    'name' => $student->full_name,
-                    'score' => $isGrade10 ? $student->entry_score : null
-                ];
+
+                    // Thêm vào danh sách phân lớp
+                    $assignments[] = [
+                        'user_id' => $student->id,
+                        'class_id' => $selectedClass->id,
+                        'academic_year_id' => $academicYearId,
+                        'created_at' => $now,
+                        'updated_at' => $now
+                    ];
+
+                    $classIndex += $direction;
+
+                    // Đảo chiều khi đến đầu/cuối
+                    if ($classIndex >= $classCount || $classIndex < 0) {
+                        $direction *= -1;
+                        $classIndex += $direction;
+                    }
+
+                    $assignmentDetails[$selectedClass->id][] = [
+                        'name' => $student->full_name,
+                        'score' => $student->entry_score,
+                        'block' => $student->exam_block
+                    ];
+                }
             }
 
+            if (empty($assignments)) {
+                return back()->with('error', 'Không có học sinh nào được phân lớp do không tìm thấy lớp phù hợp với khối đăng ký.')->withInput();
+            }
+
+            // Thực hiện phân lớp
             StudentClass::insert($assignments);
             DB::commit();
-            $message = "Đã phân công $totalStudents học sinh ";
+
+            $totalAssigned = count($assignments);
+            $message = "Đã phân công thành công $totalAssigned học sinh khối 10 vào các lớp theo khối đăng ký";
 
             return redirect()
                 ->route('class_assignments.index', ['academic_year_id' => $academicYearId])
@@ -248,12 +335,10 @@ class ClassAssignmentController extends Controller
 
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error('Lỗi phân công tự động: ' . $e->getMessage());
-            return back()->with('error', 'Đã xảy ra lỗi khi phân công tự động: ' . $e->getMessage());
+            Log::error('Lỗi phân công tự động: ' . $e->getMessage() . "\n" . $e->getTraceAsString());
+            return back()->with('error', 'Đã xảy ra lỗi khi phân công tự động: ' . $e->getMessage())->withInput();
         }
     }
-
-
     public function showClassStudents(ClassModel $class)
     {
         if ($class->school_id !== auth()->user()->school_id) {
@@ -302,7 +387,7 @@ class ClassAssignmentController extends Controller
     public function changeClassStudent(Request $request, string $id)
     {
         $student = User::find($id);
-        if (auth()->user()->role !== 'school_admin' && $student->school_id !== auth()->user()->school_id) {
+        if (auth()->user()->role !== 'admin' && $student->school_id !== auth()->user()->school_id) {
             abort(403, 'Không được phép thao tác với học sinh từ trường khác');
         }
 
@@ -345,119 +430,120 @@ class ClassAssignmentController extends Controller
             'next_academic_year_id' => 'required|exists:academic_years,id',
         ]);
 
-        $student_ids = $request->input('student_ids');
-        $current_class_id = $request->input('current_class_id');
-        $next_academic_year_id = $request->input('next_academic_year_id');
-
-        $successCount = 0;
-        $failCount = 0;
-        $messages = [];
-
         DB::beginTransaction();
         try {
-            $currentClass = ClassModel::with('gradeLevel')->findOrFail($current_class_id);
+            $currentClass = ClassModel::with('gradeLevel')->findOrFail($request->current_class_id);
             $currentAcademicYearId = $currentClass->academic_year_id;
-            $nextAcademicYear = AcademicYear::findOrFail($next_academic_year_id);
+            $nextAcademicYear = AcademicYear::findOrFail($request->next_academic_year_id);
 
-            foreach ($student_ids as $student_id) {
-                $user = User::find($student_id);
+            // Lấy toàn bộ dữ liệu cần thiết trong 1 query
+            $students = User::whereIn('id', $request->student_ids)
+                ->with(['grades' => function($query) use ($currentAcademicYearId) {
+                    $query->where('academic_year_id', $currentAcademicYearId)
+                        ->where('test_type', 'final')
+                        ->with(['subject', 'semester']);
+                }])
+                ->get();
 
-                if (!$user) {
-                    $failCount++;
-                    $messages[] = "Học sinh ID {$student_id} không tồn tại.";
-                    continue;
-                }
+            $semesters = Semester::where('academic_year_id', $currentAcademicYearId)
+                ->orderBy('start_date')
+                ->get();
 
-                $hasAnyGrades = Grade::where('student_id', $user->id)
-                    ->where('academic_year_id', $currentAcademicYearId)
-                    ->exists();
+            $results = [];
+            $promotedCount = 0;
+            $retainedCount = 0;
+            $graduatedCount = 0;
+            $failedCount = 0;
 
-                if (!$hasAnyGrades) {
-                    $newClass = $this->getRetainedClass($currentClass, $nextAcademicYear);
-                    if ($newClass) {
-                        StudentClass::updateOrCreate(
-                            ['user_id' => $user->id, 'academic_year_id' => $nextAcademicYear->id],
-                            ['class_id' => $newClass->id]
-                        );
-                        $successCount++;
-                        $messages[] = "Học sinh {$user->full_name} ({$user->id}) không có điểm nào và sẽ ở lại lớp {$newClass->name}.";
-                    } else {
-                        $failCount++;
-                        $messages[] = "Không thể xác định lớp ở lại cho học sinh {$user->full_name} ({$user->id}) không có điểm.";
-                    }
-                    continue;
-                }
+            foreach ($students as $student) {
+                $yearlyData = $this->getStudentYearlyGrades($student->id, $currentAcademicYearId);
 
-                $classification = $this->calculateYearlyClassification($user->id, $currentAcademicYearId);
-                $newClass = null;
-                $promotionStatus = '';
-
-
-                if ($classification === null) {
-                    $messages[] = "Không đủ dữ liệu để xếp loại cho học sinh {$user->full_name} ({$user->id}). Học sinh sẽ ở lại lớp.";
-                    $newClass = $this->getRetainedClass($currentClass, $nextAcademicYear);
-                    $promotionStatus = 'Ở lại lớp (không đủ dữ liệu)';
-                }
-                elseif (in_array($classification, ['Đạt', 'Khá', 'Tốt'])) {
-                    $newClass = $this->getPromotedClass($currentClass, $nextAcademicYear);
-                    if ($newClass) {
-                        $promotionStatus = 'Lên lớp (' . $classification . ')';
-                    } else {
-                        $messages[] = "Không tìm thấy lớp để chuyển lên. Học sinh sẽ ở lại lớp.";
-                        $newClass = $this->getRetainedClass($currentClass, $nextAcademicYear);
-                        $promotionStatus = 'Ở lại lớp (không tìm thấy lớp lên)';
-                    }
-                } else {
-                    $newClass = $this->getRetainedClass($currentClass, $nextAcademicYear);
-                    $promotionStatus = 'Ở lại lớp (' . $classification . ')';
-                }
-
-                if (!$newClass) {
-                    $failCount++;
-                    $messages[] = "Không thể xác định lớp cho học sinh {$user->full_name} ({$user->id}).";
-                    continue;
-                }
-
-                StudentClass::updateOrCreate(
-                    ['user_id' => $user->id, 'academic_year_id' => $nextAcademicYear->id],
-                    ['class_id' => $newClass->id]
+                $classification = $this->classifyStudent(
+                    $yearlyData['average'],
+                    $yearlyData['subjects'],
+                    'yearly'
                 );
 
-                $successCount++;
-                $messages[] = "Học sinh {$user->full_name} ({$user->id}) đã được xử lý: {$promotionStatus} vào lớp {$newClass->name}.";
+                // Xử lý chuyển lớp
+                $result = $this->processStudentTransfer(
+                    $student,
+                    $classification,
+                    $currentClass,
+                    $nextAcademicYear
+                );
+                // Đếm số lượng theo từng loại
+                if ($result['status'] === 'failed') {
+                    $failedCount++;
+                } elseif ($result['new_class'] === 'Tốt nghiệp') {
+                    $graduatedCount++;
+                } elseif ($result['message'] === 'Được lên lớp') {
+                    $promotedCount++;
+                } else {
+                    $retainedCount++;
+                }
+
+                $results[] = $result;
             }
 
             DB::commit();
+            $successMessage = sprintf(
+                "Thành công: %d học sinh lên lớp, %d học sinh ở lại, %d học sinh tốt nghiệp",
+                $promotedCount,
+                $retainedCount,
+                $graduatedCount
+            );
+
+            // Thông báo lỗi nếu có
+            $errorMessage = $failedCount > 0
+                ? sprintf(" (%d học sinh gặp lỗi)", $failedCount)
+                : '';
+
             return response()->json([
-                'success' => true,
-                'message' => "Đã xử lý {$successCount} học sinh thành công, {$failCount} thất bại.",
-                'details' => $messages
+                'success' => $failedCount === 0,
+                'message' => $successMessage . $errorMessage,
+                'statistics' => [
+                    'promoted' => $promotedCount,
+                    'retained' => $retainedCount,
+                    'graduated' => $graduatedCount,
+                    'failed' => $failedCount,
+                    'total' => count($students)
+                ],
+                'results' => $results
             ]);
 
         } catch (\Exception $e) {
             DB::rollBack();
             return response()->json([
                 'success' => false,
-                'message' => 'Lỗi hệ thống: ' . $e->getMessage(),
-                'trace' => config('app.debug') ? $e->getTrace() : null
+                'message' => 'Lỗi hệ thống: ' . $e->getMessage()
             ], 500);
         }
     }
 
-    protected function calculateYearlyClassification($studentId, $academicYearId)
+    protected function calculateStudentClassification($student, $semesters)
     {
+        $yearlyData = $this->getStudentYearlyGrades($student->id, $semesters->first()->academic_year_id);
 
-        $grades = Grade::where('student_id', $studentId)
+        return $this->classifyStudent(
+            $yearlyData['average'],
+            $yearlyData['subjects'],
+            'yearly'
+        );
+    }
+    protected function getStudentYearlyGrades($studentId, $academicYearId)
+    {
+        // Lấy thông tin học sinh và lớp hiện tại
+        $student = User::find($studentId);
+        $studentClass = StudentClass::where('user_id', $studentId)
             ->where('academic_year_id', $academicYearId)
-            ->where('test_type', 'final')
-            ->with(['subject', 'semester'])
-            ->get()
-            ->groupBy(['semester_id', 'subject_id']);
+            ->with('class')
+            ->first();
 
-        if ($grades->isEmpty()) {
-            return null;
+        if (!$student || !$studentClass) {
+            return ['subjects' => [], 'average' => 0];
         }
 
+        $subjects = Subject::where('school_id', $student->school_id)->get();
 
         $semesters = Semester::where('academic_year_id', $academicYearId)
             ->orderBy('start_date')
@@ -467,164 +553,302 @@ class ClassAssignmentController extends Controller
         $semester2 = $semesters->slice(1)->first();
 
         if (!$semester1 || !$semester2) {
-            return null;
+            return ['subjects' => [], 'average' => 0];
         }
 
-        $subjectAverages = [];
+        $finalGrades = Grade::where('student_id', $studentId)
+            ->where('academic_year_id', $academicYearId)
+            ->whereIn('semester_id', [$semester1->id, $semester2->id])
+            ->where('test_type', 'final')
+            ->get();
+
+        $groupedGrades = $finalGrades->groupBy(['semester_id', 'subject_id']);
+
+        $subjectScores = [];
         $specialSubjects = ['Giáo dục quốc phòng và an ninh', 'Giáo dục thể chất', 'Nghệ thuật'];
 
-        $subjects = Subject::where('school_id', auth()->user()->school_id)->get();
+        $totalScoreYearly = 0;
+        $countYearly = 0;
 
         foreach ($subjects as $subject) {
             $isSpecial = in_array($subject->name, $specialSubjects);
 
-            $grade1 = $grades[$semester1->id][$subject->id][0] ?? null;
-            $grade2 = $grades[$semester2->id][$subject->id][0] ?? null;
+            // Lấy điểm HK1 và HK2
+            $semester1Grade = $groupedGrades[$semester1->id][$subject->id][0] ?? null;
+            $semester2Grade = $groupedGrades[$semester2->id][$subject->id][0] ?? null;
 
-            if ($grade1 && $grade2) {
-                if ($isSpecial) {
-                    $subjectAverages[$subject->id] = [
-                        'value' => $grade2->text_value ?? ($grade2->score >= 5 ? 'Đạt' : 'Chưa đạt'),
-                        'is_special' => true,
-                        'name' => $subject->name
-                    ];
-                } else {
-                    $subjectAverages[$subject->id] = [
-                        'value' => round(($grade1->score + $grade2->score * 2) / 3, 1),
-                        'is_special' => false,
-                        'name' => $subject->name
-                    ];
-                }
+            $semester1Score = $semester1Grade ? ($semester1Grade->score ?? 0) : 0;
+            $semester2Score = $semester2Grade ? ($semester2Grade->score ?? 0) : 0;
+
+            $semester1Text = $semester1Grade ? ($semester1Grade->text_value ?? null) : null;
+            $semester2Text = $semester2Grade ? ($semester2Grade->text_value ?? null) : null;
+
+            if ($isSpecial) {
+                $yearlyResult = $semester2Grade ? ($semester2Grade->text_value ?? 'Chưa đạt') : 'Chưa đạt';
+
+                $subjectScores[$subject->id] = [
+                    'name' => $subject->name,
+                    'yearly_result' => $yearlyResult,
+                    'is_special' => true,
+                ];
+
+            } else {
+                // Môn thường
+                $yearlyAvg = ($semester1Grade && $semester2Grade)
+                    ? round(($semester1Score + $semester2Score * 2) / 3, 1)
+                    : 0;
+
+
+                $subjectScores[$subject->id] = [
+                    'name' => $subject->name,
+                    'average' => $yearlyAvg,
+                    'is_special' => false,
+                ];
+
+                // Tính tổng điểm cho các môn thường
+                $totalScoreYearly += $yearlyAvg;
+                $countYearly++;
             }
         }
 
-        $total = 0;
-        $count = 0;
-        foreach ($subjectAverages as $subjectAverage) {
-            if (!$subjectAverage['is_special'] && is_numeric($subjectAverage['value'])) {
-                $total += $subjectAverage['value'];
-                $count++;
-            }
-        }
+        // Tính điểm trung bình cả năm
+        $average = $countYearly > 0 ? round($totalScoreYearly / $countYearly, 1) : 0;
 
-        $yearlyAverage = $count > 0 ? $total / $count : 0;
-
-
-        return $this->classifyStudentPerformance($yearlyAverage, $subjectAverages);
+        return [
+            'subjects' => $subjectScores,
+            'average' => $average
+        ];
     }
 
-    protected function classifyStudentPerformance($averageScore, $subjectAverages)
+    protected function classifyStudent($averageScore, $subjectScores, $semesterType = 'semester')
     {
         if (!is_numeric($averageScore)) {
             return 'Chưa đạt';
         }
 
-        $specialSubjects = ['Giáo dục quốc phòng và an ninh', 'Giáo dục thể chất', 'Nghệ thuật'];
+        $specialSubjects = [
+            'Giáo dục quốc phòng và an ninh',
+            'Giáo dục thể chất',
+            'Nghệ thuật'
+        ];
 
-        $specialNotPassed = 0;
-        $countAbove8 = 0;
-        $countAbove6_5 = 0;
-        $countAbove5 = 0;
-        $hasBelow3_5 = false;
-        $totalRegularSubjects = 0;
+        $stats = [
+            'special_not_passed' => 0,
+            'regular_above8' => 0,
+            'regular_above6_5' => 0,
+            'regular_above5' => 0,
+            'has_below3_5' => false,
+            'total_regular' => 0,
+            'counted_regular' => 0
+        ];
 
-
-        foreach ($subjectAverages as $data) {
-            $isSpecial = in_array($data['name'], $specialSubjects);
+        // Lặp qua các môn học để thống kê
+        foreach ($subjectScores as $subjectId => $subjectData) {
+            if (!is_array($subjectData)) {
+                continue;
+            }
+            $isSpecial = $subjectData['is_special'] ?? false;
 
             if ($isSpecial) {
-                if ($data['value'] === 'Chưa đạt') {
-                    $specialNotPassed++;
+                // Xử lý môn đặc biệt
+                $result = ($semesterType === 'yearly')
+                    ? ($subjectData['yearly_result'] ?? 'Chưa đạt')
+                    : ($subjectData['display_average'] ?? 'Chưa đạt');
+
+                // Chuẩn hóa kết quả và kiểm tra trạng thái Đạt
+                $normalizedResult = is_string($result) ? mb_strtolower(trim($result)) : $result;
+                $isPassed = in_array($normalizedResult, ['đạt', 'đ', 'd']);
+
+                if (!$isPassed) {
+                    $stats['special_not_passed']++;
                 }
             } else {
-                $totalRegularSubjects++;
-                if (is_numeric($data['value'])) {
-                    if ($data['value'] >= 8.0) $countAbove8++;
-                    if ($data['value'] >= 6.5) $countAbove6_5++;
-                    if ($data['value'] >= 5.0) $countAbove5++;
-                    if ($data['value'] < 3.5) $hasBelow3_5 = true;
+                // Xử lý môn thường
+                $score = ($semesterType === 'yearly')
+                    ? ($subjectData['average'] ?? 0)
+                    : ($subjectData['average'] ?? 0);
+
+                // Xử lý trường hợp không nhập (để "-")
+                if ($score === '-' || $score === '') {
+                    $score = 0;
+                }
+
+                // Ép kiểu về số
+                $score = is_numeric($score) ? (float)$score : 0;
+
+                // Đếm tổng số môn thường
+                $stats['total_regular']++;
+
+                // Phân loại điểm
+                if ($score >= 8) $stats['regular_above8']++;
+                if ($score >= 6.5) $stats['regular_above6_5']++;
+                if ($score >= 5) $stats['regular_above5']++;
+
+                // Kiểm tra điểm dưới 3.5 (bao gồm cả điểm 0)
+                if ($score < 3.5) {
+                    $stats['has_below3_5'] = true;
                 }
             }
         }
 
-        if ($specialNotPassed === 0) {
-            if ($countAbove8 >= 6 && $countAbove6_5 === $totalRegularSubjects) {
+
+        if ($semesterType === 'yearly') {
+            if ($stats['special_not_passed'] === 0 &&
+                $averageScore >= 6.5 &&
+                $stats['regular_above8'] >= 6 &&
+                $stats['regular_above6_5'] === $stats['total_regular'] &&
+                !$stats['has_below3_5']) {
                 return 'Tốt';
             }
 
-            if ($countAbove6_5 >= 6 && $countAbove5 === $totalRegularSubjects) {
+            if ($stats['special_not_passed'] === 0 &&
+                $averageScore >= 5.0 &&
+                $stats['regular_above6_5'] >= 6 &&
+                $stats['regular_above5'] === $stats['total_regular'] &&
+                !$stats['has_below3_5']) {
                 return 'Khá';
             }
-        }
 
-        if ($specialNotPassed <= 1 && $countAbove5 >= 6 && !$hasBelow3_5) {
-            return 'Đạt';
+            if ($stats['special_not_passed'] <= 1 &&
+                $stats['regular_above5'] >= 6 &&
+                !$stats['has_below3_5']) {
+                return 'Đạt';
+            }
+        }
+        else {
+            if ($stats['special_not_passed'] === 0 &&
+                $averageScore >= 6.5 &&
+                $stats['regular_above8'] >= 6 &&
+                $stats['regular_above6_5'] == $stats['total_regular'] &&
+                !$stats['has_below3_5']) {
+                return 'Tốt';
+            }
+
+            if ($stats['special_not_passed'] === 0 &&
+                $averageScore >= 5.0 &&
+                $stats['regular_above6_5'] >= 6 &&
+                $stats['regular_above5'] == $stats['total_regular'] &&
+                !$stats['has_below3_5']) {
+                return 'Khá';
+            }
+
+            if ($stats['special_not_passed'] <= 1 &&
+                $stats['regular_above5'] >= 6 &&
+                !$stats['has_below3_5']) {
+                return 'Đạt';
+            }
         }
 
         return 'Chưa đạt';
     }
 
-    protected function getPromotedClass(ClassModel $currentClass, AcademicYear $nextAcademicYear)
+    protected function processStudentTransfer($student, $classification, $currentClass, $nextAcademicYear)
     {
+        $result = [
+            'student_id' => $student->id,
+            'student_name' => $student->full_name,
+            'current_class' => $currentClass->name,
+            'classification' => $classification,
+            'status' => 'success',
+            'new_class' => null,
+            'message' => ''
 
-        $currentGradeNumber = $currentClass->gradeLevel->grade_number;
-        $nextGradeNumber = $currentGradeNumber + 1;
-        if ($currentGradeNumber == 12) {
-            Log::info("Học sinh lớp 12 đã tốt nghiệp: {$currentClass->name}");
+        ];
+
+        // Tốt nghiệp nếu là lớp 12
+        if ($currentClass->gradeLevel->grade_number == 12 && in_array($classification, ['Đạt', 'Khá', 'Tốt'])) {
+            $result['new_class'] = 'Tốt nghiệp';
+            $result['message'] = 'Đã hoàn thành chương trình lớp 12';
+            return $result;
+        }
+
+        // Tìm lớp mới
+        if (in_array($classification, ['Đạt', 'Khá', 'Tốt'])) {
+            $newClass = $this->findPromotedClass($currentClass, $nextAcademicYear);
+            $result['message'] = 'Được lên lớp';
+        } else {
+            $newClass = $this->findRetainedClass($currentClass, $nextAcademicYear);
+            $result['message'] = 'Ở lại lớp';
+        }
+
+        if (!$newClass) {
+            $result['status'] = 'failed';
+            $result['message'] = 'Không tìm thấy lớp phù hợp';
+            return $result;
+        }
+
+        // Cập nhật lớp
+        StudentClass::updateOrCreate(
+            ['user_id' => $student->id, 'academic_year_id' => $nextAcademicYear->id],
+            ['class_id' => $newClass->id]
+        );
+
+        $result['new_class'] = $newClass->name;
+        return $result;
+    }
+
+
+    protected function formatGradeDisplay($score, $textValue, $isSpecial)
+    {
+        if ($isSpecial) {
+            if ($textValue) {
+                return $textValue;
+            }
+            return ($score !== null && $score >= 5) ? 'Đạt' : 'Chưa đạt';
+        } else {
+            return $score !== null ? $score : '-';
+        }
+    }
+
+    protected function findPromotedClass($currentClass, $nextAcademicYear)
+    {
+        $currentName = $currentClass->name; // "Lớp 10A1"
+
+        // Tách tên lớp thành: [Lớp ][Khối][Chữ][Số] (ví dụ: "Lớp 10A11" → [10][A][11])
+        if (!preg_match('/^(Lớp\s?)(\d+)([A-Za-z])(\d+)$/u', $currentName, $matches)) {
+            Log::error("Tên lớp không đúng định dạng: {$currentName}");
             return null;
         }
 
+        $prefix = $matches[1]; // "Lớp " hoặc "Lớp"
+        $currentGrade = $matches[2]; // 10
+        $classLetter = $matches[3];  // A
+        $classNumber = $matches[4];  // 11
+
+        $nextGradeNumber = (int)$currentGrade + 1;
+        $expectedClassName = $prefix . $nextGradeNumber . $classLetter . $classNumber;
+
+        // Tìm lớp đích
         $nextGradeLevel = GradeLevel::where('grade_number', $nextGradeNumber)
             ->where('school_id', $currentClass->school_id)
             ->first();
 
         if (!$nextGradeLevel) {
-            Log::warning("Không tìm thấy GradeLevel cho khối {$nextGradeNumber} trong trường {$currentClass->school_id}.");
+            Log::error("Không tìm thấy khối lớp {$nextGradeNumber}");
             return null;
         }
 
-        $targetClassName = preg_replace('/\d+/', $nextGradeNumber, $currentClass->name);
-
-        $promotedClass = ClassModel::where('academic_year_id', $nextAcademicYear->id)
+        // TÌM CHÍNH XÁC LỚP THEO TÊN
+        $newClass = ClassModel::where('academic_year_id', $nextAcademicYear->id)
             ->where('grade_level_id', $nextGradeLevel->id)
-            ->where('name', $targetClassName)
-            ->where('school_id', $currentClass->school_id)
+            ->where('name', $expectedClassName)
             ->first();
 
-        if (!$promotedClass) {
-            $promotedClass = ClassModel::where('academic_year_id', $nextAcademicYear->id)
-                ->where('grade_level_id', $nextGradeLevel->id)
-                ->where('school_id', $currentClass->school_id)
-                ->first();
+        if (!$newClass) {
+            Log::error("Không tìm thấy lớp {$expectedClassName} trong năm học mới");
+            return null;
         }
 
-        if (!$promotedClass) {
-            Log::warning("Không tìm thấy lớp phù hợp trong khối {$nextGradeNumber} năm học {$nextAcademicYear->year}.");
-        }
-
-        return $promotedClass;
+        return $newClass;
     }
 
-    protected function getRetainedClass(ClassModel $currentClass, AcademicYear $nextAcademicYear)
+    protected function findRetainedClass($currentClass, $nextAcademicYear)
     {
-        $retainedClass = ClassModel::where('academic_year_id', $nextAcademicYear->id)
+        // Giữ nguyên tên lớp, chỉ thay năm học
+        return ClassModel::where('academic_year_id', $nextAcademicYear->id)
             ->where('grade_level_id', $currentClass->grade_level_id)
             ->where('name', $currentClass->name)
-            ->where('school_id', $currentClass->school_id)
             ->first();
-
-        if (!$retainedClass) {
-            $retainedClass = ClassModel::where('academic_year_id', $nextAcademicYear->id)
-                ->where('grade_level_id', $currentClass->grade_level_id)
-                ->where('school_id', $currentClass->school_id)
-                ->first();
-        }
-
-        if (!$retainedClass) {
-            Log::warning("Không tìm thấy lớp ở lại phù hợp trong khối {$currentClass->gradeLevel->grade_number} năm học {$nextAcademicYear->year}.");
-        }
-
-        return $retainedClass;
     }
     private function getDirectStudentValidationRules(Request $request, ClassModel $class): array
     {

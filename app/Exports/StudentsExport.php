@@ -52,9 +52,11 @@ class StudentsExport implements FromCollection, WithHeadings, WithMapping, Shoul
             'Giới tính',
             'Ngày sinh',
             'Địa chỉ',
+            'Khối đăng ký',
             'Tên phụ huynh',
             'Email phụ huynh',
-            'Số điện thoại phụ huynh'
+            'Số điện thoại phụ huynh',
+
         ];
 
         if ($this->gradeLevelId == 10) {
@@ -73,9 +75,11 @@ class StudentsExport implements FromCollection, WithHeadings, WithMapping, Shoul
             $student->gender,
             $student->date_of_birth?->format('d/m/Y'),
             $student->address,
+            $student->exam_block,
             $student->guardian_name,
             $student->guardian_email,
             $student->guardian_phone
+
         ];
 
         if ($this->gradeLevelId == 10) {

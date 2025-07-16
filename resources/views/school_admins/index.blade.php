@@ -4,6 +4,7 @@
     <style>
         .dropdown-menu {
             min-width: 80px;
+            z-index: 1050;
         }
 
         .dropdown-item:active,
@@ -63,9 +64,9 @@
                                             <i class="fas fa-ellipsis-v text-muted"></i>
                                         </button>
                                         <ul class="dropdown-menu dropdown-menu-end shadow-sm rounded-3 border-0">
-                                            <li><a class="dropdown-item px-3 py-2"
+                                            <li><a class="dropdown-item"
                                                    href="{{ route('school_admins.show', $admin->id) }}">Xem</a></li>
-                                            <li><a class="dropdown-item px-3 py-2"
+                                            <li><a class="dropdown-item"
                                                    href="{{ route('school_admins.edit', $admin->id) }}">Sửa</a></li>
                                         </ul>
                                     </div>

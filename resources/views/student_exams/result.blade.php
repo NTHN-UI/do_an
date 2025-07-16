@@ -22,7 +22,7 @@
                         <p class="mb-1"><strong>Lớp:</strong> {{ $assignment->class->name }}</p>
                     </div>
                     <div class="col-md-4">
-                        <p class="mb-1"><strong>Thời gian làm bài:</strong> {{ gmdate("i:s", $result->time_taken) }}
+                        <p class="mb-1"><strong>Thời gian còn lại:</strong> {{ gmdate("i:s", $result->time_taken) }}
                             phút</p>
                     </div>
                 </div>

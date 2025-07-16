@@ -26,8 +26,7 @@
                                     @foreach($academicYears as $year)
                                         <option
                                             value="{{ $year->id }}" {{ $selectedAcademicYearId == $year->id ? 'selected' : '' }}>
-                                            {{ $year->year }} ({{ $year->start_date->format('d/m/Y') }}
-                                            - {{ $year->end_date->format('d/m/Y') }})
+                                            {{ $year->year }}
                                         </option>
                                     @endforeach
                                 </select>
@@ -221,9 +220,7 @@
         <div class="modal-dialog modal-lg">
             <div class="modal-content border-0 shadow">
                 <div class="modal-header bg-primary-color text-white">
-                    <h5 class="modal-title fw-bold" id="importModalLabel">
-                        <i class="fas fa-upload me-2"></i>Import điểm từ file Excel
-                    </h5>
+                    <h5 class="modal-title fw-bold" id="importModalLabel">Import điểm từ file Excel</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
                             aria-label="Close"></button>
                 </div>
@@ -273,11 +270,9 @@
                     </div>
                 </div>
                 <div class="modal-footer bg-light">
-                    <button type="button" class="btn btn-outline-secondary px-4" data-bs-dismiss="modal">
-                        <i class="fas fa-times me-2"></i>Hủy bỏ
+                    <button type="button" class="btn btn-outline-primary-color px-4" data-bs-dismiss="modal">Đóng
                     </button>
-                    <button type="button" class="btn btn-primary-color px-4">
-                        <i class="fas fa-check me-2"></i>Xác nhận Import
+                    <button type="button" class="btn btn-primary-color px-4">Xác nhận Import
                     </button>
                 </div>
             </div>

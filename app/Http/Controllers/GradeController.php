@@ -130,7 +130,7 @@ class GradeController extends Controller
                             $final1Score = $final1 ? $final1->score : null;
                             $final2Score = $final2 ? $final2->score : null;
 
-                            $average = ($final1Score && $final2Score) ? ($final1Score + $final2Score) / 2 : null;
+                            $average = ($final1Score && $final2Score) ? round(($final1Score + $final2Score * 2) / 3,1 ) : null;
 
                             $grades[$student->id]['semester1'] = $final1Score ?? '-';
                             $grades[$student->id]['semester2'] = $final2Score ?? '-';
@@ -171,10 +171,38 @@ class GradeController extends Controller
                                     'is_special' => true,
                                     'display_average' => $specialResult['result'],
                                     'reason' => $specialResult['reason'],
-                                    $grades[$student->id]['semester_result'] = $specialResult['result']
-
                                 ];
+                                $grades[$student->id]['semester_result'] = $specialResult['result'];
+
                             } else {
+//                                $grades[$student->id][$subject->id] = [
+//                                    'fifteen_minutes' => [
+//                                        $subjectGrades['fifteen_minutes'][0] ?? null,
+//                                        $subjectGrades['fifteen_minutes'][1] ?? null,
+//                                        $subjectGrades['fifteen_minutes'][2] ?? null,
+//                                    ],
+//                                    'one_period' => $subjectGrades['one_period'][0] ?? null,
+//                                    'semester' => $subjectGrades['semester'][0] ?? null,
+//                                    'is_special' => false
+//                                ];
+//
+//                                $subjectAverage = $this->calculateSubjectAverage($grades[$student->id][$subject->id]);
+//
+//                                    $totalScore += $subjectAverage;
+//                                    $subjectCount++;
+//
+//
+//                                $grades[$student->id][$subject->id]['average'] = round($subjectAverage, 1);
+//                                $grades[$student->id][$subject->id]['display_average'] = round($subjectAverage, 1);
+//                            }
+                                $finalGrade = $subjectGrades['final'][0] ?? null;
+                                $subjectAverage = $finalGrade ? $finalGrade->score : null;
+
+                                if ($subjectAverage !== null) {
+                                    $totalScore += $subjectAverage;
+                                    $subjectCount++;
+                                }
+
                                 $grades[$student->id][$subject->id] = [
                                     'fifteen_minutes' => [
                                         $subjectGrades['fifteen_minutes'][0] ?? null,
@@ -183,18 +211,10 @@ class GradeController extends Controller
                                     ],
                                     'one_period' => $subjectGrades['one_period'][0] ?? null,
                                     'semester' => $subjectGrades['semester'][0] ?? null,
-                                    'is_special' => false
+                                    'is_special' => false,
+                                    'average' => $subjectAverage,
+                                    'display_average' => $subjectAverage ?? '-'
                                 ];
-
-                                $subjectAverage = $this->calculateSubjectAverage($grades[$student->id][$subject->id]);
-
-                                if ($subjectAverage > 0) {
-                                    $totalScore += $subjectAverage;
-                                    $subjectCount++;
-                                }
-
-                                $grades[$student->id][$subject->id]['average'] = round($subjectAverage, 1);
-                                $grades[$student->id][$subject->id]['display_average'] = round($subjectAverage, 1);
                             }
                         }
 
@@ -289,45 +309,45 @@ class GradeController extends Controller
 
         return $weights > 0 ? round($total / $weights, 1) : 0;
     }
-    private function calculateSemesterResult($grades)
-    {
-        $passedFifteenMinutes = 0;
-        $fifteenMinutes = $grades->where('test_type', 'fifteen_minute');
-
-        foreach ($fifteenMinutes as $grade) {
-            if ($grade->text_value === 'Đạt' || $grade->score >= 5) {
-                $passedFifteenMinutes++;
-            }
-        }
-
-        $onePeriod = $grades->where('test_type', 'one_period')->first();
-        $onePeriodPassed = $onePeriod && ($onePeriod->text_value === 'Đạt' || $onePeriod->score >= 5);
-        $eligibleForFinal = ($passedFifteenMinutes >= 2) && $onePeriodPassed;
-
-        $final = $grades->where('test_type', 'final')->first();
-        if (!$eligibleForFinal) {
-            return ['result' => 'Chưa đạt', 'reason' => 'Không đủ điều kiện thi'];
-        }
-
-        if ($final) {
-            $finalPassed = ($final->text_value === 'Đạt' || $final->score >= 5);
-            return ['result' => $finalPassed ? 'Đạt' : 'Chưa đạt', 'reason' => $finalPassed ? '' : 'Không đạt điểm cuối kỳ'];
-        }
-
-        return ['result' => 'Chưa đạt', 'reason' => 'Chưa có điểm cuối kỳ'];
-    }
+//    private function calculateSemesterResult($grades)
+//    {
+//        $passedFifteenMinutes = 0;
+//        $fifteenMinutes = $grades->where('test_type', 'fifteen_minute');
+//
+//        foreach ($fifteenMinutes as $grade) {
+//            if ($grade->text_value === 'Đạt' || $grade->score >= 5) {
+//                $passedFifteenMinutes++;
+//            }
+//        }
+//
+//        $onePeriod = $grades->where('test_type', 'one_period')->first();
+//        $onePeriodPassed = $onePeriod && ($onePeriod->text_value === 'Đạt' || $onePeriod->score >= 5);
+//        $eligibleForFinal = ($passedFifteenMinutes >= 2) && $onePeriodPassed;
+//
+//        $final = $grades->where('test_type', 'final')->first();
+//        if (!$eligibleForFinal) {
+//            return ['result' => 'Chưa đạt', 'reason' => 'Không đủ điều kiện thi'];
+//        }
+//
+//        if ($final) {
+//            $finalPassed = ($final->text_value === 'Đạt' || $final->score >= 5);
+//            return ['result' => $finalPassed ? 'Đạt' : 'Chưa đạt', 'reason' => $finalPassed ? '' : 'Không đạt điểm cuối kỳ'];
+//        }
+//
+//        return ['result' => 'Chưa đạt', 'reason' => 'Chưa có điểm cuối kỳ'];
+//    }
     private function calculateSpecialSubjectResult($subjectGrades)
     {
         $passedFifteenMinutes = 0;
         foreach ($subjectGrades['fifteen_minutes'] ?? [] as $grade) {
-            if ($grade && ($grade->text_value === 'Đạt' || $grade->score >= 5)) {
+            if ($grade && ($grade->text_value === 'Đạt')) {
                 $passedFifteenMinutes++;
             }
         }
         $onePeriodPassed = false;
         if (isset($subjectGrades['one_period'][0])) {
             $onePeriodGrade = $subjectGrades['one_period'][0];
-            $onePeriodPassed = ($onePeriodGrade->text_value === 'Đạt' || $onePeriodGrade->score >= 5);
+            $onePeriodPassed = ($onePeriodGrade->text_value === 'Đạt');
         }
 
         $eligibleForFinal = ($passedFifteenMinutes >= 2) && $onePeriodPassed;
@@ -335,7 +355,7 @@ class GradeController extends Controller
         $finalPassed = false;
         if (isset($subjectGrades['semester'][0])) {
             $finalGrade = $subjectGrades['semester'][0];
-            $finalPassed = ($finalGrade->text_value === 'Đạt' || $finalGrade->score >= 5);
+            $finalPassed = ($finalGrade->text_value === 'Đạt' );
         }
 
         if (!$eligibleForFinal) {
@@ -520,7 +540,9 @@ class GradeController extends Controller
         $subjectAverages = [];
         foreach ($grades as $semesterId => $semesterGrades) {
             foreach ($semesterGrades as $subjectId => $subjectGrades) {
-                $subjectAverages[$semesterId][$subjectId] = $this->calculateSubjectAverage($subjectGrades);
+//                $subjectAverages[$semesterId][$subjectId] = $this->calculateSubjectAverage($subjectGrades);
+                $finalGrade = $subjectGrades['final'][0] ?? null;
+                $subjectAverages[$semesterId][$subjectId] = $finalGrade ? $finalGrade->score : null;
             }
         }
 
@@ -658,42 +680,145 @@ class GradeController extends Controller
                 $specialSubjects = ['Giáo dục quốc phòng và an ninh', 'Giáo dục thể chất', 'Nghệ thuật'];
 
                 foreach ($students as $student) {
+                    // Khởi tạo biến đếm và tổng điểm cho các môn điểm số
+                    $totalScoreHK1 = 0;
+                    $countHK1 = 0;
+                    $totalScoreHK2 = 0;
+                    $countHK2 = 0;
+                    $totalScoreYearly = 0;
+                    $countYearly = 0;
+
                     $result = [
                         'semester1' => ['subjects' => [], 'display_subjects' => [], 'average' => null, 'classification' => ''],
                         'semester2' => ['subjects' => [], 'display_subjects' => [], 'average' => null, 'classification' => ''],
                         'yearly' => ['subjects' => [], 'display_subjects' => [], 'average' => null, 'classification' => '']
                     ];
 
+                    // Khởi tạo mảng để lưu dữ liệu chi tiết cho classifyStudent
+                    $classificationDataHK1 = [];
+                    $classificationDataHK2 = [];
+                    $classificationDataCN = [];
+
                     foreach ($subjects as $subject) {
                         $isSpecial = in_array($subject->name, $specialSubjects);
 
+                        // Lấy điểm HK1
                         $semester1Grade = $groupedGrades[$student->id][$semester1->id][$subject->id][0] ?? null;
                         $semester1Score = $semester1Grade ? ($semester1Grade->score ?? 0) : 0;
                         $semester1Text = $semester1Grade ? ($semester1Grade->text_value ?? null) : null;
                         $result['semester1']['subjects'][$subject->id] = $semester1Score;
                         $result['semester1']['display_subjects'][$subject->id] = $this->formatGradeDisplay($semester1Score, $semester1Text, $isSpecial);
 
+                        // Lấy điểm HK2
                         $semester2Grade = $groupedGrades[$student->id][$semester2->id][$subject->id][0] ?? null;
                         $semester2Score = $semester2Grade ? ($semester2Grade->score ?? 0) : 0;
                         $semester2Text = $semester2Grade ? ($semester2Grade->text_value ?? null) : null;
                         $result['semester2']['subjects'][$subject->id] = $semester2Score;
                         $result['semester2']['display_subjects'][$subject->id] = $this->formatGradeDisplay($semester2Score, $semester2Text, $isSpecial);
 
-                        if ($semester1Grade && $semester2Grade) {
-                            if ($isSpecial) {
-                                $yearlyScore = $semester2Score;
-                                $yearlyText = $semester2Text ?: ($semester2Score >= 5 ? 'Đạt' : 'Chưa đạt');
+                        $yearlyScore = null;
 
+                        if ($isSpecial) {
+                            // [ĐÃ SỬA] Tính kết quả cả năm cho môn đặc biệt dựa trên HK2, dù có đủ điểm hay không
+                            $yearlyResult = $this->formatGradeDisplay($semester2Score, $semester2Text, true);
+
+                            // [ĐÃ SỬA] Luôn thiết lập yearly display subject để tránh lỗi "Undefined array key"
+                            $result['yearly']['display_subjects'][$subject->id] = $yearlyResult;
+
+                            // Nếu có điểm HK1 và HK2, tính yearlyScore (cho trường hợp điểm số, không phải nhận xét)
+                            if ($semester1Grade && $semester2Grade) {
+                                $yearlyScore = $semester2Score; // Lấy điểm HK2 nếu có
                                 $result['yearly']['subjects'][$subject->id] = $yearlyScore;
-                                $result['yearly']['display_subjects'][$subject->id] = $yearlyText;
                             } else {
+                                $result['yearly']['subjects'][$subject->id] = 0; // Mặc định 0 nếu không có đủ điểm
+                            }
+
+                        } else {
+                            // Môn thường
+                            if ($semester1Grade && $semester2Grade) {
                                 $yearlyScore = round(($semester1Score + $semester2Score * 2) / 3, 1);
                                 $result['yearly']['subjects'][$subject->id] = $yearlyScore;
                                 $result['yearly']['display_subjects'][$subject->id] = $yearlyScore;
+                            } else {
+                                $result['yearly']['subjects'][$subject->id] = 0;
+                                $result['yearly']['display_subjects'][$subject->id] = '-';
                             }
                         }
+
+                        // Tính tổng điểm và đếm số môn chỉ đối với Môn Điểm Số
+                        if (!$isSpecial) {
+                            $totalScoreHK1 += $semester1Score;
+                            $countHK1++;
+
+                            $totalScoreHK2 += $semester2Score;
+                            $countHK2++;
+
+                            // Chỉ tính điểm TBCN nếu có đủ điểm HK1 và HK2
+                            $totalScoreYearly += ($yearlyScore !== null) ? $yearlyScore : 0;
+                            $countYearly++;
+                        }
+
+                        // Lưu dữ liệu chi tiết môn học cho classifyStudent
+                        if ($isSpecial) {
+                            $classificationDataHK1[$subject->id] = [
+                                'name' => $subject->name,
+                                'is_special' => true,
+                                'display_average' => $result['semester1']['display_subjects'][$subject->id]
+                            ];
+                            $classificationDataHK2[$subject->id] = [
+                                'name' => $subject->name,
+                                'is_special' => true,
+                                'display_average' => $result['semester2']['display_subjects'][$subject->id]
+                            ];
+                            $classificationDataCN[$subject->id] = [
+                                'name' => $subject->name,
+                                'is_special' => true,
+                                // [ĐÃ SỬA] Lấy dữ liệu từ $result['yearly']['display_subjects'] đã được thiết lập bên trên
+                                'yearly_result' => $result['yearly']['display_subjects'][$subject->id]
+                            ];
+                        } else {
+                            // Môn điểm số
+                            $classificationDataHK1[$subject->id] = [
+                                'name' => $subject->name,
+                                'is_special' => false,
+                                'average' => $semester1Score
+                            ];
+                            $classificationDataHK2[$subject->id] = [
+                                'name' => $subject->name,
+                                'is_special' => false,
+                                'average' => $semester2Score
+                            ];
+                            $classificationDataCN[$subject->id] = [
+                                'name' => $subject->name,
+                                'is_special' => false,
+                                'average' => $yearlyScore
+                            ];
+                        }
                     }
-                    $this->calculateAverages($result);
+
+                    // Tính điểm trung bình (TB) cho từng kỳ và cả năm
+                    $result['semester1']['average'] = $countHK1 > 0 ? round($totalScoreHK1 / $countHK1, 1) : null;
+                    $result['semester2']['average'] = $countHK2 > 0 ? round($totalScoreHK2 / $countHK2, 1) : null;
+                    $result['yearly']['average'] = $countYearly > 0 ? round($totalScoreYearly / $countYearly, 1) : null;
+
+                    // Gọi classifyStudent
+                    $result['semester1']['classification'] = $this->classifyStudent(
+                        $result['semester1']['average'],
+                        $classificationDataHK1,
+                        'semester1'
+                    );
+
+                    $result['semester2']['classification'] = $this->classifyStudent(
+                        $result['semester2']['average'],
+                        $classificationDataHK2,
+                        'semester2'
+                    );
+
+                    $result['yearly']['classification'] = $this->classifyStudent(
+                        $result['yearly']['average'],
+                        $classificationDataCN,
+                        'yearly'
+                    );
                     $studentResults[$student->id] = $result;
                 }
             }
@@ -738,12 +863,307 @@ class GradeController extends Controller
             if (!empty($validScores)) {
                 $average = round(array_sum($validScores) / count($validScores), 1);
                 $result[$semester]['average'] = $average;
-                $result[$semester]['classification'] = $this->classifyStudent($average, $result[$semester]['subjects']);
+                $semesterType = ($semester === 'yearly') ? 'yearly' : 'semester';
+
+                $result[$semester]['classification'] = $this->classifyStudent($average, $result[$semester]['subjects'],$semesterType
+                );
             }
         }
     }
 
-    private function classifyStudent($averageScore, $subjectScores)
+        public function adminViewAllGrades(Request $request)
+        {
+            // Kiểm tra quyền admin
+            if (!Auth::user()->isSchoolAdmin()) {
+                abort(403, 'Bạn không có quyền truy cập chức năng này');
+            }
+
+            $schoolId = Auth::user()->school_id;
+
+            // Lấy dữ liệu năm học
+            $academicYears = AcademicYear::where('school_id', $schoolId)
+                ->orderBy('start_date', 'desc')
+                ->get();
+
+            $currentAcademicYear = AcademicYear::where('school_id', $schoolId)
+                ->where('start_date', '<=', now())
+                ->where('end_date', '>=', now())
+                ->first();
+
+            $selectedAcademicYearId = $request->input('academic_year_id', $currentAcademicYear->id ?? $academicYears->first()->id ?? null);
+
+            // Lấy dữ liệu học kỳ
+            $semesters = Semester::where('academic_year_id', $selectedAcademicYearId)
+                ->where('school_id', $schoolId)
+                ->orderBy('start_date')
+                ->get();
+
+            $semester1 = $semesters->first();
+            $semester2 = $semesters->slice(1)->first();
+
+            // Thêm option "Cả năm"
+            $semesters = $semesters->push((object)[
+                'id' => 0,
+                'name' => 'Cả năm',
+                'academic_year_id' => $selectedAcademicYearId
+            ]);
+
+            // Lấy danh sách lớp
+            $classes = ClassModel::where('academic_year_id', $selectedAcademicYearId)
+                ->where('school_id', $schoolId)
+                ->with('gradeLevel')
+                ->orderBy('grade_level_id')
+                ->orderBy('name')
+                ->get();
+
+            $selectedClassId = $request->input('class_id');
+            $selectedSemesterId = $request->input('semester_id');
+
+            // Khởi tạo biến
+            $students = collect();
+            $grades = [];
+            $subjects = collect();
+            $classDetails = null;
+            $selectedSemester = null;
+
+            if ($selectedClassId && $selectedSemesterId !== null) {
+                $classDetails = ClassModel::with('gradeLevel')->find($selectedClassId);
+                $selectedSemester = $selectedSemesterId == 0
+                    ? (object)['id' => 0, 'name' => 'Cả năm']
+                    : Semester::find($selectedSemesterId);
+
+                // Lấy danh sách học sinh
+                $students = User::whereHas('studentClasses', function ($query) use ($selectedClassId, $selectedAcademicYearId) {
+                    $query->where('student_classes.class_id', $selectedClassId)
+                        ->where('student_classes.academic_year_id', $selectedAcademicYearId);
+                })->orderBy('full_name')->get();
+
+                $subjects = Subject::where('school_id', $schoolId)->get();
+
+                if ($students->isNotEmpty()) {
+                    if ($selectedSemesterId == 0) {
+                        // Xử lý xem điểm cả năm
+                        if (!$semester1 || !$semester2) {
+                            return redirect()->back()->with('error', 'Năm học này không có đủ 2 học kỳ để tính điểm cả năm');
+                        }
+
+                        $finalGrades = Grade::where('class_id', $selectedClassId)
+                            ->where('academic_year_id', $selectedAcademicYearId)
+                            ->whereIn('semester_id', [$semester1->id, $semester2->id])
+                            ->where('test_type', 'final')
+                            ->get()
+                            ->groupBy(['student_id', 'semester_id', 'subject_id']);
+
+                        $specialSubjects = ['Giáo dục quốc phòng và an ninh', 'Giáo dục thể chất', 'Nghệ thuật'];
+
+                        foreach ($students as $student) {
+                            $totalYearlyScoreNumeric = 0;
+                            $numericSubjectCount = 0;
+
+                            $result = [
+                                'semester1' => ['subjects' => [], 'display_subjects' => [], 'average' => null, 'classification' => ''],
+                                'semester2' => ['subjects' => [], 'display_subjects' => [], 'average' => null, 'classification' => ''],
+                                'yearly' => ['subjects' => [], 'display_subjects' => [], 'average' => null, 'classification' => '']
+                            ];
+
+                            foreach ($subjects as $subject) {
+                                $isSpecial = in_array($subject->name, $specialSubjects);
+
+                                // Lấy điểm học kỳ 1
+                                $semester1Grade = $finalGrades[$student->id][$semester1->id][$subject->id][0] ?? null;
+                                $semester1Score = $semester1Grade ? ($semester1Grade->score ?? 0) : 0;
+                                $semester1Text = $semester1Grade ? ($semester1Grade->text_value ?? null) : null;
+
+                                // Lấy điểm học kỳ 2
+                                $semester2Grade = $finalGrades[$student->id][$semester2->id][$subject->id][0] ?? null;
+                                $semester2Score = $semester2Grade ? ($semester2Grade->score ?? 0) : 0;
+                                $semester2Text = $semester2Grade ? ($semester2Grade->text_value ?? null) : null;
+
+                                if ($isSpecial) {
+                                    // Xử lý môn đặc biệt
+                                    $result1 = $this->formatGradeDisplay($semester1Score, $semester1Text, true);
+                                    $result2 = $this->formatGradeDisplay($semester2Score, $semester2Text, true);
+
+                                    $yearlyResult = $result2;
+
+                                    $yearlyPassStatus = ($result2 === 'Đạt' || $result2 === 'Đ' || $result2 === 'D') ? 'Đạt' : 'Chưa đạt';
+
+                                    $grades[$student->id][$subject->id] = [
+                                        'semester1_avg' => $result1,
+                                        'semester2_avg' => $result2,
+                                        'average' => $yearlyResult,
+                                        'semester1_text' => $result1,
+                                        'semester2_text' => $result2,
+                                        'yearly_result' => $yearlyResult,
+                                        'yearly_pass_status' => $yearlyPassStatus,
+                                        'is_special' => true,
+                                        'name' => $subject->name
+                                    ];
+
+                                    // Lưu vào result để tính xếp loại
+                                    $result['yearly']['subjects'][$subject->id] = $yearlyPassStatus;
+                                    $result['yearly']['special_subjects'][$subject->id] = $yearlyPassStatus;
+                                } else {
+                                    // Xử lý môn thường
+                                    $yearlyAvg = ($semester1Grade && $semester2Grade)
+                                        ? round(($semester1Score + $semester2Score * 2) / 3, 1)
+                                        : 0;
+
+                                    $grades[$student->id][$subject->id] = [
+                                        // Hiển thị '-' nếu điểm 0, nhưng vẫn tính 0 vào trung bình
+                                        'semester1_avg' => $semester1Score > 0 ? $semester1Score : '-',
+                                        'semester2_avg' => $semester2Score > 0 ? $semester2Score : '-',
+                                        'average' => $yearlyAvg > 0 ? $yearlyAvg : '-',
+                                        'is_special' => false,
+                                        'name' => $subject->name
+                                    ];
+
+                                    $totalYearlyScoreNumeric += $yearlyAvg;
+                                    $numericSubjectCount++;
+                                }
+
+                                // Thêm điểm vào kết quả để tính trung bình
+                                $result['semester1']['subjects'][$subject->id] = $semester1Score;
+                                $result['semester2']['subjects'][$subject->id] = $semester2Score;
+                                $result['yearly']['subjects'][$subject->id] = $isSpecial
+                                    ? ($semester2Score >= 5 ? $semester2Score : 0)
+                                    : $yearlyAvg;
+                            }
+
+                            $yearlyAverage = $numericSubjectCount > 0
+                                ? round($totalYearlyScoreNumeric / $numericSubjectCount, 1)
+                                : null;
+
+                            // Lưu kết quả
+                            $grades[$student->id]['yearly_average'] = $yearlyAverage;
+                            $grades[$student->id]['classification'] = $this->classifyStudent(
+                                $yearlyAverage, // Dùng $yearlyAverage đã được tính chỉ cho môn điểm số
+                                $grades[$student->id],
+                                'yearly'
+                            );
+                        }
+                    } else {
+                        // Xử lý xem điểm theo học kỳ
+                        $allGrades = Grade::where('class_id', $selectedClassId)
+                            ->where('semester_id', $selectedSemesterId)
+                            ->where('academic_year_id', $selectedAcademicYearId)
+                            ->get()
+                            ->groupBy(['student_id', 'subject_id', 'test_type']);
+
+                        $specialSubjects = ['Giáo dục quốc phòng và an ninh', 'Giáo dục thể chất', 'Nghệ thuật'];
+
+                        foreach ($students as $student) {
+                            $totalScore = 0;
+                            $subjectCount = 0;
+                            $studentGrades = [];
+
+//                            foreach ($subjects as $subject) {
+//                                $subjectGrades = $allGrades[$student->id][$subject->id] ?? [];
+//                                $isSpecial = in_array($subject->name, $specialSubjects);
+//
+//                                $gradeData = [
+//                                    'fifteen_minutes' => [
+//                                        $subjectGrades['fifteen_minutes'][0] ?? null,
+//                                        $subjectGrades['fifteen_minutes'][1] ?? null,
+//                                        $subjectGrades['fifteen_minutes'][2] ?? null,
+//                                    ],
+//                                    'one_period' => $subjectGrades['one_period'][0] ?? null,
+//                                    'semester' => $subjectGrades['semester'][0] ?? null,
+//                                    'is_special' => $isSpecial,
+//                                    'name' => $subject->name
+//                                ];
+//
+//                                if ($isSpecial) {
+//                                    $specialResult = $this->calculateSpecialSubjectResult($subjectGrades);
+//                                    $gradeData['display_average'] = $specialResult['result'];
+//                                    $gradeData['average'] = null;
+//                                } else {
+//                                    $subjectAverage = $this->calculateSubjectAverage($gradeData);
+//                                    $gradeData['average'] = round($subjectAverage, 1);
+//                                    $gradeData['display_average'] = round($subjectAverage, 1);
+//
+//                                    $totalScore += $subjectAverage;
+//                                    $subjectCount++;
+//                                }
+//
+//                                $studentGrades[$subject->id] = $gradeData;
+//                            }
+
+                            foreach ($students as $student) {
+                                $totalScore = 0;
+                                $subjectCount = 0;
+                                $studentGrades = [];
+
+                                foreach ($subjects as $subject) {
+                                    $subjectGrades = $allGrades[$student->id][$subject->id] ?? [];
+                                    $isSpecial = in_array($subject->name, $specialSubjects);
+
+                                    // Lấy điểm trung bình đã tính sẵn
+                                    $finalGrade = $subjectGrades['final'][0] ?? null;
+                                    $subjectAverage = $finalGrade ? $finalGrade->score : null;
+
+                                    $gradeData = [
+                                        'fifteen_minutes' => [
+                                            $subjectGrades['fifteen_minutes'][0] ?? null,
+                                            $subjectGrades['fifteen_minutes'][1] ?? null,
+                                            $subjectGrades['fifteen_minutes'][2] ?? null,
+                                        ],
+                                        'one_period' => $subjectGrades['one_period'][0] ?? null,
+                                        'semester' => $subjectGrades['semester'][0] ?? null,
+                                        'is_special' => $isSpecial,
+                                        'name' => $subject->name,
+                                        'average' => $subjectAverage,
+                                        'display_average' => $subjectAverage ?? '-'
+                                    ];
+
+                                    if ($isSpecial) {
+                                        // Xử lý môn đặc biệt (giữ nguyên)
+                                        $specialResult = $this->calculateSpecialSubjectResult($subjectGrades);
+                                        $gradeData['display_average'] = $specialResult['result'];
+                                    } elseif ($subjectAverage !== null) {
+                                        $totalScore += $subjectAverage;
+                                        $subjectCount++;
+                                    }
+
+                                    $studentGrades[$subject->id] = $gradeData;
+                                }
+
+                                $semesterAverage = $subjectCount > 0 ? round($totalScore / $subjectCount, 1) : null;
+
+                                $grades[$student->id] = $studentGrades;
+                                $grades[$student->id]['semester_average'] = $semesterAverage;
+
+                                // Xác định loại học kỳ để xếp loại
+                                $semesterType = ($selectedSemesterId == $semester1->id) ? 'semester1' : 'semester2';
+                                $grades[$student->id]['classification'] = $this->classifyStudent(
+                                    $semesterAverage,
+                                    $grades[$student->id],
+                                    $semesterType
+                                );
+                            }
+                        }
+                    }
+                }
+            }
+
+            return view('grades.admin_grades', compact(
+                'academicYears',
+                'semesters',
+                'classes',
+                'students',
+                'grades',
+                'subjects',
+                'selectedAcademicYearId',
+                'selectedClassId',
+                'selectedSemesterId',
+                'classDetails',
+                'selectedSemester',
+                'semester1',
+                'semester2'
+            ));
+        }
+
+    public function classifyStudent($averageScore, $subjectScores, $semesterType = 'semester')
     {
         if (!is_numeric($averageScore)) {
             return 'Chưa đạt';
@@ -755,296 +1175,132 @@ class GradeController extends Controller
             'Nghệ thuật'
         ];
 
-        $specialNotPassed = 0;
+        $stats = [
+            'special_not_passed' => 0,
+            'regular_above8' => 0,
+            'regular_above6_5' => 0,
+            'regular_above5' => 0,
+            'has_below3_5' => false,
+            'total_regular' => 0,
+            'counted_regular' => 0
+        ];
 
-        $countAbove8 = 0;
-        $countAbove6_5 = 0;
-        $countAbove5 = 0;
-        $hasBelow3_5 = false;
+        foreach ($subjectScores as $subjectId => $subjectData) {
+            if (!is_array($subjectData)) {
+                continue;
+            }
 
-        foreach ($subjectScores as $subjectName => $scoreData) {
-            $isSpecial = in_array($subjectName, $specialSubjects);
+            $isSpecial = in_array($subjectData['name'] ?? '', $specialSubjects);
 
             if ($isSpecial) {
-                $isPassed = false;
-                if (is_array($scoreData) && isset($scoreData['value'])) {
-                    $isPassed = $scoreData['value'] === 'Đạt';
-                } elseif (is_object($scoreData) && isset($scoreData->text_value)) {
-                    $isPassed = $scoreData->text_value === 'Đạt';
-                } elseif (is_numeric($scoreData)) {
-                    $isPassed = $scoreData >= 5.0;
+                // Xử lý môn đặc biệt
+                $result = ($semesterType === 'yearly')
+                    ? ($subjectData['yearly_result'] ?? $subjectData['semester2_text'] ?? 'Chưa đạt')
+                    : ($subjectData['display_average'] ?? 'Chưa đạt');
+
+                // Xử lý trường hợp không nhập (để "-")
+                if ($result === '-' || $result === '') {
+                    $result = 'Chưa đạt';
                 }
+
+                $normalizedResult = is_string($result) ? mb_strtolower(trim($result)) : $result;
+                $isPassed = in_array($normalizedResult, ['đạt', 'đ', 'd']);
 
                 if (!$isPassed) {
-                    $specialNotPassed++;
+                    $stats['special_not_passed']++;
+                    error_log("Môn đặc biệt chưa đạt: " . ($subjectData['name'] ?? '') . " - Kết quả: " . $result);
                 }
             } else {
-                $score = is_array($scoreData) ? ($scoreData['value'] ?? 0) :
-                    (is_object($scoreData) ? ($scoreData->score ?? 0) : $scoreData);
+                // Xử lý môn thường
+                $score = ($semesterType === 'yearly')
+                    ? ($subjectData['average'] ?? 0)
+                    : ($subjectData['average'] ?? 0);
 
-                if (is_numeric($score)) {
-                    if ($score >= 8.0) $countAbove8++;
-                    if ($score >= 6.5) $countAbove6_5++;
-                    if ($score >= 5.0) $countAbove5++;
-                    if ($score < 3.5) $hasBelow3_5 = true;
+                // Xử lý trường hợp không nhập (để "-")
+                if ($score === '-' || $score === '') {
+                    $score = 0;
+                }
+
+                // Ép kiểu về số nếu cần
+                $score = is_numeric($score) ? (float)$score : 0;
+
+                if ($score > 0) {
+                    $stats['total_regular']++;
+                    $stats['counted_regular']++;
+
+                    if ($score >= 8) $stats['regular_above8']++;
+                    if ($score >= 6.5) $stats['regular_above6_5']++;
+                    if ($score >= 5) $stats['regular_above5']++;
+                    if ($score < 3.5) {
+                        $stats['has_below3_5'] = true;
+                        error_log("Môn dưới 3.5 điểm: " . ($subjectData['name'] ?? '') . " - Điểm: $score");
+                    }
+                } elseif ($score == 0) {
+                    // Xử lý điểm 0 (bao gồm cả trường hợp không nhập)
+                    $stats['has_below3_5'] = true;
+                    error_log("Môn có điểm 0 hoặc không nhập: " . ($subjectData['name'] ?? ''));
                 }
             }
         }
 
-        if ($specialNotPassed === 0) {
-
-            if ($countAbove8 >= 6 && $countAbove6_5 === (count($subjectScores) - count($specialSubjects))) {
+        // Phần xếp loại giữ nguyên như trước
+        if ($semesterType === 'yearly') {
+            // 1. Loại TỐT
+            if ($stats['special_not_passed'] === 0 &&
+                $averageScore >= 6.5 &&
+                $stats['regular_above8'] >= 6 &&
+                $stats['regular_above6_5'] === $stats['counted_regular'] &&
+                !$stats['has_below3_5']) {
                 return 'Tốt';
             }
 
-            if ($countAbove6_5 >= 6 && $countAbove5 === (count($subjectScores) - count($specialSubjects))) {
+            // 2. Loại KHÁ
+            if ($stats['special_not_passed'] === 0 &&
+                $averageScore >= 5.0 &&
+                $stats['regular_above6_5'] >= 6 &&
+                $stats['regular_above5'] === $stats['counted_regular'] &&
+                !$stats['has_below3_5']) {
                 return 'Khá';
             }
-        }
 
-        if ($specialNotPassed <= 1 && $countAbove5 >= 6 && !$hasBelow3_5) {
-            return 'Đạt';
+            // 3. Loại ĐẠT
+            if ($stats['special_not_passed'] <= 1 &&
+                $stats['regular_above5'] >= 6 &&
+                !$stats['has_below3_5']) {
+                return 'Đạt';
+            }
+        }
+        // XẾP LOẠI HỌC KỲ
+        else {
+            // 1. Loại TỐT
+            if ($stats['special_not_passed'] === 0 &&
+                $averageScore >= 6.5 &&
+                $stats['regular_above8'] >= 6 &&
+                $stats['regular_above6_5'] == $stats['total_regular'] &&
+                !$stats['has_below3_5']) {
+                return 'Tốt';
+            }
+
+            // 2. Loại KHÁ
+            if ($stats['special_not_passed'] === 0 &&
+                $averageScore >= 5.0 &&
+                $stats['regular_above6_5'] >= 6 &&
+                $stats['regular_above5'] == $stats['total_regular'] &&
+                !$stats['has_below3_5']) {
+                return 'Khá';
+            }
+
+            // 3. Loại ĐẠT
+            if ($stats['special_not_passed'] <= 1 &&
+                $stats['regular_above5'] >= 6 &&
+                !$stats['has_below3_5']) {
+                return 'Đạt';
+            }
         }
 
         return 'Chưa đạt';
     }
-    public function adminViewAllGrades(Request $request)
-    {
-        if (!Auth::user()->isSchoolAdmin()) {
-            abort(403, 'Bạn không có quyền truy cập chức năng này');
-        }
 
-        $schoolId = Auth::user()->school_id;
-
-        $academicYears = AcademicYear::where('school_id', $schoolId)
-            ->orderBy('start_date', 'desc')
-            ->get();
-
-        $currentAcademicYear = AcademicYear::where('school_id', $schoolId)
-            ->where('start_date', '<=', now())
-            ->where('end_date', '>=', now())
-            ->first();
-
-        $selectedAcademicYearId = $request->input('academic_year_id', $currentAcademicYear->id ?? $academicYears->first()->id ?? null);
-
-        $semesters = Semester::where('academic_year_id', $selectedAcademicYearId)
-            ->where('school_id', $schoolId)
-            ->orderBy('start_date')
-            ->get();
-
-        $semester1 = $semesters->first();
-        $semester2 = $semesters->slice(1)->first();
-
-        $semesters = $semesters->push((object)[
-            'id' => 0,
-            'name' => 'Cả năm',
-            'academic_year_id' => $selectedAcademicYearId
-        ]);
-
-        $classes = ClassModel::where('academic_year_id', $selectedAcademicYearId)
-            ->where('school_id', $schoolId)
-            ->with('gradeLevel')
-            ->orderBy('grade_level_id')
-            ->orderBy('name')
-            ->get();
-
-        $selectedClassId = $request->input('class_id');
-        $selectedSemesterId = $request->input('semester_id');
-
-        $students = collect();
-        $grades = [];
-        $subjects = collect();
-        $classDetails = null;
-        $selectedSemester = null;
-
-        if ($selectedClassId && $selectedSemesterId !== null) {
-            $classDetails = ClassModel::with('gradeLevel')->find($selectedClassId);
-
-            $selectedSemester = $selectedSemesterId == 0
-                ? (object)['id' => 0, 'name' => 'Cả năm']
-                : Semester::find($selectedSemesterId);
-
-            $students = User::whereHas('studentClasses', function($query) use ($selectedClassId, $selectedAcademicYearId) {
-                $query->where('student_classes.class_id', $selectedClassId)
-                    ->where('student_classes.academic_year_id', $selectedAcademicYearId);
-            })->orderBy('full_name')->get();
-
-            $subjects = Subject::where('school_id', $schoolId)->get();
-
-            if ($students->isNotEmpty()) {
-                if ($selectedSemesterId == 0) {
-                    if (!$semester1 || !$semester2) {
-                        return redirect()->back()->with('error', 'Năm học này không có đủ 2 học kỳ để tính điểm cả năm');
-                    }
-
-                    $finalGrades = Grade::where('class_id', $selectedClassId)
-                        ->where('academic_year_id', $selectedAcademicYearId)
-                        ->whereIn('semester_id', [$semester1->id, $semester2->id])
-                        ->where('test_type', 'final')
-                        ->get()
-                        ->groupBy(['student_id', 'semester_id', 'subject_id']);
-
-                    $specialSubjects = ['Giáo dục quốc phòng và an ninh', 'Giáo dục thể chất', 'Nghệ thuật'];
-
-                    foreach ($students as $student) {
-                        $result = [
-                            'semester1' => ['subjects' => [], 'display_subjects' => [], 'average' => null, 'classification' => ''],
-                            'semester2' => ['subjects' => [], 'display_subjects' => [], 'average' => null, 'classification' => ''],
-                            'yearly' => ['subjects' => [], 'display_subjects' => [], 'average' => null, 'classification' => '']
-                        ];
-
-                        foreach ($students as $student) {
-                            $result = [
-                                'semester1' => ['subjects' => [], 'display_subjects' => [], 'average' => null, 'classification' => ''],
-                                'semester2' => ['subjects' => [], 'display_subjects' => [], 'average' => null, 'classification' => ''],
-                                'yearly' => ['subjects' => [], 'display_subjects' => [], 'average' => null, 'classification' => '']
-                            ];
-
-                            foreach ($subjects as $subject) {
-                                $isSpecial = in_array($subject->name, $specialSubjects);
-
-                                $semester1Grade = $finalGrades[$student->id][$semester1->id][$subject->id][0] ?? null;
-                                $semester1Score = $semester1Grade ? ($semester1Grade->score ?? 0) : 0;
-                                $semester1Text = $semester1Grade ? ($semester1Grade->text_value ?? null) : null;
-
-                                $semester2Grade = $finalGrades[$student->id][$semester2->id][$subject->id][0] ?? null;
-                                $semester2Score = $semester2Grade ? ($semester2Grade->score ?? 0) : 0;
-                                $semester2Text = $semester2Grade ? ($semester2Grade->text_value ?? null) : null;
-
-                                if ($isSpecial) {
-                                    $result1 = $semester1Text ?: 'Chưa đạt';
-                                    $result2 = $semester2Text ?: 'Chưa đạt';
-
-                                    $yearlyResult = $result2;
-
-                                    $result['semester1']['subjects'][$subject->id] = $semester1Score;
-                                    $result['semester2']['subjects'][$subject->id] = $semester2Score;
-                                    $result['yearly']['subjects'][$subject->id] = $semester2Score;
-
-                                    $result['semester1']['display_subjects'][$subject->id] = $result1;
-                                    $result['semester2']['display_subjects'][$subject->id] = $result2;
-                                    $result['yearly']['display_subjects'][$subject->id] = $yearlyResult;
-
-                                    $grades[$student->id][$subject->id] = [
-                                        'semester1_avg' => $result1,
-                                        'semester2_avg' => $result2,
-                                        'average' => $yearlyResult,
-                                        'semester1_text' => $result1,
-                                        'semester2_text' => $result2,
-                                        'yearly_result' => $yearlyResult,
-                                        'is_special' => true
-                                    ];
-                                } else {
-                                    $result['semester1']['subjects'][$subject->id] = $semester1Score;
-                                    $result['semester2']['subjects'][$subject->id] = $semester2Score;
-                                    $result['yearly']['subjects'][$subject->id] = ($semester1Grade && $semester2Grade)
-                                        ? round(($semester1Score + $semester2Score * 2) / 3, 1)
-                                        : 0;
-
-                                    $result['semester1']['display_subjects'][$subject->id] = $semester1Score > 0 ? $semester1Score : '-';
-                                    $result['semester2']['display_subjects'][$subject->id] = $semester2Score > 0 ? $semester2Score : '-';
-                                    $result['yearly']['display_subjects'][$subject->id] = ($semester1Grade && $semester2Grade)
-                                        ? round(($semester1Score + $semester2Score * 2) / 3, 1)
-                                        : '-';
-
-                                    $grades[$student->id][$subject->id] = [
-                                        'semester1_avg' => $semester1Score > 0 ? $semester1Score : '-',
-                                        'semester2_avg' => $semester2Score > 0 ? $semester2Score : '-',
-                                        'average' => ($semester1Grade && $semester2Grade)
-                                            ? round(($semester1Score + $semester2Score * 2) / 3, 1)
-                                            : '-',
-                                        'is_special' => false
-                                    ];
-                                }
-                            }
-
-                            $this->calculateAverages($result);
-
-                            $grades[$student->id]['yearly_average'] = $result['yearly']['average'];
-                            $grades[$student->id]['classification'] = $result['yearly']['classification'];
-                        }
-                    }
-
-                } else {
-                    $allGrades = Grade::where('class_id', $selectedClassId)
-                        ->where('semester_id', $selectedSemesterId)
-                        ->where('academic_year_id', $selectedAcademicYearId)
-                        ->get()
-                        ->groupBy(['student_id', 'subject_id', 'test_type']);
-
-                    $specialSubjects = ['Giáo dục quốc phòng và an ninh', 'Giáo dục thể chất', 'Nghệ thuật'];
-
-                    foreach ($students as $student) {
-                        $totalScore = 0;
-                        $subjectCount = 0;
-                        $studentGrades = [];
-
-                        foreach ($subjects as $subject) {
-                            $subjectGrades = $allGrades[$student->id][$subject->id] ?? [];
-                            $isSpecial = in_array($subject->name, $specialSubjects);
-
-                            $gradeData = [
-                                'fifteen_minutes' => [
-                                    $subjectGrades['fifteen_minutes'][0] ?? null,
-                                    $subjectGrades['fifteen_minutes'][1] ?? null,
-                                    $subjectGrades['fifteen_minutes'][2] ?? null,
-                                ],
-                                'one_period' => $subjectGrades['one_period'][0] ?? null,
-                                'semester' => $subjectGrades['semester'][0] ?? null,
-                                'is_special' => $isSpecial
-                            ];
-
-                            if ($isSpecial) {
-                                $specialResult = $this->calculateSpecialSubjectResult($subjectGrades);
-                                $gradeData['display_average'] = $specialResult['result'];
-                                $gradeData['average'] = null;
-                            } else {
-                                $subjectAverage = $this->calculateSubjectAverage($gradeData);
-                                $gradeData['average'] = round($subjectAverage, 1);
-                                $gradeData['display_average'] = round($subjectAverage, 1);
-
-                                if ($subjectAverage > 0) {
-                                    $totalScore += $subjectAverage;
-                                    $subjectCount++;
-                                }
-                            }
-
-                            $gradeData['semester1_avg'] = '-';
-                            $gradeData['semester2_avg'] = '-';
-
-                            $studentGrades[$subject->id] = $gradeData;
-                        }
-
-                        $semesterAverage = $subjectCount > 0 ? round($totalScore / $subjectCount, 1) : null;
-
-                        $grades[$student->id] = $studentGrades;
-                        $grades[$student->id]['semester_average'] = $semesterAverage;
-                        $grades[$student->id]['yearly_average'] = $semesterAverage;
-                        $grades[$student->id]['classification'] = $this->classifyStudent(
-                            $semesterAverage,
-                            $studentGrades
-                        );
-                    }
-                }
-            }
-        }
-
-        return view('grades.admin_grades', compact(
-            'academicYears',
-            'semesters',
-            'classes',
-            'students',
-            'grades',
-            'subjects',
-            'selectedAcademicYearId',
-            'selectedClassId',
-            'selectedSemesterId',
-            'classDetails',
-            'selectedSemester',
-            'semester1',
-            'semester2'
-        ));
-    }
     public function getClassesByYearAdmin(Request $request)
     {
         $academicYearId = $request->input('academic_year_id');

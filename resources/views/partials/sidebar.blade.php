@@ -350,6 +350,11 @@
                         <i class="fas fa-file-download sidebar-icon"></i> Nhận đề
                     </a>
                 </li>
+                    <li class="sidebar-item">
+                        <a class="sidebar-link" href="{{ route('student.teachers') }}">
+                            <i class="fas fa-chalkboard-teacher sidebar-icon"></i> Giáo viên của tôi
+                        </a>
+                    </li>
             @endif
 
             @if(Auth::user()->isHomeroomTeacher(session('academic_year_id')))
@@ -373,6 +378,11 @@
                         </ul>
                     </div>
                 </li>
+                    <li class="sidebar-item">
+                        <a class="sidebar-link" href="{{ route('teacher.subject_teachers') }}">
+                            <i class="fas fa-chalkboard-teacher sidebar-icon"></i> Giáo viên bộ môn
+                        </a>
+                    </li>
             @endif
 
             @if(Auth::user()->isTeacher() || Auth::user()->isStudent())

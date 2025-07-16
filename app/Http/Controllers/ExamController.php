@@ -159,7 +159,7 @@ class ExamController extends Controller
     {
         $exams = Exam::with(['subject', 'gradeLevel', 'academicYear', 'semester'])
             ->where('teacher_id', auth()->id())
-            ->orderBy('created_at', 'desc')
+            ->orderBy('created_at', 'asc')
             ->paginate(10);
 
         return view('exams.index', compact('exams'));
@@ -403,6 +403,10 @@ class ExamController extends Controller
             ->with('options')
             ->get()
             ->map(function($question) {
+                // Tìm index của đáp án đúng
+                $correctOptionIndex = $question->options->search(function($option) {
+                    return $option->is_correct;
+                });
                 return [
                     'id' => $question->id,
                     'content' => $question->content,

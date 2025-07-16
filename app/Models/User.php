@@ -33,6 +33,7 @@ class User extends Authenticatable
         'school_id',
         'subject_id',
         'entry_score',
+        'exam_block'
     ];
 
     protected $hidden = [
@@ -304,5 +305,46 @@ class User extends Authenticatable
 
         return $count > 0 ? round($total / $count, 1) : null;
     }
+    public function finalGrades()
+    {
+        return $this->hasMany(Grade::class, 'student_id')
+            ->where('test_type', 'final');
+    }
+    public function teachers()
+    {
+        return $this->hasManyThrough(
+            User::class,
+            StudentClass::class,
+            'user_id', // Foreign key on student_classes table
+            'id', // Foreign key on users table (teacher)
+            'id', // Local key on users table (student)
+            'class_id' // Local key on student_classes table
+        )->whereHas('teacherAssignments', function($query) {
+            $query->where('academic_year_id', $this->currentAcademicYearId());
+        });
+    }
 
+    public function formTeacher()
+    {
+        return $this->hasOneThrough(
+            User::class,
+            StudentClass::class,
+            'user_id',
+            'id',
+            'id',
+            'class_id'
+        )->whereHas('teacherAssignments', function($query) {
+            $query->where('academic_year_id', $this->currentAcademicYearId())
+                ->where('is_homeroom', true);
+        });
+    }
+
+    protected function currentAcademicYearId()
+    {
+        // Logic để lấy năm học hiện tại
+        return AcademicYear::where('school_id', $this->school_id)
+            ->where('start_date', '<=', now())
+            ->where('end_date', '>=', now())
+            ->value('id');
+    }
 }

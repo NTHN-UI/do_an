@@ -18,18 +18,23 @@ class ExamAssignmentController extends Controller
             ->whereHas('exam', function($query) use ($teacherId) {
                 $query->where('teacher_id', $teacherId);
             })
-            ->orderBy('created_at', 'desc')
+            ->orderBy('created_at', 'asc')
             ->paginate(10);
 
         return view('exam_assignments.index', compact('assignments'));
     }
     public function create(Exam $exam)
     {
+        $academicYearId = $exam->academic_year_id;
+
         $classes = ClassModel::where('grade_level_id', $exam->grade_level_id)
+            ->where('academic_year_id', $exam->academic_year_id)
             ->whereHas('teacherAssignments', function($query) {
                 $query->where('teacher_id', auth()->id());
             })
+            ->with('academicYear')
             ->get();
+
 
         return view('exam_assignments.create', compact('exam', 'classes'));
     }
@@ -50,7 +55,7 @@ class ExamAssignmentController extends Controller
             'start_time' => $validated['start_time'],
             'end_time' => $validated['end_time'],
             'shuffle_questions' => $request->has('shuffle_questions'),
-            'shuffle_options' => $request->has('shuffle_options'),
+            'shuffle_options' => $request->has('shuffle_optstoreions'),
         ]);
 
 
@@ -61,9 +66,12 @@ class ExamAssignmentController extends Controller
     public function show(Exam $exam)
     {
         $assignment = ExamAssignment::where('exam_id', $exam->id)
-            ->where('class_id', auth()->user()->class_id)
+            ->whereHas('class.students', function($query) {
+                $query->where('student_id', auth()->id());
+            })
+            ->where('start_time', '<=', now())
+            ->where('end_time', '>=', now())
             ->firstOrFail();
-
         $questions = $exam->questions()->with('options')->get();
 
         if ($assignment->shuffle_questions) {
